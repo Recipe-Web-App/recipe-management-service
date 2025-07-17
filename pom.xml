@@ -21,7 +21,7 @@
     <jjwt.version>0.12.3</jjwt.version>
     <junit-jupiter.version>5.10.2</junit-jupiter.version>
     <lombok.version>1.18.30</lombok.version>
-    <mapstruct.version>1.5.5.Final</mapstruct.version>
+    <mapstruct.version>1.6.3</mapstruct.version>
     <maven.compiler.source>21</maven.compiler.source>
     <maven.compiler.target>21</maven.compiler.target>
     <pmd.version>3.21.2</pmd.version>

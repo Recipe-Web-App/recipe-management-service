@@ -14,7 +14,7 @@
   <name>Recipe Manager Service</name>
   <description>Recipe management service built with Spring Boot</description>
   <properties>
-    <checkstyle.version>3.3.1</checkstyle.version>
+    <checkstyle.version>3.6.0</checkstyle.version>
     <flyway.version>10.8.1</flyway.version>
     <jacoco.version>0.8.11</jacoco.version>
     <java.version>21</java.version>

@@ -1,0 +1,129 @@
+---
+repos:
+  # YAML formatting and linting
+  - repo: https://github.com/pre-commit/mirrors-prettier
+    rev: v3.1.0
+    hooks:
+      - id: prettier
+        types: [yaml]
+        args: [--parser=yaml]
+
+  - repo: https://github.com/adrienverge/yamllint
+    rev: v1.37.1
+    hooks:
+      - id: yamllint
+        args: [--strict]
+
+  # JSON formatting
+  - repo: https://github.com/pre-commit/mirrors-prettier
+    rev: v3.1.0
+    hooks:
+      - id: prettier
+        types: [json]
+        args: [--parser=json]
+
+  # Shell script linting
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.10.0.1
+    hooks:
+      - id: shellcheck
+        args: [--severity=warning]
+
+  # XML formatting
+  - repo: https://github.com/pre-commit/mirrors-prettier
+    rev: v3.1.0
+    hooks:
+      - id: prettier
+        types: [xml]
+        additional_dependencies: [prettier-plugin-xml]
+
+  # General file checks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-json
+      - id: check-merge-conflict
+      - id: check-case-conflict
+      - id: check-added-large-files
+      - id: check-ast
+      - id: check-docstring-first
+      - id: debug-statements
+      - id: detect-private-key
+
+  # Maven specific checks
+  - repo: local
+    hooks:
+      - id: maven-checkstyle
+        name: Maven Checkstyle
+        entry: mvn
+        language: system
+        pass_filenames: false
+        always_run: true
+        args: ['checkstyle:check']
+        types: [java]
+
+      - id: maven-spotbugs
+        name: Maven SpotBugs
+        entry: mvn
+        language: system
+        pass_filenames: false
+        always_run: true
+        args: ['spotbugs:check']
+        types: [java]
+
+      - id: maven-pmd
+        name: Maven PMD
+        entry: mvn
+        language: system
+        pass_filenames: false
+        always_run: true
+        args: ['pmd:check']
+        types: [java]
+
+      - id: maven-imports
+        name: Maven Import Sorter
+        entry: mvn
+        language: system
+        pass_filenames: false
+        always_run: true
+        args: ['sortpom:sort']
+        types: [java]
+
+      - id: spotless-check
+        name: spotless-check
+        entry: mvn
+        args: ['spotless:check']
+        language: system
+        pass_filenames: false
+        always_run: true
+        types: [java]
+
+      - id: spotless-apply
+        name: spotless-apply
+        entry: mvn
+        args: ['spotless:apply']
+        language: system
+        pass_filenames: false
+        always_run: true
+        types: [java]
+
+      - id: sortpom-sort
+        name: sortpom-sort
+        entry: mvn
+        args: ['sortpom:sort']
+        language: system
+        pass_filenames: false
+        always_run: true
+        files: pom.xml
+
+      - id: sortpom-verify
+        name: sortpom-verify
+        entry: mvn
+        args: ['sortpom:verify']
+        language: system
+        pass_filenames: false
+        always_run: true
+        files: pom.xml

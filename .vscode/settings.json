@@ -1,0 +1,26 @@
+{
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll": "explicit",
+    "source.organizeImports": "explicit"
+  },
+  "editor.tabSize": 2,
+  "editor.insertSpaces": true,
+  "editor.detectIndentation": false,
+  "editor.rulers": [100],
+  "files.trimTrailingWhitespace": true,
+  "files.insertFinalNewline": true,
+  "files.trimFinalNewlines": true,
+  "java.format.enabled": true,
+  "java.saveActions.organizeImports": true,
+  "java.completion.importOrder": ["java", "javax", "com", "org"],
+  "yaml.format.enable": true,
+  "yaml.validate": true,
+  "json.format.enable": true,
+  "xml.format.enabled": true,
+  "shellcheck.enable": true,
+  "shellcheck.run": "onSave",
+  "checkstyle.enable": true,
+  "checkstyle.configuration": "./checkstyle.xml",
+  "checkstyle.run": "onSave"
+}

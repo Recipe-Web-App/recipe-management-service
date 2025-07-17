@@ -1,0 +1,70 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: recipe-manager-service
+  labels:
+    app: recipe-manager-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: recipe-manager-service
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  template:
+    metadata:
+      labels:
+        app: recipe-manager-service
+    spec:
+      containers:
+        - name: recipe-manager-service
+          image: your-docker-repo/recipe-manager-service:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+          env:
+            - name: DB_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: recipe-manager-secrets
+                  key: db_host
+            - name: DB_PORT
+              value: '5432'
+            - name: DB_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: recipe-manager-secrets
+                  key: db_name
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: recipe-manager-secrets
+                  key: db_user
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: recipe-manager-secrets
+                  key: db_password
+          resources:
+            requests:
+              memory: '512Mi'
+              cpu: '250m'
+            limits:
+              memory: '1Gi'
+              cpu: '500m'
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 20

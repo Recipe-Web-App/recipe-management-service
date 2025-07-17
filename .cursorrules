@@ -1,0 +1,127 @@
+# Recipe Manager Service - Cursor Rules
+
+## Project Overview
+
+This is a Java Spring Boot recipe management service with the following characteristics:
+
+- Java 21, Spring Boot 3.2ostgreSQL database with Flyway migrations
+- Kubernetes deployment
+- Maven build system
+- Comprehensive testing with JUnit5and Testcontainers
+
+## Code Style & Standards
+
+- Use 2-space indentation (configured in .editorconfig)
+- Max line length: 100 characters
+- Follow Google Java Style Guide
+- All public classes, methods, and fields must have Javadoc
+- Use meaningful variable and method names
+- Prefer composition over inheritance
+
+## Architecture Guidelines
+
+- Follow Spring Boot best practices
+- Use dependency injection
+- Implement proper exception handling
+- Use DTOs for API responses
+- Follow RESTful API design principles
+- Use MapStruct for object mapping
+- Implement proper validation with @Valid
+
+## Testing Requirements
+
+- Aim for 90%+ code coverage
+- Write unit tests for all service methods
+- Use Testcontainers for integration tests
+- Mock external dependencies
+- Test both happy path and edge cases
+
+## Security Guidelines
+
+- Never commit secrets or sensitive data
+- Use environment variables for configuration
+- Validate all input data
+- Implement proper authentication/authorization
+- Follow OWASP security guidelines
+
+## Database Guidelines
+
+- Use JPA/Hibernate for data access
+- Write database migrations with Flyway
+- Use proper indexing strategies
+- Implement soft deletes where appropriate
+- Use transactions appropriately
+
+## API Design
+
+- Use consistent REST endpoints
+- Implement proper HTTP status codes
+- Use meaningful error messages
+- Version APIs appropriately
+- Document APIs with OpenAPI/Swagger
+
+## Performance Guidelines
+
+- Use connection pooling
+- Implement caching where appropriate
+- Monitor application metrics
+- Use async processing for long-running tasks
+- Optimize database queries
+
+## Error Handling
+
+- Use custom exception classes
+- Implement global exception handlers
+- Log errors appropriately
+- Return meaningful error responses
+- Dont expose internal details in production
+
+## Documentation
+
+- Write comprehensive Javadoc
+- Keep README.md updated
+- Document API endpoints
+- Include setup and deployment instructions
+- Document configuration options
+
+## Git & CI/CD
+
+- Write descriptive commit messages
+- Use conventional commit format
+- All tests must pass before merge
+- Code coverage must not decrease
+- Security scans must pass
+
+## Dependencies
+
+- Keep dependencies up to date
+- Use specific versions, not ranges
+- Review security advisories
+- Minimize transitive dependencies
+- Document why each dependency is needed
+
+## Kubernetes & Deployment
+
+- Use environment-specific configurations
+- Implement health checks
+- Use resource limits and requests
+- Follow 12-factor app principles
+- Use secrets for sensitive data
+
+## Monitoring & Observability
+
+- Use Spring Boot Actuator
+- Implement structured logging
+- Add metrics for business operations
+- Use distributed tracing
+- Monitor application health
+
+## Code Review Guidelines
+
+- Review for security vulnerabilities
+- Check for performance issues
+- Ensure proper error handling
+- Verify test coverage
+- Check for code style compliance
+
+Remember: This is a production service that will handle real user data. Always prioritize security, reliability, and maintainability.

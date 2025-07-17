@@ -1,0 +1,33 @@
+---
+# Main Spring Boot application configuration
+server:
+  port: 8080
+
+spring:
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:recipe_db}
+    username: ${DB_USER:user_name}
+    password: ${DB_PASSWORD:password}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+        default_schema: ${DB_SCHEMA:public}
+
+logging:
+  level:
+    root: INFO
+    org.springframework.web: WARN
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  metrics:
+    export:
+      prometheus:
+        enabled: true

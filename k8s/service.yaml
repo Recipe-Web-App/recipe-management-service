@@ -1,0 +1,15 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: recipe-manager-service
+  labels:
+    app: recipe-manager-service
+spec:
+  type: ClusterIP
+  selector:
+    app: recipe-manager-service
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080

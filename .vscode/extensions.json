@@ -1,0 +1,19 @@
+{
+  "recommendations": [
+    "vscjava.vscode-java-pack",
+    "redhat.java",
+    "vscjava.vscode-java-debug",
+    "vscjava.vscode-java-test",
+    "vscjava.vscode-maven",
+    "vscjava.vscode-java-dependency",
+    "redhat.vscode-yaml",
+    "ms-vscode.vscode-json",
+    "ms-vscode.vscode-xml",
+    "ms-vscode.vscode-shellcheck",
+    "ms-vscode.vscode-checkstyle",
+    "ms-vscode.vscode-spotbugs",
+    "ms-vscode.vscode-pmd",
+    "ms-vscode.vscode-prettier",
+    "ms-vscode.vscode-editorconfig"
+  ]
+}

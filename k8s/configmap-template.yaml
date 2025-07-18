@@ -3,11 +3,11 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: recipe-manager-config
-  namespace: default
-  labels:
-    app: recipe-manager-service
+  namespace: recipe-manager
+
 data:
-  db_host: ${DB_HOST}
-  db_name: ${DB_NAME}
-  db_user: ${DB_USER}
-  db_schema: ${DB_SCHEMA}
+  POSTGRES_HOST: 'recipe-database-service.recipe-database.svc.cluster.local'
+  POSTGRES_PORT: '5432'
+  POSTGRES_DB: 'recipe_database'
+  POSTGRES_SCHEMA: 'recipe_manager'
+  RECIPE_MANAGEMENT_DB_USER: 'recipe_management_user'

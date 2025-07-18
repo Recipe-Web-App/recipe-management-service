@@ -18,9 +18,10 @@ spring:
   application:
     name: recipe-manager-service
   datasource:
-    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:recipe_db}
-    username: ${DB_USER:user_name}
-    password: ${DB_PASSWORD:password}
+    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_DB:recipe_db}
+    username: ${RECIPE_MANAGEMENT_DB_USER:recipe_user}
+    password: ${RECIPE_MANAGEMENT_DB_PASSWORD:your_db_password}
+    schema: ${POSTGRES_SCHEMA:my_schema}
     hikari:
       maximum-pool-size: 20
       minimum-idle: 5

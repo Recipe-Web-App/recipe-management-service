@@ -1,29 +1,28 @@
 ---
+# k8s/deployment.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: recipe-manager-service
+  namespace: recipe-manager
   labels:
     app: recipe-manager-service
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: recipe-manager-service
-  strategy:
-    type: RollingUpdate
-    rollingUpdate:
-      maxSurge: 1
-      maxUnavailable: 1
   template:
     metadata:
       labels:
         app: recipe-manager-service
     spec:
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 10
       containers:
         - name: recipe-manager-service
-          image: your-docker-repo/recipe-manager-service:latest
-          imagePullPolicy: IfNotPresent
+          image: recipe-manager-service:latest
+          imagePullPolicy: Never
           ports:
             - containerPort: 8080
           env:
@@ -57,22 +56,22 @@ spec:
                 secretKeyRef:
                   name: recipe-manager-secrets
                   key: RECIPE_MANAGEMENT_DB_PASSWORD
-          resources:
-            requests:
-              memory: '512Mi'
-              cpu: '250m'
-            limits:
-              memory: '1Gi'
-              cpu: '500m'
-          readinessProbe:
-            httpGet:
-              path: /actuator/health
-              port: 8080
-            initialDelaySeconds: 15
-            periodSeconds: 10
           livenessProbe:
             httpGet:
               path: /actuator/health
               port: 8080
             initialDelaySeconds: 30
-            periodSeconds: 20
+            periodSeconds: 60
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 60
+          resources:
+            requests:
+              cpu: '200m'
+              memory: '256Mi'
+            limits:
+              cpu: '1'
+              memory: '1Gi'

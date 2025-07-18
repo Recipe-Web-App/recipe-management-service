@@ -55,6 +55,14 @@
       <artifactId>caffeine</artifactId>
     </dependency>
 
+    <!-- Static Analysis / Code Quality -->
+    <dependency>
+      <groupId>com.github.spotbugs</groupId>
+      <artifactId>spotbugs-annotations</artifactId>
+      <version>4.7.3</version>
+      <scope>compile</scope>
+    </dependency>
+
     <!-- JWT Dependencies -->
     <dependency>
       <groupId>io.jsonwebtoken</groupId>

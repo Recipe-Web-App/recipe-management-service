@@ -1,0 +1,241 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+  <!-- Include Spring Boot's default configuration -->
+  <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+
+  <!-- Define properties -->
+  <springProfile name="!prod">
+    <!-- Development/Test profile -->
+    <property name="LOG_PATTERN" value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} [%X{requestId}] - %msg%n"/>
+    <property name="CONSOLE_PATTERN" value="%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(${LOG_EXCEPTION_CONVERSION_WORD:-%wEx})"/>
+    <property name="LOG_FILE" value="logs/recipe-manager-service.log"/>
+  </springProfile>
+
+  <springProfile name="prod">
+    <!-- Production profile -->
+    <property name="LOG_PATTERN" value="%d{yyyy-MM-dd'T'HH:mm:ss.SSSZ} [%thread] %-5level %logger{36} [%X{requestId}] [%X{userId}] - %msg%n"/>
+    <property name="CONSOLE_PATTERN" value="%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(${LOG_EXCEPTION_CONVERSION_WORD:-%wEx})"/>
+    <property name="LOG_FILE" value="/var/log/recipe-manager-service/application.log"/>
+  </springProfile>
+
+  <!-- Console Appender - Pretty printed with colors -->
+  <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <pattern>%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr([%thread]){magenta} %clr(%-5level) %clr(%logger{36}){cyan} %clr([%X{requestId}]){yellow} - %msg%n</pattern>
+    </encoder>
+  </appender>
+
+  <!-- JSON File Appender for structured logging in files -->
+  <appender name="JSON_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <file>${LOG_FILE}</file>
+    <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+      <providers>
+        <timestamp/>
+        <logLevel/>
+        <loggerName/>
+        <message/>
+        <mdc/>
+        <stackTrace/>
+        <threadName/>
+        <callerData/>
+      </providers>
+    </encoder>
+    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+      <fileNamePattern>${LOG_FILE}.%d{yyyy-MM-dd}.%i.gz</fileNamePattern>
+      <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+        <maxFileSize>100MB</maxFileSize>
+      </timeBasedFileNamingAndTriggeringPolicy>
+      <maxHistory>30</maxHistory>
+      <totalSizeCap>3GB</totalSizeCap>
+    </rollingPolicy>
+  </appender>
+
+  <!-- JSON Error File Appender -->
+  <appender name="JSON_ERROR_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <file>${LOG_FILE}.error</file>
+    <filter class="ch.qos.logback.classic.filter.LevelFilter">
+      <level>ERROR</level>
+      <onMatch>ACCEPT</onMatch>
+      <onMismatch>DENY</onMismatch>
+    </filter>
+    <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+      <providers>
+        <timestamp/>
+        <logLevel/>
+        <loggerName/>
+        <message/>
+        <mdc/>
+        <stackTrace/>
+        <threadName/>
+        <callerData/>
+      </providers>
+    </encoder>
+    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+      <fileNamePattern>${LOG_FILE}.error.%d{yyyy-MM-dd}.%i.gz</fileNamePattern>
+      <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+        <maxFileSize>100MB</maxFileSize>
+      </timeBasedFileNamingAndTriggeringPolicy>
+      <maxHistory>30</maxHistory>
+      <totalSizeCap>1GB</totalSizeCap>
+    </rollingPolicy>
+  </appender>
+
+  <!-- JSON Security File Appender -->
+  <appender name="JSON_SECURITY_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <file>${LOG_FILE}.security</file>
+    <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+      <providers>
+        <timestamp/>
+        <logLevel/>
+        <loggerName/>
+        <message/>
+        <mdc/>
+        <stackTrace/>
+        <threadName/>
+        <callerData/>
+      </providers>
+    </encoder>
+    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+      <fileNamePattern>${LOG_FILE}.security.%d{yyyy-MM-dd}.%i.gz</fileNamePattern>
+      <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+        <maxFileSize>100MB</maxFileSize>
+      </timeBasedFileNamingAndTriggeringPolicy>
+      <maxHistory>90</maxHistory>
+      <totalSizeCap>2GB</totalSizeCap>
+    </rollingPolicy>
+  </appender>
+
+  <!-- Legacy File Appenders for non-production (optional) -->
+  <springProfile name="!prod">
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+      <file>${LOG_FILE}</file>
+      <encoder>
+        <pattern>${LOG_PATTERN}</pattern>
+      </encoder>
+      <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+        <fileNamePattern>${LOG_FILE}.%d{yyyy-MM-dd}.%i.gz</fileNamePattern>
+        <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+          <maxFileSize>100MB</maxFileSize>
+        </timeBasedFileNamingAndTriggeringPolicy>
+        <maxHistory>30</maxHistory>
+        <totalSizeCap>3GB</totalSizeCap>
+      </rollingPolicy>
+    </appender>
+
+    <appender name="ERROR_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+      <file>${LOG_FILE}.error</file>
+      <filter class="ch.qos.logback.classic.filter.LevelFilter">
+        <level>ERROR</level>
+        <onMatch>ACCEPT</onMatch>
+        <onMismatch>DENY</onMismatch>
+      </filter>
+      <encoder>
+        <pattern>${LOG_PATTERN}</pattern>
+      </encoder>
+      <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+        <fileNamePattern>${LOG_FILE}.error.%d{yyyy-MM-dd}.%i.gz</fileNamePattern>
+        <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+          <maxFileSize>100MB</maxFileSize>
+        </timeBasedFileNamingAndTriggeringPolicy>
+        <maxHistory>30</maxHistory>
+        <totalSizeCap>1GB</totalSizeCap>
+      </rollingPolicy>
+    </appender>
+
+    <appender name="SECURITY" class="ch.qos.logback.core.rolling.RollingFileAppender">
+      <file>${LOG_FILE}.security</file>
+      <encoder>
+        <pattern>${LOG_PATTERN}</pattern>
+      </encoder>
+      <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+        <fileNamePattern>${LOG_FILE}.security.%d{yyyy-MM-dd}.%i.gz</fileNamePattern>
+        <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+          <maxFileSize>100MB</maxFileSize>
+        </timeBasedFileNamingAndTriggeringPolicy>
+        <maxHistory>90</maxHistory>
+        <totalSizeCap>2GB</totalSizeCap>
+      </rollingPolicy>
+    </appender>
+  </springProfile>
+
+  <!-- Logger configurations -->
+
+  <!-- Root logger - Console always pretty printed with colors, files JSON in production -->
+  <root level="INFO">
+    <appender-ref ref="CONSOLE"/>
+    <springProfile name="!prod">
+      <appender-ref ref="FILE"/>
+      <appender-ref ref="ERROR_FILE"/>
+    </springProfile>
+    <springProfile name="prod">
+      <appender-ref ref="JSON_FILE"/>
+      <appender-ref ref="JSON_ERROR_FILE"/>
+    </springProfile>
+  </root>
+
+  <!-- Application-specific loggers -->
+  <logger name="config" level="INFO"/>
+  <logger name="exception" level="INFO"/>
+  <logger name="controller" level="INFO"/>
+  <logger name="service" level="INFO"/>
+  <logger name="repository" level="INFO"/>
+
+  <!-- Security logging -->
+  <logger name="org.springframework.security" level="INFO" additivity="false">
+    <appender-ref ref="CONSOLE"/>
+    <springProfile name="!prod">
+      <appender-ref ref="SECURITY"/>
+    </springProfile>
+    <springProfile name="prod">
+      <appender-ref ref="JSON_SECURITY_FILE"/>
+    </springProfile>
+  </logger>
+
+  <!-- HTTP request logging -->
+  <logger name="org.springframework.web.filter.CommonsRequestLoggingFilter" level="DEBUG" additivity="false">
+    <appender-ref ref="CONSOLE"/>
+    <springProfile name="!prod">
+      <appender-ref ref="FILE"/>
+    </springProfile>
+    <springProfile name="prod">
+      <appender-ref ref="JSON_FILE"/>
+    </springProfile>
+  </logger>
+
+  <!-- Database logging -->
+  <logger name="org.hibernate.SQL" level="DEBUG" additivity="false">
+    <appender-ref ref="CONSOLE"/>
+    <springProfile name="!prod">
+      <appender-ref ref="FILE"/>
+    </springProfile>
+    <springProfile name="prod">
+      <appender-ref ref="JSON_FILE"/>
+    </springProfile>
+  </logger>
+  <logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="TRACE" additivity="false">
+    <appender-ref ref="CONSOLE"/>
+    <springProfile name="!prod">
+      <appender-ref ref="FILE"/>
+    </springProfile>
+    <springProfile name="prod">
+      <appender-ref ref="JSON_FILE"/>
+    </springProfile>
+  </logger>
+
+  <!-- Third-party library logging -->
+  <logger name="org.springframework" level="WARN"/>
+  <logger name="org.hibernate" level="WARN"/>
+  <logger name="com.zaxxer.hikari" level="WARN"/>
+  <logger name="org.apache.tomcat" level="WARN"/>
+  <logger name="org.apache.catalina" level="WARN"/>
+  <logger name="org.apache.coyote" level="WARN"/>
+
+  <!-- Development profile has more verbose logging -->
+  <springProfile name="!prod">
+    <logger name="config" level="DEBUG"/>
+    <logger name="exception" level="DEBUG"/>
+    <logger name="controller" level="DEBUG"/>
+    <logger name="service" level="DEBUG"/>
+    <logger name="repository" level="DEBUG"/>
+  </springProfile>
+</configuration>

@@ -22,5 +22,6 @@
   "shellcheck.run": "onSave",
   "checkstyle.enable": true,
   "checkstyle.configuration": "./checkstyle.xml",
-  "checkstyle.run": "onSave"
+  "checkstyle.run": "onSave",
+  "java.configuration.updateBuildConfiguration": "interactive"
 }

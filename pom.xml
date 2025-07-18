@@ -1,18 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
+
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
     <version>3.5.3</version>
     <relativePath />
   </parent>
+
   <groupId>recipe-manager</groupId>
   <artifactId>recipe-manager-service</artifactId>
   <version>0.1.0</version>
   <packaging>jar</packaging>
   <name>Recipe Manager Service</name>
   <description>Recipe management service built with Spring Boot</description>
+  <url>https://github.com/Recipe-Web-App/recipe-manager-service</url>
+
   <properties>
     <checkstyle.version>3.6.0</checkstyle.version>
     <flyway.version>10.8.1</flyway.version>
@@ -31,6 +35,7 @@
     <spring-cloud.version>2025.0.0</spring-cloud.version>
     <testcontainers.version>1.21.3</testcontainers.version>
   </properties>
+
   <dependencyManagement>
     <dependencies>
       <dependency>
@@ -42,7 +47,21 @@
       </dependency>
     </dependencies>
   </dependencyManagement>
+
   <dependencies>
+    <!-- Caching -->
+    <dependency>
+      <groupId>com.github.ben-manes.caffeine</groupId>
+      <artifactId>caffeine</artifactId>
+    </dependency>
+
+    <!-- JWT Dependencies -->
+    <dependency>
+      <groupId>io.jsonwebtoken</groupId>
+      <artifactId>jjwt-api</artifactId>
+      <version>${jjwt.version}</version>
+    </dependency>
+
     <!-- Monitoring -->
     <dependency>
       <groupId>io.micrometer</groupId>
@@ -52,10 +71,18 @@
       <groupId>io.opentelemetry</groupId>
       <artifactId>opentelemetry-api</artifactId>
     </dependency>
+
+    <!-- Logging Dependencies -->
+    <dependency>
+      <groupId>net.logstash.logback</groupId>
+      <artifactId>logstash-logback-encoder</artifactId>
+      <version>7.4</version>
+    </dependency>
     <dependency>
       <groupId>org.flywaydb</groupId>
       <artifactId>flyway-core</artifactId>
     </dependency>
+
     <!-- Utilities -->
     <dependency>
       <groupId>org.mapstruct</groupId>
@@ -87,6 +114,7 @@
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-validation</artifactId>
     </dependency>
+
     <!-- Spring Boot Starters -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
@@ -98,12 +126,26 @@
       <version>${lombok.version}</version>
       <scope>provided</scope>
     </dependency>
+    <dependency>
+      <groupId>io.jsonwebtoken</groupId>
+      <artifactId>jjwt-impl</artifactId>
+      <version>${jjwt.version}</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.jsonwebtoken</groupId>
+      <artifactId>jjwt-jackson</artifactId>
+      <version>${jjwt.version}</version>
+      <scope>runtime</scope>
+    </dependency>
+
     <!-- Database -->
     <dependency>
       <groupId>org.postgresql</groupId>
       <artifactId>postgresql</artifactId>
       <scope>runtime</scope>
     </dependency>
+
     <!-- Development Tools -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
@@ -111,6 +153,7 @@
       <scope>runtime</scope>
       <optional>true</optional>
     </dependency>
+
     <!-- Testing -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
@@ -141,6 +184,7 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
+
   <build>
     <plugins>
       <!-- Spotless: code formatting -->
@@ -148,20 +192,6 @@
         <groupId>com.diffplug.spotless</groupId>
         <artifactId>spotless-maven-plugin</artifactId>
         <version>2.45.0</version>
-        <executions>
-          <execution>
-            <id>spotless-apply</id>
-            <goals>
-              <goal>apply</goal>
-            </goals>
-          </execution>
-          <execution>
-            <id>spotless-check</id>
-            <goals>
-              <goal>apply</goal>
-            </goals>
-          </execution>
-        </executions>
         <configuration>
           <java>
             <googleJavaFormat>
@@ -177,19 +207,27 @@
           <failsOnError>true</failsOnError>
           <linkXRef>false</linkXRef>
         </configuration>
+        <executions>
+          <execution>
+            <id>spotless-apply</id>
+            <goals>
+              <goal>apply</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>spotless-check</id>
+            <goals>
+              <goal>apply</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
+
       <!-- SortPOM for import and POM sorting -->
       <plugin>
         <groupId>com.github.ekryd.sortpom</groupId>
         <artifactId>sortpom-maven-plugin</artifactId>
         <version>4.0.0</version>
-        <executions>
-          <execution>
-            <goals>
-              <goal>sort</goal>
-            </goals>
-          </execution>
-        </executions>
         <configuration>
           <createBackupFile>false</createBackupFile>
           <keepBlankLines>true</keepBlankLines>
@@ -201,39 +239,39 @@
           <expandEmptyElements>false</expandEmptyElements>
           <spaceBeforeCloseEmptyElement>true</spaceBeforeCloseEmptyElement>
         </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>sort</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
+
       <!-- SpotBugs: static code analysis for security and bug detection -->
       <plugin>
         <groupId>com.github.spotbugs</groupId>
         <artifactId>spotbugs-maven-plugin</artifactId>
         <version>${spotbugs.version}</version>
-        <executions>
-          <execution>
-            <goals>
-              <goal>check</goal>
-            </goals>
-          </execution>
-        </executions>
         <configuration>
           <effort>Max</effort>
           <threshold>Low</threshold>
           <xmlOutput>true</xmlOutput>
         </configuration>
-      </plugin>
-      <!-- Checkstyle: code style and formatting enforcement -->
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-checkstyle-plugin</artifactId>
-        <version>${checkstyle.version}</version>
         <executions>
           <execution>
-            <id>validate</id>
-            <phase>validate</phase>
             <goals>
               <goal>check</goal>
             </goals>
           </execution>
         </executions>
+      </plugin>
+
+      <!-- Checkstyle: code style and formatting enforcement -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+        <version>${checkstyle.version}</version>
         <configuration>
           <configLocation>checkstyle.xml</configLocation>
           <encoding>UTF-8</encoding>
@@ -241,7 +279,17 @@
           <failsOnError>true</failsOnError>
           <linkXRef>false</linkXRef>
         </configuration>
+        <executions>
+          <execution>
+            <id>validate</id>
+            <goals>
+              <goal>check</goal>
+            </goals>
+            <phase>validate</phase>
+          </execution>
+        </executions>
       </plugin>
+
       <!-- Compiler plugin: sets Java version and annotation processors (MapStruct, Lombok) -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -263,11 +311,19 @@
           </annotationProcessorPaths>
         </configuration>
       </plugin>
+
       <!-- PMD: static code analysis for code quality and best practices -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-pmd-plugin</artifactId>
         <version>${pmd.version}</version>
+        <configuration>
+          <targetJdk>17</targetJdk>
+          <analysisCache>true</analysisCache>
+          <linkXRef>false</linkXRef>
+          <sourceEncoding>UTF-8</sourceEncoding>
+          <minimumTokens>100</minimumTokens>
+        </configuration>
         <executions>
           <execution>
             <goals>
@@ -276,14 +332,8 @@
             </goals>
           </execution>
         </executions>
-        <configuration>
-          <targetJdk>17</targetJdk>
-          <analysisCache>true</analysisCache>
-          <linkXRef>false</linkXRef>
-          <sourceEncoding>UTF-8</sourceEncoding>
-          <minimumTokens>100</minimumTokens>
-        </configuration>
       </plugin>
+
       <!-- JaCoCo: code coverage reporting and enforcement -->
       <plugin>
         <groupId>org.jacoco</groupId>
@@ -317,13 +367,14 @@
           </execution>
           <execution>
             <id>report</id>
-            <phase>test</phase>
             <goals>
               <goal>report</goal>
             </goals>
+            <phase>test</phase>
           </execution>
         </executions>
       </plugin>
+
       <!-- Spring Boot plugin: builds and runs Spring Boot applications -->
       <plugin>
         <groupId>org.springframework.boot</groupId>
@@ -331,6 +382,7 @@
       </plugin>
     </plugins>
   </build>
+
   <profiles>
     <!-- Coverage profile: enables JaCoCo agent for coverage reporting in CI/CD -->
     <profile>

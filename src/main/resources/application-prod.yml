@@ -1,14 +1,115 @@
 ---
-# Production environment overrides
+# Production-specific configuration
+server:
+  port: 8080
+  error:
+    include-message: always
+    include-binding-errors: always
+    include-stacktrace: never
+    include-exception: false
+  compression:
+    enabled: true
+    mime-types: >-
+      text/html,text/xml,text/plain,text/css,text/javascript,application/javascript,application/json
+    min-response-size: 1024
+
 spring:
   datasource:
-    url: jdbc:postgresql://prod-db:5432/recipe_db
-    username: prod_user
-    password: prod_password
+    hikari:
+      maximum-pool-size: 50
+      minimum-idle: 10
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      leak-detection-threshold: 60000
   jpa:
-    hibernate:
-      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+        jdbc:
+          batch_size: 50
+        order_inserts: true
+        order_updates: true
+        batch_versioned_data: true
+        # Performance optimizations
+        connection:
+          provider_disables_autocommit: true
+        cache:
+          use_second_level_cache: true
+          use_query_cache: true
+          region:
+            factory_class: org.hibernate.cache.jcache.JCacheRegionFactory
+  cache:
+    type: caffeine
+    caffeine:
+      spec: maximumSize=1000,expireAfterWrite=1800s
+
 logging:
   level:
-    root: INFO
+    root: WARN
     org.springframework.web: WARN
+    org.springframework.security: WARN
+    org.hibernate.SQL: WARN
+    org.hibernate.type.descriptor.sql.BasicBinder: WARN
+    config: INFO
+    exception: INFO
+    controller: INFO
+    service: INFO
+    repository: INFO
+  pattern:
+    console: >
+      '%d{yyyy-MM-dd''T''HH:mm:ss.SSSZ} [%thread] %-5level %logger{36}
+      [%X{requestId}] [%X{userId}] - %msg%n'
+    file: >
+      '%d{yyyy-MM-dd''T''HH:mm:ss.SSSZ} [%thread] %-5level %logger{36}
+      [%X{requestId}] [%X{userId}] - %msg%n'
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: when-authorized
+      show-components: always
+    info:
+      enabled: true
+    prometheus:
+      enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+    tags:
+      application: ${spring.application.name}
+      environment: prod
+  health:
+    defaults:
+      enabled: true
+    db:
+      enabled: true
+    disk:
+      enabled: true
+    memory:
+      enabled: true
+
+# Production-specific application configuration
+app:
+  security:
+    jwt:
+      secret: ${JWT_SECRET}
+      expiration: 86400000 # 24 hours
+  logging:
+    request:
+      enabled: true
+      include-headers: false
+      include-payload: false
+      max-payload-length: 1000
+  monitoring:
+    metrics:
+      enabled: true
+    tracing:
+      enabled: true

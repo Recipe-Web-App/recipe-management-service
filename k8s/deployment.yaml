@@ -27,28 +27,36 @@ spec:
           ports:
             - containerPort: 8080
           env:
-            - name: DB_HOST
+            - name: POSTGRES_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: recipe-manager-config
+                  key: POSTGRES_HOST
+            - name: POSTGRES_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: recipe-manager-config
+                  key: POSTGRES_PORT
+            - name: POSTGRES_DB
+              valueFrom:
+                configMapKeyRef:
+                  name: recipe-manager-config
+                  key: POSTGRES_DB
+            - name: POSTGRES_SCHEMA
+              valueFrom:
+                configMapKeyRef:
+                  name: recipe-manager-config
+                  key: POSTGRES_SCHEMA
+            - name: RECIPE_MANAGEMENT_DB_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: recipe-manager-config
+                  key: RECIPE_MANAGEMENT_DB_USER
+            - name: RECIPE_MANAGEMENT_DB_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: recipe-manager-secrets
-                  key: db_host
-            - name: DB_PORT
-              value: '5432'
-            - name: DB_NAME
-              valueFrom:
-                secretKeyRef:
-                  name: recipe-manager-secrets
-                  key: db_name
-            - name: DB_USER
-              valueFrom:
-                secretKeyRef:
-                  name: recipe-manager-secrets
-                  key: db_user
-            - name: DB_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: recipe-manager-secrets
-                  key: db_password
+                  key: RECIPE_MANAGEMENT_DB_PASSWORD
           resources:
             requests:
               memory: '512Mi'

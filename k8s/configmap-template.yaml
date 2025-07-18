@@ -4,6 +4,8 @@ kind: ConfigMap
 metadata:
   name: recipe-manager-config
   namespace: recipe-manager
+  labels:
+    app: recipe-manager-service
 
 data:
   POSTGRES_HOST: 'recipe-database-service.recipe-database.svc.cluster.local'

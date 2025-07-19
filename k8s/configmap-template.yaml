@@ -1,13 +1,15 @@
 ---
+# k8s/configmap-template.yaml
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: recipe-manager-config
-  namespace: default
+  namespace: recipe-manager
   labels:
     app: recipe-manager-service
 data:
-  db_host: ${DB_HOST}
-  db_name: ${DB_NAME}
-  db_user: ${DB_USER}
-  db_schema: ${DB_SCHEMA}
+  POSTGRES_HOST: '${POSTGRES_HOST}'
+  POSTGRES_PORT: '${POSTGRES_PORT}'
+  POSTGRES_DB: '${POSTGRES_DB}'
+  POSTGRES_SCHEMA: '${POSTGRES_SCHEMA}'
+  RECIPE_MANAGEMENT_DB_USER: '${RECIPE_MANAGEMENT_DB_USER}'

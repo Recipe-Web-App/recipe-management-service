@@ -1,70 +1,77 @@
 ---
+# k8s/deployment.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: recipe-manager-service
+  namespace: recipe-manager
   labels:
     app: recipe-manager-service
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: recipe-manager-service
-  strategy:
-    type: RollingUpdate
-    rollingUpdate:
-      maxSurge: 1
-      maxUnavailable: 1
   template:
     metadata:
       labels:
         app: recipe-manager-service
     spec:
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 10
       containers:
         - name: recipe-manager-service
-          image: your-docker-repo/recipe-manager-service:latest
-          imagePullPolicy: IfNotPresent
+          image: recipe-manager-service:latest
+          imagePullPolicy: Never
           ports:
             - containerPort: 8080
           env:
-            - name: DB_HOST
+            - name: POSTGRES_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: recipe-manager-config
+                  key: POSTGRES_HOST
+            - name: POSTGRES_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: recipe-manager-config
+                  key: POSTGRES_PORT
+            - name: POSTGRES_DB
+              valueFrom:
+                configMapKeyRef:
+                  name: recipe-manager-config
+                  key: POSTGRES_DB
+            - name: POSTGRES_SCHEMA
+              valueFrom:
+                configMapKeyRef:
+                  name: recipe-manager-config
+                  key: POSTGRES_SCHEMA
+            - name: RECIPE_MANAGEMENT_DB_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: recipe-manager-config
+                  key: RECIPE_MANAGEMENT_DB_USER
+            - name: RECIPE_MANAGEMENT_DB_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: recipe-manager-secrets
-                  key: db_host
-            - name: DB_PORT
-              value: '5432'
-            - name: DB_NAME
-              valueFrom:
-                secretKeyRef:
-                  name: recipe-manager-secrets
-                  key: db_name
-            - name: DB_USER
-              valueFrom:
-                secretKeyRef:
-                  name: recipe-manager-secrets
-                  key: db_user
-            - name: DB_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: recipe-manager-secrets
-                  key: db_password
-          resources:
-            requests:
-              memory: '512Mi'
-              cpu: '250m'
-            limits:
-              memory: '1Gi'
-              cpu: '500m'
-          readinessProbe:
-            httpGet:
-              path: /actuator/health
-              port: 8080
-            initialDelaySeconds: 15
-            periodSeconds: 10
+                  key: RECIPE_MANAGEMENT_DB_PASSWORD
           livenessProbe:
             httpGet:
               path: /actuator/health
               port: 8080
             initialDelaySeconds: 30
-            periodSeconds: 20
+            periodSeconds: 60
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 60
+          resources:
+            requests:
+              cpu: '200m'
+              memory: '256Mi'
+            limits:
+              cpu: '1'
+              memory: '1Gi'

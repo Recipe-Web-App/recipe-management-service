@@ -1,25 +1,18 @@
 ---
+# k8s/ingress.yaml
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: recipe-manager-ingress
-  annotations:
-    kubernetes.io/ingress.class: nginx
-    nginx.ingress.kubernetes.io/ssl-redirect: 'true'
-    nginx.ingress.kubernetes.io/force-ssl-redirect: 'true'
-    nginx.ingress.kubernetes.io/proxy-body-size: '10m'
-    nginx.ingress.kubernetes.io/proxy-read-timeout: '60'
-    nginx.ingress.kubernetes.io/proxy-send-timeout: '60'
+  namespace: recipe-manager
+  labels:
+    app: recipe-manager-service
 spec:
-  tls:
-    - hosts:
-        - recipe-manager.your-domain.com
-      secretName: recipe-manager-tls
   rules:
-    - host: recipe-manager.your-domain.com
+    - host: recipe-manager.local
       http:
         paths:
-          - path: /
+          - path: /api/v1/recipe-manager
             pathType: Prefix
             backend:
               service:

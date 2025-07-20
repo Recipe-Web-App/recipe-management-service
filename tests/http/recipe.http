@@ -1,0 +1,53 @@
+### Recipe Management - Create Recipe
+POST http://recipe-manager.local/api/v1/recipe-manager/recipe-management/recipes
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+###
+
+### Recipe Management - Get Recipe by ID
+GET http://recipe-manager.local/api/v1/recipe-manager/recipe-management/recipes/123
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+###
+
+### Recipe Management - Update Recipe
+PUT http://recipe-manager.local/api/v1/recipe-manager/recipe-management/recipes/123
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+###
+
+### Recipe Management - Delete Recipe
+DELETE http://recipe-manager.local/api/v1/recipe-manager/recipe-management/recipes/123
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+###
+
+### Recipe Management - Search Recipes
+GET http://recipe-manager.local/api/v1/recipe-manager/recipe-management/recipes/search?query=pasta&cuisine=ITALIAN&difficulty=MEDIUM
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+###
+
+### Recipe Management - Get All Recipes
+GET http://recipe-manager.local/api/v1/recipe-manager/recipe-management/recipes
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+###
+
+### Recipe Management - Get Recipe Description
+GET http://recipe-manager.local/api/v1/recipe-manager/recipe-management/recipes/123/description
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+###
+
+### Recipe Management - Get Recipe History
+GET http://recipe-manager.local/api/v1/recipe-manager/recipe-management/recipes/123/history
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}

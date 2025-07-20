@@ -23,5 +23,20 @@
   "checkstyle.enable": true,
   "checkstyle.configuration": "./checkstyle.xml",
   "checkstyle.run": "onSave",
-  "java.configuration.updateBuildConfiguration": "interactive"
+  "java.configuration.updateBuildConfiguration": "automatic",
+  "java.compile.nullAnalysis.mode": "automatic",
+  "java.test.config": {
+    "workingDirectory": "${workspaceFolder}",
+    "vmargs": ["-Dfile.encoding=UTF-8"]
+  },
+  "java.project.sourcePaths": ["src/main/java"],
+  "java.project.testSourcePaths": [
+    "src/test/java",
+    "src/test/unit/java",
+    "src/test/component/java",
+    "src/test/dependency/java",
+    "src/test/performance/java"
+  ],
+  "java.project.outputPath": "target/classes",
+  "java.project.testOutputPath": "target/test-classes"
 }

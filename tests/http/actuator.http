@@ -1,0 +1,33 @@
+### Actuator - Get Application Health
+GET http://recipe-manager.local/api/v1/recipe-manager/actuator/health
+Content-Type: application/json
+
+###
+
+### Actuator - Get Application Info
+GET http://recipe-manager.local/api/v1/recipe-manager/actuator/info
+Content-Type: application/json
+
+###
+
+### Actuator - Get Application Metrics
+GET http://recipe-manager.local/api/v1/recipe-manager/actuator/metrics
+Content-Type: application/json
+
+###
+
+### Actuator - Get Application Environment
+GET http://recipe-manager.local/api/v1/recipe-manager/actuator/env
+Content-Type: application/json
+
+###
+
+### Actuator - Get Configuration Properties
+GET http://recipe-manager.local/api/v1/recipe-manager/actuator/configprops
+Content-Type: application/json
+
+###
+
+### Actuator - Get Prometheus Metrics
+GET http://recipe-manager.local/api/v1/recipe-manager/actuator/prometheus
+Content-Type: application/json

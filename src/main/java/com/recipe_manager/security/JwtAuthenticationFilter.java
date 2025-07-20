@@ -125,7 +125,7 @@ public final class JwtAuthenticationFilter extends OncePerRequestFilter {
    * @param request the HTTP request
    * @return the request ID or "unknown" if not found
    */
-  private String extractRequestId(final HttpServletRequest request) {
+  String extractRequestId(HttpServletRequest request) {
     String requestId = request.getHeader("X-Request-ID");
     return requestId != null ? requestId : "unknown";
   }

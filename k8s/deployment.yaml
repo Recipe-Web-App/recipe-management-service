@@ -58,13 +58,13 @@ spec:
                   key: RECIPE_MANAGEMENT_DB_PASSWORD
           livenessProbe:
             httpGet:
-              path: /actuator/health
+              path: /api/v1/recipe-manager/actuator/health
               port: 8080
             initialDelaySeconds: 30
             periodSeconds: 60
           readinessProbe:
             httpGet:
-              path: /actuator/health
+              path: /api/v1/recipe-manager/actuator/health
               port: 8080
             initialDelaySeconds: 30
             periodSeconds: 60

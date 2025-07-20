@@ -313,9 +313,6 @@
         <version>3.8.0</version>
         <configuration>
           <testResultsTimestamp>false</testResultsTimestamp>
-          <jmeterDirectory>${project.basedir}/tests/performance</jmeterDirectory>
-          <testPlanDirectory>${project.basedir}/tests/performance</testPlanDirectory>
-          <testPlanLint>true</testPlanLint>
           <ignoreResultFailures>true</ignoreResultFailures>
         </configuration>
         <executions>
@@ -394,7 +391,6 @@
           <targetJdk>17</targetJdk>
           <analysisCache>true</analysisCache>
           <linkXRef>false</linkXRef>
-          <sourceEncoding>UTF-8</sourceEncoding>
           <minimumTokens>100</minimumTokens>
         </configuration>
         <executions>
@@ -425,6 +421,20 @@
                 <source>src/test/dependency/java</source>
                 <source>src/test/performance/java</source>
               </sources>
+            </configuration>
+          </execution>
+          <execution>
+            <id>add-test-resource</id>
+            <goals>
+              <goal>add-test-resource</goal>
+            </goals>
+            <phase>generate-test-resources</phase>
+            <configuration>
+              <resources>
+                <resource>
+                  <directory>src/test/dependency/resources</directory>
+                </resource>
+              </resources>
             </configuration>
           </execution>
         </executions>

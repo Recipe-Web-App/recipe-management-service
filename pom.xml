@@ -314,8 +314,15 @@
         <configuration>
           <testResultsTimestamp>false</testResultsTimestamp>
           <ignoreResultFailures>true</ignoreResultFailures>
+          <testFilesDirectory>src/test/performance/resources</testFilesDirectory>
         </configuration>
         <executions>
+          <execution>
+            <id>configuration</id>
+            <goals>
+              <goal>configure</goal>
+            </goals>
+          </execution>
           <execution>
             <id>jmeter-tests</id>
             <goals>
@@ -419,7 +426,6 @@
                 <source>src/test/unit/java</source>
                 <source>src/test/component/java</source>
                 <source>src/test/dependency/java</source>
-                <source>src/test/performance/java</source>
               </sources>
             </configuration>
           </execution>
@@ -433,6 +439,9 @@
               <resources>
                 <resource>
                   <directory>src/test/dependency/resources</directory>
+                </resource>
+                <resource>
+                  <directory>src/test/performance/resources</directory>
                 </resource>
               </resources>
             </configuration>

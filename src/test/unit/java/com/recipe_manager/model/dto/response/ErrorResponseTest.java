@@ -1,4 +1,4 @@
-package com.recipe_manager.model.dto;
+package com.recipe_manager.model.dto.response;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;

@@ -1,4 +1,4 @@
-package com.recipe_manager.model.dto;
+package com.recipe_manager.model.dto.response;
 
 import java.time.LocalDateTime;
 import java.util.Collections;

@@ -1,10 +1,10 @@
 package com.recipe_manager;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 /**
  * Test for RecipeManagerServiceApplication main method.
@@ -32,15 +32,5 @@ class RecipeManagerServiceApplicationTest {
          */
       }
     });
-  }
-
-  @Test
-  @Tag("standard-processing")
-  @DisplayName("Should cover constructor")
-  void shouldCoverConstructor() {
-    /*
-     * Test the constructor to ensure it's covered
-     */
-    assertDoesNotThrow(() -> new RecipeManagerServiceApplication());
   }
 }

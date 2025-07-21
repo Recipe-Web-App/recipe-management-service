@@ -1,7 +1,24 @@
 package com.recipe_manager.service;
 
+import java.util.Optional;
+import java.util.stream.Collectors;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.RequestBody;
+
+import com.recipe_manager.model.dto.request.CreateRecipeRequest;
+import com.recipe_manager.model.entity.ingredient.Ingredient;
+import com.recipe_manager.model.entity.recipe.Recipe;
+import com.recipe_manager.model.entity.recipe.RecipeIngredient;
+import com.recipe_manager.model.entity.recipe.RecipeIngredientId;
+import com.recipe_manager.repository.ingredient.IngredientRepository;
+import com.recipe_manager.repository.recipe.RecipeRepository;
+import com.recipe_manager.util.SecurityUtils;
+
+import jakarta.validation.Valid;
 
 /**
  * Service for core recipe operations.
@@ -9,15 +26,94 @@ import org.springframework.stereotype.Service;
  * <p>All methods are placeholders and should be implemented.
  */
 @Service
+@Validated
 public class RecipeService {
+
+  private final RecipeRepository recipeRepository;
+  private final IngredientRepository ingredientRepository;
+
+  public RecipeService(
+      final RecipeRepository recipeRepository, final IngredientRepository ingredientRepository) {
+    this.recipeRepository = recipeRepository;
+    this.ingredientRepository = ingredientRepository;
+  }
 
   /**
    * Create a new recipe.
    *
-   * @return placeholder response
+   * @param request the create recipe request DTO
+   * @return ResponseEntity with the created recipe ID
    */
-  public ResponseEntity<String> createRecipe() {
-    return ResponseEntity.ok("Create Recipe - placeholder");
+  @Transactional
+  public ResponseEntity<Long> createRecipe(@Valid @RequestBody final CreateRecipeRequest request) {
+    Recipe recipe =
+        new Recipe(
+            null, // recipeId (auto-generated)
+            SecurityUtils.getCurrentUserId(),
+            request.getTitle(),
+            request.getDescription(),
+            request.getOriginUrl(),
+            request.getServings(),
+            request.getPreparationTime(),
+            request.getCookingTime(),
+            request.getDifficulty(),
+            null, // createdAt (auto-generated)
+            null, // updatedAt (auto-generated)
+            null, // ingredients (set below)
+            null, // steps (handled separately)
+            null, // revisions (empty on create)
+            null, // favorites (empty on create)
+            null // tags (empty on create)
+            );
+
+    // Map and persist ingredients
+    if (!request.getIngredients().isEmpty()) {
+      final Recipe savedRecipe = recipe; // for lambda capture
+      var recipeIngredients =
+          request.getIngredients().stream()
+              .map(
+                  ingredientReq -> {
+                    Ingredient ingredient = null;
+                    if (ingredientReq.getIngredientId() != null) {
+                      Optional<Ingredient> found =
+                          ingredientRepository.findById(ingredientReq.getIngredientId());
+                      ingredient = found.orElse(null);
+                    }
+                    if (ingredient == null && ingredientReq.getIngredientName() != null) {
+                      ingredient =
+                          ingredientRepository
+                              .findByNameIgnoreCase(ingredientReq.getIngredientName())
+                              .orElseGet(
+                                  () ->
+                                      ingredientRepository.save(
+                                          Ingredient.builder()
+                                              .name(ingredientReq.getIngredientName())
+                                              .build()));
+                    }
+                    if (ingredient == null) {
+                      throw new IllegalArgumentException(
+                          "Ingredient must have either a valid ID or name");
+                    }
+                    RecipeIngredientId id =
+                        RecipeIngredientId.builder()
+                            .recipeId(null) // will be set by JPA after recipe is saved
+                            .ingredientId(ingredient.getIngredientId())
+                            .build();
+                    return RecipeIngredient.builder()
+                        .id(id)
+                        .recipe(savedRecipe)
+                        .ingredient(ingredient)
+                        .quantity(ingredientReq.getQuantity())
+                        .unit(ingredientReq.getUnit())
+                        .isOptional(Boolean.TRUE.equals(ingredientReq.getIsOptional()))
+                        .build();
+                  })
+              .collect(Collectors.toList());
+      recipe.setRecipeIngredients(recipeIngredients);
+    }
+
+    Recipe saved = recipeRepository.save(recipe);
+    return ResponseEntity.ok(saved.getRecipeId());
   }
 
   /**

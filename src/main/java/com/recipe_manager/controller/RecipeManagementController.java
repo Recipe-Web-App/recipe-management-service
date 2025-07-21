@@ -6,10 +6,12 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.recipe_manager.model.dto.request.CreateRecipeRequest;
 import com.recipe_manager.service.IngredientService;
 import com.recipe_manager.service.MediaService;
 import com.recipe_manager.service.RecipeService;
@@ -18,6 +20,7 @@ import com.recipe_manager.service.StepService;
 import com.recipe_manager.service.TagService;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import jakarta.validation.Valid;
 
 /**
  * REST controller for Recipe Management API endpoints.
@@ -77,11 +80,12 @@ public class RecipeManagementController {
   /**
    * Create a new recipe.
    *
-   * @return placeholder response
+   * @param request the create recipe request DTO
+   * @return ResponseEntity with the created recipe ID
    */
   @PostMapping
-  public ResponseEntity<String> createRecipe() {
-    return recipeService.createRecipe();
+  public ResponseEntity<Long> createRecipe(@Valid @RequestBody final CreateRecipeRequest request) {
+    return recipeService.createRecipe(request);
   }
 
   /**

@@ -1,13 +1,11 @@
 package com.recipe_manager.controller;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+import com.recipe_manager.model.dto.request.CreateRecipeRequest;
 import com.recipe_manager.service.IngredientService;
 import com.recipe_manager.service.MediaService;
 import com.recipe_manager.service.RecipeService;
@@ -20,6 +18,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -138,11 +137,30 @@ class RecipeManagementControllerTest {
   @Tag("standard-processing")
   @DisplayName("Should handle POST /recipe-management/recipes")
   void shouldHandlePostRecipes() throws Exception {
-    when(recipeService.createRecipe()).thenReturn(ResponseEntity.ok("Create Recipe - placeholder"));
+    String validRequestJson = "{" +
+        "\"title\":\"Test Recipe\"," +
+        "\"description\":\"A test recipe\"," +
+        "\"originUrl\":\"http://example.com\"," +
+        "\"servings\":2," +
+        "\"preparationTime\":10," +
+        "\"cookingTime\":20," +
+        "\"difficulty\":\"BEGINNER\"," +
+        "\"ingredients\":[{" +
+        "  \"ingredientName\":\"Flour\"," +
+        "  \"quantity\":1.0," +
+        "  \"isOptional\":false" +
+        "}]," +
+        "\"steps\":[{" +
+        "  \"stepNumber\":1," +
+        "  \"instruction\":\"Mix ingredients\"" +
+        "}]" +
+        "}";
+    when(recipeService.createRecipe(ArgumentMatchers.any(CreateRecipeRequest.class)))
+        .thenReturn(ResponseEntity.ok(1L));
 
     mockMvc.perform(post("/recipe-management/recipes")
         .contentType(MediaType.APPLICATION_JSON)
-        .content("{}"))
+        .content(validRequestJson))
         .andExpect(status().isOk());
   }
 

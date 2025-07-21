@@ -1,13 +1,13 @@
 package com.recipe_manager.component_tests.recipe_service;
 
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import com.recipe_manager.component_tests.AbstractComponentTest;
 import com.recipe_manager.exception.BusinessException;
+import com.recipe_manager.model.dto.request.CreateRecipeRequest;
 import com.recipe_manager.service.RecipeService;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -33,18 +33,37 @@ class CreateRecipeComponentTest extends AbstractComponentTest {
   protected void setUp() {
     MockitoAnnotations.openMocks(this);
     super.setUp();
-    when(recipeService.createRecipe()).thenReturn(ResponseEntity.ok("Create Recipe - placeholder"));
+    when(recipeService.createRecipe(any(CreateRecipeRequest.class)))
+        .thenReturn(ResponseEntity.ok(1L));
   }
 
   @Test
   @Tag("standard-processing")
   @DisplayName("Should create a recipe with valid data")
   void shouldCreateRecipe() throws Exception {
+    String validRequestJson = "{" +
+        "\"title\":\"Test Recipe\"," +
+        "\"description\":\"A test recipe\"," +
+        "\"originUrl\":\"http://example.com\"," +
+        "\"servings\":2," +
+        "\"preparationTime\":10," +
+        "\"cookingTime\":20," +
+        "\"difficulty\":\"BEGINNER\"," +
+        "\"ingredients\":[{" +
+        "  \"ingredientName\":\"Flour\"," +
+        "  \"quantity\":1.0," +
+        "  \"isOptional\":false" +
+        "}]," +
+        "\"steps\":[{" +
+        "  \"stepNumber\":1," +
+        "  \"instruction\":\"Mix ingredients\"" +
+        "}]" +
+        "}";
     mockMvc.perform(post("/recipe-management/recipes")
         .contentType(MediaType.APPLICATION_JSON)
-        .content("{}"))
+        .content(validRequestJson))
         .andExpect(status().isOk())
-        .andExpect(content().string("Create Recipe - placeholder"))
+        .andExpect(content().string("1"))
         .andExpect(header().exists("X-Request-ID"));
   }
 
@@ -52,7 +71,7 @@ class CreateRecipeComponentTest extends AbstractComponentTest {
   @Tag("error-processing")
   @DisplayName("Should return 400 for validation errors")
   void shouldHandleValidationErrors() throws Exception {
-    when(recipeService.createRecipe())
+    when(recipeService.createRecipe(any(CreateRecipeRequest.class)))
         .thenThrow(new BusinessException("Invalid recipe data"));
     mockMvc.perform(post("/recipe-management/recipes")
         .contentType(MediaType.APPLICATION_JSON)

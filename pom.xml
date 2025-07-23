@@ -316,6 +316,12 @@
           <testResultsTimestamp>false</testResultsTimestamp>
           <ignoreResultFailures>true</ignoreResultFailures>
           <testFilesDirectory>src/test/performance/resources</testFilesDirectory>
+          <testFilesIncluded>
+            <jMeterTestFile>health-endpoint-performance.jmx</jMeterTestFile>
+          </testFilesIncluded>
+          <propertiesUser>
+            <propertiesFile>src/test/performance/resources/performance-config.properties</propertiesFile>
+          </propertiesUser>
         </configuration>
         <executions>
           <execution>

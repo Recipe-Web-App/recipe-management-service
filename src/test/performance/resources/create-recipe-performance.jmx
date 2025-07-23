@@ -1,0 +1,320 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jmeterTestPlan version="1.2" properties="5.0" jmeter="5.6.2">
+  <hashTree>
+    <TestPlan guiclass="TestPlanGui" testclass="TestPlan" testname="Create Recipe Performance Test" enabled="true">
+      <stringProp name="TestPlan.comments">Performance test for Recipe Management API - Create Recipe endpoint only</stringProp>
+      <boolProp name="TestPlan.functional_mode">false</boolProp>
+      <boolProp name="TestPlan.tearDown_on_shutdown">true</boolProp>
+      <boolProp name="TestPlan.serialize_threadgroups">false</boolProp>
+      <elementProp name="TestPlan.arguments" elementType="Arguments" guiclass="ArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
+        <collectionProp name="Arguments.arguments">
+          <elementProp name="BASE_URL" elementType="Argument">
+            <stringProp name="Argument.name">BASE_URL</stringProp>
+            <stringProp name="Argument.value">${__P(test.base.url,http://recipe-manager.local)}</stringProp>
+          </elementProp>
+          <elementProp name="API_PATH" elementType="Argument">
+            <stringProp name="Argument.name">API_PATH</stringProp>
+            <stringProp name="Argument.value">/api/v1/recipe-manager/recipe-management/recipes</stringProp>
+          </elementProp>
+          <elementProp name="AUTH_TOKEN" elementType="Argument">
+            <stringProp name="Argument.name">AUTH_TOKEN</stringProp>
+            <stringProp name="Argument.value">Bearer test-jwt-token</stringProp>
+          </elementProp>
+          <elementProp name="LOAD_USERS" elementType="Argument">
+            <stringProp name="Argument.name">LOAD_USERS</stringProp>
+            <stringProp name="Argument.value">${__P(load.test.concurrent.users,10)}</stringProp>
+          </elementProp>
+          <elementProp name="LOAD_RAMP_TIME" elementType="Argument">
+            <stringProp name="Argument.name">LOAD_RAMP_TIME</stringProp>
+            <stringProp name="Argument.value">${__P(load.test.ramp.up.time,30)}</stringProp>
+          </elementProp>
+          <elementProp name="STRESS_USERS" elementType="Argument">
+            <stringProp name="Argument.name">STRESS_USERS</stringProp>
+            <stringProp name="Argument.value">${__P(stress.test.concurrent.users,50)}</stringProp>
+          </elementProp>
+          <elementProp name="STRESS_RAMP_TIME" elementType="Argument">
+            <stringProp name="Argument.name">STRESS_RAMP_TIME</stringProp>
+            <stringProp name="Argument.value">${__P(stress.test.ramp.up.time,60)}</stringProp>
+          </elementProp>
+          <elementProp name="RESPONSE_TIME_THRESHOLD" elementType="Argument">
+            <stringProp name="Argument.name">RESPONSE_TIME_THRESHOLD</stringProp>
+            <stringProp name="Argument.value">${__P(performance.threshold.response.time,1000)}</stringProp>
+          </elementProp>
+        </collectionProp>
+      </elementProp>
+      <stringProp name="TestPlan.user_define_classpath"></stringProp>
+    </TestPlan>
+    <hashTree>
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Create Recipe Load Test" enabled="true">
+        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlGui" testclass="LoopController" testname="Loop Controller" enabled="true">
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+          <stringProp name="LoopController.loops">10</stringProp>
+        </elementProp>
+        <stringProp name="ThreadGroup.num_threads">${LOAD_USERS}</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">${LOAD_RAMP_TIME}</stringProp>
+        <boolProp name="ThreadGroup.scheduler">false</boolProp>
+        <stringProp name="ThreadGroup.duration"></stringProp>
+        <stringProp name="ThreadGroup.delay"></stringProp>
+        <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
+      </ThreadGroup>
+      <hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Create Recipe Request" enabled="true">
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
+            <collectionProp name="Arguments.arguments"/>
+          </elementProp>
+          <stringProp name="HTTPSampler.domain">${__P(host,recipe-manager.local)}</stringProp>
+          <stringProp name="HTTPSampler.port">${__P(port,80)}</stringProp>
+          <stringProp name="HTTPSampler.protocol">http</stringProp>
+          <stringProp name="HTTPSampler.contentEncoding"></stringProp>
+          <stringProp name="HTTPSampler.path">${API_PATH}</stringProp>
+          <stringProp name="HTTPSampler.method">POST</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
+          <stringProp name="HTTPSampler.embedded_url_re"></stringProp>
+          <stringProp name="HTTPSampler.connect_timeout">10000</stringProp>
+          <stringProp name="HTTPSampler.response_timeout">30000</stringProp>
+          <stringProp name="HTTPSampler.postBodyRaw">true</stringProp>
+          <elementProp name="HTTPsampler.postBodyRaw" elementType="HTTPFileArg">
+            <stringProp name="HTTPFileArg.postBodyRaw">{
+  "title": "Performance Test Recipe ${__threadNum}-${__counter(TRUE,)}",
+  "description": "A recipe created during performance testing",
+  "originUrl": "https://example.com/recipe-${__counter(TRUE,)}",
+  "servings": ${__Random(2,8)},
+  "preparationTime": ${__Random(5,30)},
+  "cookingTime": ${__Random(15,120)},
+  "difficulty": "${__chooseRandom(EASY,MEDIUM,HARD)}",
+  "ingredients": [
+    {
+      "ingredientName": "Ingredient ${__Random(1,100)}",
+      "quantity": ${__Random(1,5)}.0,
+      "unit": "${__chooseRandom(CUP,TSP,TBSP,GRAM,KILOGRAM,LITER,MILLILITER,PIECE)}",
+      "isOptional": ${__chooseRandom(true,false)}
+    },
+    {
+      "ingredientName": "Ingredient ${__Random(101,200)}",
+      "quantity": ${__Random(1,3)}.5,
+      "unit": "${__chooseRandom(CUP,TSP,TBSP,GRAM,KILOGRAM,LITER,MILLILITER,PIECE)}",
+      "isOptional": false
+    }
+  ],
+  "steps": [
+    {
+      "stepNumber": 1,
+      "instruction": "Step 1: Prepare ingredient ${__Random(1,100)}",
+      "optional": false
+    },
+    {
+      "stepNumber": 2,
+      "instruction": "Step 2: Mix and cook for ${__Random(10,60)} minutes",
+      "optional": false
+    }
+  ]
+}</stringProp>
+          </elementProp>
+        </HTTPSamplerProxy>
+        <hashTree>
+          <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager" enabled="true">
+            <collectionProp name="HeaderManager.headers">
+              <elementProp name="" elementType="Header">
+                <stringProp name="Header.name">Content-Type</stringProp>
+                <stringProp name="Header.value">application/json</stringProp>
+              </elementProp>
+              <elementProp name="" elementType="Header">
+                <stringProp name="Header.name">Accept</stringProp>
+                <stringProp name="Header.value">application/json</stringProp>
+              </elementProp>
+              <elementProp name="" elementType="Header">
+                <stringProp name="Header.name">Authorization</stringProp>
+                <stringProp name="Header.value">${AUTH_TOKEN}</stringProp>
+              </elementProp>
+            </collectionProp>
+          </HeaderManager>
+          <hashTree/>
+          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="Response Assertion - Success" enabled="true">
+            <collectionProp name="Asserion.test_strings">
+              <stringProp name="49586">200</stringProp>
+            </collectionProp>
+            <stringProp name="Assertion.custom_message">Create Recipe should return 200 status</stringProp>
+            <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
+            <boolProp name="Assertion.assume_success">false</boolProp>
+            <intProp name="Assertion.test_type">1</intProp>
+          </ResponseAssertion>
+          <hashTree/>
+          <DurationAssertion guiclass="DurationAssertionGui" testclass="DurationAssertion" testname="Duration Assertion - Create Recipe" enabled="true">
+            <stringProp name="DurationAssertion.duration">${RESPONSE_TIME_THRESHOLD}</stringProp>
+          </DurationAssertion>
+          <hashTree/>
+        </hashTree>
+      </hashTree>
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Create Recipe Stress Test" enabled="true">
+        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlGui" testclass="LoopController" testname="Loop Controller" enabled="true">
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+          <stringProp name="LoopController.loops">20</stringProp>
+        </elementProp>
+        <stringProp name="ThreadGroup.num_threads">${STRESS_USERS}</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">${STRESS_RAMP_TIME}</stringProp>
+        <boolProp name="ThreadGroup.scheduler">false</boolProp>
+        <stringProp name="ThreadGroup.duration"></stringProp>
+        <stringProp name="ThreadGroup.delay"></stringProp>
+        <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
+      </ThreadGroup>
+      <hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Create Recipe Stress Test" enabled="true">
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
+            <collectionProp name="Arguments.arguments"/>
+          </elementProp>
+          <stringProp name="HTTPSampler.domain">${__P(host,recipe-manager.local)}</stringProp>
+          <stringProp name="HTTPSampler.port">${__P(port,80)}</stringProp>
+          <stringProp name="HTTPSampler.protocol">http</stringProp>
+          <stringProp name="HTTPSampler.contentEncoding"></stringProp>
+          <stringProp name="HTTPSampler.path">${API_PATH}</stringProp>
+          <stringProp name="HTTPSampler.method">POST</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
+          <stringProp name="HTTPSampler.embedded_url_re"></stringProp>
+          <stringProp name="HTTPSampler.connect_timeout">15000</stringProp>
+          <stringProp name="HTTPSampler.response_timeout">45000</stringProp>
+          <stringProp name="HTTPSampler.postBodyRaw">true</stringProp>
+          <elementProp name="HTTPsampler.postBodyRaw" elementType="HTTPFileArg">
+            <stringProp name="HTTPFileArg.postBodyRaw">{
+  "title": "Stress Test Recipe ${__threadNum}-${__counter(TRUE,)}-${__time(yyyy-MM-dd-HH-mm-ss)}",
+  "description": "Recipe created during stress testing with ${__threadNum} threads",
+  "servings": ${__Random(1,12)},
+  "preparationTime": ${__Random(1,60)},
+  "cookingTime": ${__Random(1,180)},
+  "difficulty": "${__chooseRandom(EASY,MEDIUM,HARD)}",
+  "ingredients": [
+    {
+      "ingredientName": "Stress Ingredient A-${__Random(1,1000)}",
+      "quantity": ${__Random(1,10)}.${__Random(0,9)},
+      "unit": "${__chooseRandom(CUP,TSP,TBSP,GRAM,KILOGRAM,LITER,MILLILITER,PIECE,OUNCE,POUND)}",
+      "isOptional": ${__chooseRandom(true,false)}
+    }
+  ],
+  "steps": [
+    {
+      "stepNumber": 1,
+      "instruction": "Stress test step for thread ${__threadNum} iteration ${__counter(TRUE,)}",
+      "optional": false
+    }
+  ]
+}</stringProp>
+          </elementProp>
+        </HTTPSamplerProxy>
+        <hashTree>
+          <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager" enabled="true">
+            <collectionProp name="HeaderManager.headers">
+              <elementProp name="" elementType="Header">
+                <stringProp name="Header.name">Content-Type</stringProp>
+                <stringProp name="Header.value">application/json</stringProp>
+              </elementProp>
+              <elementProp name="" elementType="Header">
+                <stringProp name="Header.name">Accept</stringProp>
+                <stringProp name="Header.value">application/json</stringProp>
+              </elementProp>
+              <elementProp name="" elementType="Header">
+                <stringProp name="Header.name">Authorization</stringProp>
+                <stringProp name="Header.value">${AUTH_TOKEN}</stringProp>
+              </elementProp>
+            </collectionProp>
+          </HeaderManager>
+          <hashTree/>
+          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="Response Assertion - Stress Test" enabled="true">
+            <collectionProp name="Asserion.test_strings">
+              <stringProp name="49586">200</stringProp>
+            </collectionProp>
+            <stringProp name="Assertion.custom_message">Create Recipe stress test should return 200 status</stringProp>
+            <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
+            <boolProp name="Assertion.assume_success">false</boolProp>
+            <intProp name="Assertion.test_type">1</intProp>
+          </ResponseAssertion>
+          <hashTree/>
+          <DurationAssertion guiclass="DurationAssertionGui" testclass="DurationAssertion" testname="Duration Assertion - Stress Test" enabled="true">
+            <stringProp name="DurationAssertion.duration">${RESPONSE_TIME_THRESHOLD}</stringProp>
+          </DurationAssertion>
+          <hashTree/>
+        </hashTree>
+      </hashTree>
+      <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree" enabled="true">
+        <boolProp name="ResultCollector.error_logging">false</boolProp>
+        <objProp>
+          <name>saveConfig</name>
+          <value class="SampleSaveConfiguration">
+            <time>true</time>
+            <latency>true</latency>
+            <timestamp>true</timestamp>
+            <success>true</success>
+            <label>true</label>
+            <code>true</code>
+            <message>true</message>
+            <threadName>true</threadName>
+            <dataType>true</dataType>
+            <encoding>false</encoding>
+            <assertions>true</assertions>
+            <subresults>true</subresults>
+            <responseData>false</responseData>
+            <samplerData>false</samplerData>
+            <xml>false</xml>
+            <fieldNames>true</fieldNames>
+            <responseHeaders>false</responseHeaders>
+            <requestHeaders>false</requestHeaders>
+            <responseDataOnError>false</responseDataOnError>
+            <saveAssertionResultsFailureMessage>true</saveAssertionResultsFailureMessage>
+            <assertionsResultsToSave>0</assertionsResultsToSave>
+            <bytes>true</bytes>
+            <sentBytes>true</sentBytes>
+            <url>true</url>
+            <threadCounts>true</threadCounts>
+            <idleTime>true</idleTime>
+            <connectTime>true</connectTime>
+          </value>
+        </objProp>
+        <stringProp name="filename">target/jmeter/results/create-recipe-performance-results.jtl</stringProp>
+      </ResultCollector>
+      <hashTree/>
+      <ResultCollector guiclass="SummaryReport" testclass="ResultCollector" testname="Summary Report" enabled="true">
+        <boolProp name="ResultCollector.error_logging">false</boolProp>
+        <objProp>
+          <name>saveConfig</name>
+          <value class="SampleSaveConfiguration">
+            <time>true</time>
+            <latency>true</latency>
+            <timestamp>true</timestamp>
+            <success>true</success>
+            <label>true</label>
+            <code>true</code>
+            <message>true</message>
+            <threadName>true</threadName>
+            <dataType>true</dataType>
+            <encoding>false</encoding>
+            <assertions>true</assertions>
+            <subresults>true</subresults>
+            <responseData>false</responseData>
+            <samplerData>false</samplerData>
+            <xml>false</xml>
+            <fieldNames>true</fieldNames>
+            <responseHeaders>false</responseHeaders>
+            <requestHeaders>false</requestHeaders>
+            <responseDataOnError>false</responseDataOnError>
+            <saveAssertionResultsFailureMessage>true</saveAssertionResultsFailureMessage>
+            <assertionsResultsToSave>0</assertionsResultsToSave>
+            <bytes>true</bytes>
+            <sentBytes>true</sentBytes>
+            <url>true</url>
+            <threadCounts>true</threadCounts>
+            <idleTime>true</idleTime>
+            <connectTime>true</connectTime>
+          </value>
+        </objProp>
+        <stringProp name="filename">target/jmeter/results/create-recipe-performance-summary.jtl</stringProp>
+      </ResultCollector>
+      <hashTree/>
+    </hashTree>
+  </hashTree>
+</jmeterTestPlan>

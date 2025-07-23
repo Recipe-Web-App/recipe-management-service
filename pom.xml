@@ -319,6 +319,7 @@
         </configuration>
         <executions>
           <execution>
+            <?m2e execute onConfiguration?>
             <id>configuration</id>
             <goals>
               <goal>configure</goal>
@@ -359,6 +360,7 @@
         </configuration>
         <executions>
           <execution>
+            <?m2e execute onConfiguration,onIncremental?>
             <id>validate</id>
             <goals>
               <goal>check</goal>
@@ -392,9 +394,6 @@
               <version>0.2.0</version>
             </path>
           </annotationProcessorPaths>
-          <compilerArgs>
-            <arg>-Amapstruct.verbose=true</arg>
-          </compilerArgs>
         </configuration>
       </plugin>
 
@@ -474,13 +473,14 @@
             <goals>
               <goal>check</goal>
             </goals>
+            <phase>test</phase>
             <configuration>
               <rules>
                 <rule>
                   <element>BUNDLE</element>
                   <limits>
                     <limit>
-                      <counter>LINE</counter>
+                      <counter>INSTRUCTION</counter>
                       <value>COVEREDRATIO</value>
                       <minimum>0.90</minimum>
                     </limit>

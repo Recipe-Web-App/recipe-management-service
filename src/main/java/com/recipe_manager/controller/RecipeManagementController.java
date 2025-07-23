@@ -11,7 +11,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.recipe_manager.model.dto.recipe.RecipeDto;
 import com.recipe_manager.model.dto.request.CreateRecipeRequest;
+import com.recipe_manager.model.dto.request.UpdateRecipeRequest;
 import com.recipe_manager.service.IngredientService;
 import com.recipe_manager.service.MediaService;
 import com.recipe_manager.service.RecipeService;
@@ -84,7 +86,8 @@ public class RecipeManagementController {
    * @return ResponseEntity with the created recipe ID
    */
   @PostMapping
-  public ResponseEntity<Long> createRecipe(@Valid @RequestBody final CreateRecipeRequest request) {
+  public ResponseEntity<RecipeDto> createRecipe(
+      @Valid @RequestBody final CreateRecipeRequest request) {
     return recipeService.createRecipe(request);
   }
 
@@ -92,11 +95,13 @@ public class RecipeManagementController {
    * Update an existing recipe.
    *
    * @param recipeId the recipe ID
-   * @return placeholder response
+   * @param request the update recipe request DTO
+   * @return ResponseEntity with the updated recipe ID
    */
   @PutMapping("/{recipeId}")
-  public ResponseEntity<String> updateRecipe(@PathVariable final String recipeId) {
-    return recipeService.updateRecipe(recipeId);
+  public ResponseEntity<RecipeDto> updateRecipe(
+      @PathVariable final String recipeId, @Valid @RequestBody final UpdateRecipeRequest request) {
+    return recipeService.updateRecipe(recipeId, request);
   }
 
   /**

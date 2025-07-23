@@ -8,14 +8,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.recipe_manager.component_tests.AbstractComponentTest;
-import com.recipe_manager.service.TagService;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 
@@ -25,13 +22,9 @@ import org.springframework.http.ResponseEntity;
  */
 @Tag("component")
 class RemoveTagComponentTest extends AbstractComponentTest {
-  @Mock
-  private TagService tagService;
-
   @Override
   @BeforeEach
   protected void setUp() {
-    MockitoAnnotations.openMocks(this);
     super.setUp();
     when(tagService.removeTag(anyString())).thenReturn(ResponseEntity.ok("Remove Tag - placeholder"));
   }

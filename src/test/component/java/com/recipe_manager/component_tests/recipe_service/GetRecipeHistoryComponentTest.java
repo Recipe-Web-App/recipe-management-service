@@ -8,15 +8,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.recipe_manager.component_tests.AbstractComponentTest;
-import com.recipe_manager.service.RecipeService;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 
@@ -27,13 +24,9 @@ import org.springframework.http.ResponseEntity;
  */
 @Tag("component")
 class GetRecipeHistoryComponentTest extends AbstractComponentTest {
-  @Mock
-  private RecipeService recipeService;
-
   @Override
   @BeforeEach
   protected void setUp() {
-    MockitoAnnotations.openMocks(this);
     super.setUp();
     when(recipeService.getRecipe(anyString())).thenReturn(ResponseEntity.ok("Get Recipe History - placeholder"));
   }

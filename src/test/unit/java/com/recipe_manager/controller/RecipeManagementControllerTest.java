@@ -1,11 +1,18 @@
 package com.recipe_manager.controller;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.recipe_manager.model.dto.recipe.RecipeDto;
 import com.recipe_manager.model.dto.request.CreateRecipeRequest;
+import com.recipe_manager.model.dto.request.UpdateRecipeRequest;
 import com.recipe_manager.service.IngredientService;
 import com.recipe_manager.service.MediaService;
 import com.recipe_manager.service.RecipeService;
@@ -156,7 +163,7 @@ class RecipeManagementControllerTest {
         "}]" +
         "}";
     when(recipeService.createRecipe(ArgumentMatchers.any(CreateRecipeRequest.class)))
-        .thenReturn(ResponseEntity.ok(1L));
+        .thenReturn(ResponseEntity.ok(RecipeDto.builder().build()));
 
     mockMvc.perform(post("/recipe-management/recipes")
         .contentType(MediaType.APPLICATION_JSON)
@@ -171,7 +178,8 @@ class RecipeManagementControllerTest {
   @Tag("standard-processing")
   @DisplayName("Should handle PUT /recipe-management/recipes/{recipeId}")
   void shouldHandlePutRecipes() throws Exception {
-    when(recipeService.updateRecipe("1")).thenReturn(ResponseEntity.ok("Update Recipe - placeholder"));
+    when(recipeService.updateRecipe(eq("1"), any(UpdateRecipeRequest.class)))
+        .thenReturn(ResponseEntity.ok(RecipeDto.builder().build()));
 
     mockMvc.perform(put("/recipe-management/recipes/1")
         .contentType(MediaType.APPLICATION_JSON)

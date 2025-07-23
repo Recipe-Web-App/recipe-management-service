@@ -4,16 +4,21 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestBody;
 
+import com.recipe_manager.exception.ResourceNotFoundException;
+import com.recipe_manager.model.dto.recipe.RecipeDto;
 import com.recipe_manager.model.dto.request.CreateRecipeRequest;
+import com.recipe_manager.model.dto.request.UpdateRecipeRequest;
 import com.recipe_manager.model.entity.ingredient.Ingredient;
 import com.recipe_manager.model.entity.recipe.Recipe;
 import com.recipe_manager.model.entity.recipe.RecipeIngredient;
 import com.recipe_manager.model.entity.recipe.RecipeIngredientId;
+import com.recipe_manager.model.mapper.RecipeMapper;
 import com.recipe_manager.repository.ingredient.IngredientRepository;
 import com.recipe_manager.repository.recipe.RecipeRepository;
 import com.recipe_manager.util.SecurityUtils;
@@ -31,11 +36,15 @@ public class RecipeService {
 
   private final RecipeRepository recipeRepository;
   private final IngredientRepository ingredientRepository;
+  private final RecipeMapper recipeMapper;
 
   public RecipeService(
-      final RecipeRepository recipeRepository, final IngredientRepository ingredientRepository) {
+      final RecipeRepository recipeRepository,
+      final IngredientRepository ingredientRepository,
+      final RecipeMapper recipeMapper) {
     this.recipeRepository = recipeRepository;
     this.ingredientRepository = ingredientRepository;
+    this.recipeMapper = recipeMapper;
   }
 
   /**
@@ -45,7 +54,8 @@ public class RecipeService {
    * @return ResponseEntity with the created recipe ID
    */
   @Transactional
-  public ResponseEntity<Long> createRecipe(@Valid @RequestBody final CreateRecipeRequest request) {
+  public ResponseEntity<RecipeDto> createRecipe(
+      @Valid @RequestBody final CreateRecipeRequest request) {
     Recipe recipe =
         new Recipe(
             null, // recipeId (auto-generated)
@@ -113,17 +123,44 @@ public class RecipeService {
     }
 
     Recipe saved = recipeRepository.save(recipe);
-    return ResponseEntity.ok(saved.getRecipeId());
+    RecipeDto response = recipeMapper.toDto(saved);
+    return ResponseEntity.ok(response);
   }
 
   /**
    * Update an existing recipe.
    *
    * @param recipeId the recipe ID
-   * @return placeholder response
+   * @param request the update recipe request DTO
+   * @return ResponseEntity with the updated recipe ID
    */
-  public ResponseEntity<String> updateRecipe(final String recipeId) {
-    return ResponseEntity.ok("Update Recipe - placeholder");
+  @Transactional
+  public ResponseEntity<RecipeDto> updateRecipe(
+      final String recipeId, final UpdateRecipeRequest request) {
+    // Parse recipeId
+    Long id;
+    try {
+      id = Long.parseLong(recipeId);
+    } catch (NumberFormatException e) {
+      throw new ResourceNotFoundException("Invalid recipe ID: " + recipeId);
+    }
+
+    // Fetch existing recipe
+    Recipe recipe =
+        recipeRepository
+            .findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Recipe not found: " + recipeId));
+
+    if (!recipe.getUserId().equals(SecurityUtils.getCurrentUserId())) {
+      throw new AccessDeniedException("User does not have permission to update this recipe");
+    }
+
+    // Update fields and nested collections using MapStruct
+    recipeMapper.updateRecipeFromRequest(request, recipe);
+    Recipe saved = recipeRepository.save(recipe);
+    RecipeDto response = recipeMapper.toDto(saved);
+
+    return ResponseEntity.ok(response);
   }
 
   /**

@@ -1,10 +1,7 @@
 package com.recipe_manager.model.entity.recipe;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-
-import org.hibernate.annotations.CreationTimestamp;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -52,11 +49,6 @@ public class RecipeTag {
   @Size(max = MAX_NAME_LENGTH)
   @Column(name = "name", nullable = false, unique = true)
   private String name;
-
-  /** The creation timestamp. */
-  @CreationTimestamp
-  @Column(name = "created_at", nullable = false, updatable = false)
-  private LocalDateTime createdAt;
 
   /** The list of recipes associated with this tag. */
   @ManyToMany(mappedBy = "recipeTags")

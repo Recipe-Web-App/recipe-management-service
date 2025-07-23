@@ -9,6 +9,7 @@ import java.util.UUID;
 import com.recipe_manager.model.dto.recipe.RecipeFavoriteDto;
 import com.recipe_manager.model.entity.recipe.Recipe;
 import com.recipe_manager.model.entity.recipe.RecipeFavorite;
+import com.recipe_manager.model.entity.recipe.RecipeFavoriteId;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -34,9 +35,14 @@ class RecipeFavoriteMapperTest {
         .recipeId(100L)
         .build();
 
-    RecipeFavorite entity = RecipeFavorite.builder()
-        .recipe(recipe)
+    RecipeFavoriteId id = RecipeFavoriteId.builder()
         .userId(userId)
+        .recipeId(recipe.getRecipeId())
+        .build();
+
+    RecipeFavorite entity = RecipeFavorite.builder()
+        .id(id)
+        .recipe(recipe)
         .favoritedAt(favoritedAt)
         .build();
 
@@ -68,15 +74,25 @@ class RecipeFavoriteMapperTest {
         .recipeId(300L)
         .build();
 
-    RecipeFavorite entity1 = RecipeFavorite.builder()
-        .recipe(recipe1)
+    RecipeFavoriteId id1 = RecipeFavoriteId.builder()
         .userId(userId1)
+        .recipeId(recipe1.getRecipeId())
+        .build();
+
+    RecipeFavoriteId id2 = RecipeFavoriteId.builder()
+        .userId(userId2)
+        .recipeId(recipe2.getRecipeId())
+        .build();
+
+    RecipeFavorite entity1 = RecipeFavorite.builder()
+        .id(id1)
+        .recipe(recipe1)
         .favoritedAt(now)
         .build();
 
     RecipeFavorite entity2 = RecipeFavorite.builder()
+        .id(id2)
         .recipe(recipe2)
-        .userId(userId2)
         .favoritedAt(now.plusHours(1))
         .build();
 
@@ -98,9 +114,14 @@ class RecipeFavoriteMapperTest {
     UUID userId = UUID.randomUUID();
     LocalDateTime favoritedAt = LocalDateTime.now();
 
-    RecipeFavorite entity = RecipeFavorite.builder()
-        .recipe(null)
+    RecipeFavoriteId id = RecipeFavoriteId.builder()
         .userId(userId)
+        .recipeId(null) // null recipe ID
+        .build();
+
+    RecipeFavorite entity = RecipeFavorite.builder()
+        .id(id)
+        .recipe(null)
         .favoritedAt(favoritedAt)
         .build();
 

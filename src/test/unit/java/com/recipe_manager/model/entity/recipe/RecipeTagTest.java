@@ -2,7 +2,6 @@ package com.recipe_manager.model.entity.recipe;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,11 +17,9 @@ class RecipeTagTest {
   @Tag("standard-processing")
   void allArgsConstructorAssignsFields() {
     List<Recipe> recipes = new ArrayList<>();
-    LocalDateTime now = LocalDateTime.now();
-    RecipeTag tag = new RecipeTag(1L, "name", now, recipes);
+    RecipeTag tag = new RecipeTag(1L, "name", recipes);
     assertThat(tag.getTagId()).isEqualTo(1L);
     assertThat(tag.getName()).isEqualTo("name");
-    assertThat(tag.getCreatedAt()).isEqualTo(now);
     assertThat(tag.getRecipes()).isSameAs(recipes);
   }
 
@@ -33,7 +30,6 @@ class RecipeTagTest {
     RecipeTag tag = new RecipeTag();
     assertThat(tag.getTagId()).isNull();
     assertThat(tag.getName()).isNull();
-    assertThat(tag.getCreatedAt()).isNull();
     assertThat(tag.getRecipes()).isNotNull();
     assertThat(tag.getRecipes()).isEmpty();
   }

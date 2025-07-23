@@ -19,6 +19,8 @@ public interface RecipeFavoriteMapper {
    * @return the mapped RecipeFavoriteDto
    */
   @Mapping(target = "recipeId", source = "recipe.recipeId")
+  @Mapping(target = "userId", source = "id.userId")
+  @Mapping(target = "favoritedAt", source = "favoritedAt")
   @Mapping(target = "createdAt", ignore = true)
   @Mapping(target = "updatedAt", ignore = true)
   @Mapping(target = "media", ignore = true)

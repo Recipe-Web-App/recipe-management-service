@@ -21,12 +21,14 @@ class IngredientTest {
   void allArgsConstructorAssignsFields() {
     List<RecipeIngredient> recipeIngredients = new ArrayList<>();
     LocalDateTime now = LocalDateTime.now();
-    Ingredient ingredient = new Ingredient(1L, "name", "desc", "cat", now, recipeIngredients);
+    LocalDateTime updated = LocalDateTime.now().plusHours(1);
+    Ingredient ingredient = new Ingredient(1L, "name", "desc", false, now, updated, recipeIngredients);
     assertThat(ingredient.getIngredientId()).isEqualTo(1L);
     assertThat(ingredient.getName()).isEqualTo("name");
     assertThat(ingredient.getDescription()).isEqualTo("desc");
-    assertThat(ingredient.getCategory()).isEqualTo("cat");
+    assertThat(ingredient.getIsOptional()).isEqualTo(false);
     assertThat(ingredient.getCreatedAt()).isEqualTo(now);
+    assertThat(ingredient.getUpdatedAt()).isEqualTo(updated);
     assertThat(ingredient.getRecipeIngredients()).isSameAs(recipeIngredients);
   }
 
@@ -38,8 +40,9 @@ class IngredientTest {
     assertThat(ingredient.getIngredientId()).isNull();
     assertThat(ingredient.getName()).isNull();
     assertThat(ingredient.getDescription()).isNull();
-    assertThat(ingredient.getCategory()).isNull();
+    assertThat(ingredient.getIsOptional()).isEqualTo(false); // Default value from @Builder.Default
     assertThat(ingredient.getCreatedAt()).isNull();
+    assertThat(ingredient.getUpdatedAt()).isNull();
     assertThat(ingredient.getRecipeIngredients()).isNull();
   }
 

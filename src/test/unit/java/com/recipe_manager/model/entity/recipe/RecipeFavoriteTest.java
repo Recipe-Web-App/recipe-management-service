@@ -16,14 +16,14 @@ class RecipeFavoriteTest {
   @DisplayName("All-args constructor assigns all fields")
   @Tag("standard-processing")
   void allArgsConstructorAssignsFields() {
-    RecipeFavoriteId id = new RecipeFavoriteId(UUID.randomUUID(), 1L);
-    Recipe recipe = new Recipe();
     UUID userId = UUID.randomUUID();
+    RecipeFavoriteId id = new RecipeFavoriteId(userId, 1L);
+    Recipe recipe = new Recipe();
     LocalDateTime now = LocalDateTime.now();
-    RecipeFavorite fav = new RecipeFavorite(id, recipe, userId, now);
+    RecipeFavorite fav = new RecipeFavorite(id, recipe, now);
     assertThat(fav.getId()).isEqualTo(id);
     assertThat(fav.getRecipe()).isSameAs(recipe);
-    assertThat(fav.getUserId()).isEqualTo(userId);
+    assertThat(fav.getId().getUserId()).isEqualTo(userId); // Access through embedded ID
     assertThat(fav.getFavoritedAt()).isEqualTo(now);
   }
 
@@ -34,7 +34,6 @@ class RecipeFavoriteTest {
     RecipeFavorite fav = new RecipeFavorite();
     assertThat(fav.getId()).isNull();
     assertThat(fav.getRecipe()).isNull();
-    assertThat(fav.getUserId()).isNull();
     assertThat(fav.getFavoritedAt()).isNull();
   }
 
@@ -43,8 +42,10 @@ class RecipeFavoriteTest {
   @Tag("standard-processing")
   void settersAndGettersWork() {
     RecipeFavorite fav = new RecipeFavorite();
-    fav.setUserId(UUID.randomUUID());
-    assertThat(fav.getUserId()).isNotNull();
+    RecipeFavoriteId id = new RecipeFavoriteId();
+    id.setUserId(UUID.randomUUID());
+    fav.setId(id);
+    assertThat(fav.getId().getUserId()).isNotNull();
   }
 
   @Test

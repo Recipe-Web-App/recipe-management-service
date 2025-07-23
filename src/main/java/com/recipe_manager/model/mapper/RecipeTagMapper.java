@@ -21,8 +21,9 @@ public interface RecipeTagMapper {
   @Mapping(
       target = "recipeId",
       ignore = true) // RecipeTag doesn't have a direct recipeId, this would need context
-  @Mapping(target = "updatedAt", ignore = true)
-  @Mapping(target = "media", ignore = true)
+  @Mapping(target = "createdAt", ignore = true) // Entity doesn't have createdAt field
+  @Mapping(target = "updatedAt", ignore = true) // Entity doesn't have updatedAt field
+  @Mapping(target = "media", ignore = true) // Media not implemented yet
   RecipeTagDto toDto(RecipeTag entity);
 
   /**

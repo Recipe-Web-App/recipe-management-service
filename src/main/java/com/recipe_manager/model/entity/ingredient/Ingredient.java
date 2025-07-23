@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import com.recipe_manager.model.entity.recipe.RecipeIngredient;
 
@@ -39,7 +40,7 @@ import lombok.ToString;
 @ToString(exclude = "recipeIngredients")
 public class Ingredient {
   /** Max length allowed by database schema. */
-  private static final int MAX_INGREDIENT_NAME_LENGTH = 100;
+  private static final int MAX_INGREDIENT_NAME_LENGTH = 255;
 
   /** The unique ID of the ingredient. */
   @Id
@@ -57,14 +58,20 @@ public class Ingredient {
   @Column(name = "description", columnDefinition = "text")
   private String description;
 
-  /** The category of the ingredient. */
-  @Column(name = "category")
-  private String category;
+  /** Whether the ingredient is optional. */
+  @Column(name = "is_optional")
+  @Builder.Default
+  private Boolean isOptional = false;
 
   /** The creation timestamp. */
   @CreationTimestamp
   @Column(name = "created_at", nullable = false, updatable = false)
   private LocalDateTime createdAt;
+
+  /** The last update timestamp. */
+  @UpdateTimestamp
+  @Column(name = "updated_at", nullable = false)
+  private LocalDateTime updatedAt;
 
   /** The list of recipe ingredients that use this ingredient. */
   @OneToMany(mappedBy = "ingredient", cascade = CascadeType.ALL, orphanRemoval = true)

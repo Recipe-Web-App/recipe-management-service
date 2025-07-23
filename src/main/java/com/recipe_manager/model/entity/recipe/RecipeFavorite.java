@@ -1,7 +1,6 @@
 package com.recipe_manager.model.entity.recipe;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 import org.hibernate.annotations.CreationTimestamp;
 
@@ -42,10 +41,6 @@ public class RecipeFavorite {
   @MapsId("recipeId")
   @JoinColumn(name = "recipe_id", nullable = false)
   private Recipe recipe;
-
-  /** The user ID. */
-  @Column(name = "user_id", nullable = false)
-  private UUID userId;
 
   /** The timestamp when the recipe was favorited. */
   @CreationTimestamp

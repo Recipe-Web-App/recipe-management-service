@@ -14,6 +14,7 @@ import com.recipe_manager.model.dto.request.UpdateRecipeRequest;
 import com.recipe_manager.model.entity.ingredient.Ingredient;
 import com.recipe_manager.model.entity.recipe.Recipe;
 import com.recipe_manager.model.entity.recipe.RecipeFavorite;
+import com.recipe_manager.model.entity.recipe.RecipeFavoriteId;
 import com.recipe_manager.model.entity.recipe.RecipeIngredient;
 import com.recipe_manager.model.entity.recipe.RecipeRevision;
 import com.recipe_manager.model.entity.recipe.RecipeStep;
@@ -133,12 +134,16 @@ class RecipeMapperTest {
     RecipeTag recipeTag = RecipeTag.builder()
         .tagId(1L)
         .name("Breakfast")
-        .createdAt(now)
         .build();
 
     // Create recipe favorites
-    RecipeFavorite recipeFavorite = RecipeFavorite.builder()
+    RecipeFavoriteId favoriteId = RecipeFavoriteId.builder()
         .userId(userId)
+        .recipeId(1L) // Assuming this recipe will have ID 1L
+        .build();
+
+    RecipeFavorite recipeFavorite = RecipeFavorite.builder()
+        .id(favoriteId)
         .favoritedAt(now)
         .build();
 

@@ -1,11 +1,6 @@
 package com.recipe_manager.model.dto.response;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.*;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -15,242 +10,69 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
-/**
- * Test class for ErrorResponse.
- * Verifies that error response DTO works correctly.
- */
 @Tag("unit")
 class ErrorResponseTest {
 
-  /**
-   * Test that error response can be instantiated with all fields.
-   */
   @Test
+  @DisplayName("Builder sets all fields")
   @Tag("standard-processing")
-  @DisplayName("Should create error response with all fields")
-  void shouldCreateErrorResponseWithAllFields() {
-    // Given
-    LocalDateTime timestamp = LocalDateTime.now();
-    int status = 400;
-    String error = "Bad Request";
-    String message = "This is a test error message";
-    String path = "/api/test";
-    String requestId = "test-request-id";
-    Map<String, String> details = new HashMap<>();
-    details.put("field1", "error1");
-    details.put("field2", "error2");
-
-    // When
-    ErrorResponse errorResponse = ErrorResponse.builder()
-        .timestamp(timestamp)
-        .status(status)
-        .error(error)
-        .message(message)
-        .path(path)
-        .requestId(requestId)
-        .details(details)
-        .build();
-
-    // Then
-    assertNotNull(errorResponse);
-    assertEquals(timestamp, errorResponse.getTimestamp());
-    assertEquals(status, errorResponse.getStatus());
-    assertEquals(error, errorResponse.getError());
-    assertEquals(message, errorResponse.getMessage());
-    assertEquals(path, errorResponse.getPath());
-    assertEquals(requestId, errorResponse.getRequestId());
-    assertEquals(details, errorResponse.getDetails());
-  }
-
-  /**
-   * Test that error response can be instantiated without details.
-   */
-  @Test
-  @Tag("standard-processing")
-  @DisplayName("Should create error response without details")
-  void shouldCreateErrorResponseWithoutDetails() {
-    // Given
-    LocalDateTime timestamp = LocalDateTime.now();
-    int status = 404;
-    String error = "Not Found";
-    String message = "This is a test error message";
-    String path = "/api/test";
-    String requestId = "test-request-id";
-
-    // When
-    ErrorResponse errorResponse = ErrorResponse.builder()
-        .timestamp(timestamp)
-        .status(status)
-        .error(error)
-        .message(message)
-        .path(path)
-        .requestId(requestId)
-        .build();
-
-    // Then
-    assertNotNull(errorResponse);
-    assertEquals(timestamp, errorResponse.getTimestamp());
-    assertEquals(status, errorResponse.getStatus());
-    assertEquals(error, errorResponse.getError());
-    assertEquals(message, errorResponse.getMessage());
-    assertEquals(path, errorResponse.getPath());
-    assertEquals(requestId, errorResponse.getRequestId());
-    assertNull(errorResponse.getDetails());
-  }
-
-  /**
-   * Test that error response can be instantiated with minimal fields.
-   */
-  @Test
-  @Tag("standard-processing")
-  @DisplayName("Should create error response with minimal fields")
-  void shouldCreateErrorResponseWithMinimalFields() {
-    // Given
-    LocalDateTime timestamp = LocalDateTime.now();
-    int status = 500;
-    String error = "Internal Server Error";
-    String message = "This is a test error message";
-
-    // When
-    ErrorResponse errorResponse = ErrorResponse.builder()
-        .timestamp(timestamp)
-        .status(status)
-        .error(error)
-        .message(message)
-        .build();
-
-    // Then
-    assertNotNull(errorResponse);
-    assertEquals(timestamp, errorResponse.getTimestamp());
-    assertEquals(status, errorResponse.getStatus());
-    assertEquals(error, errorResponse.getError());
-    assertEquals(message, errorResponse.getMessage());
-  }
-
-  /**
-   * Test that error response can be instantiated with empty details map.
-   */
-  @Test
-  @Tag("standard-processing")
-  @DisplayName("Should create error response with empty details map")
-  void shouldCreateErrorResponseWithEmptyDetailsMap() {
-    // Given
-    LocalDateTime timestamp = LocalDateTime.now();
-    int status = 422;
-    String error = "Unprocessable Entity";
-    String message = "This is a test error message";
-    String path = "/api/test";
-    String requestId = "test-request-id";
-    Map<String, String> details = new HashMap<>();
-
-    // When
-    ErrorResponse errorResponse = ErrorResponse.builder()
-        .timestamp(timestamp)
-        .status(status)
-        .error(error)
-        .message(message)
-        .path(path)
-        .requestId(requestId)
-        .details(details)
-        .build();
-
-    // Then
-    assertNotNull(errorResponse);
-    assertEquals(timestamp, errorResponse.getTimestamp());
-    assertEquals(status, errorResponse.getStatus());
-    assertEquals(error, errorResponse.getError());
-    assertEquals(message, errorResponse.getMessage());
-    assertEquals(path, errorResponse.getPath());
-    assertEquals(requestId, errorResponse.getRequestId());
-    assertNotNull(errorResponse.getDetails());
-    assertTrue(errorResponse.getDetails().isEmpty());
-  }
-
-  /**
-   * Test that error response can be instantiated with null request ID.
-   */
-  @Test
-  @Tag("standard-processing")
-  @DisplayName("Should create error response with null request ID")
-  void shouldCreateErrorResponseWithNullRequestId() {
-    // Given
-    LocalDateTime timestamp = LocalDateTime.now();
-    int status = 400;
-    String error = "Bad Request";
-    String message = "This is a test error message";
-
-    // When
-    ErrorResponse errorResponse = ErrorResponse.builder()
-        .timestamp(timestamp)
-        .status(status)
-        .error(error)
-        .message(message)
-        .build();
-
-    // Then
-    assertNotNull(errorResponse);
-    assertEquals(timestamp, errorResponse.getTimestamp());
-    assertEquals(status, errorResponse.getStatus());
-    assertEquals(error, errorResponse.getError());
-    assertEquals(message, errorResponse.getMessage());
-  }
-
-  @Test
-  @Tag("standard-processing")
-  @DisplayName("Should return unmodifiable details map")
-  void shouldReturnUnmodifiableDetailsMap() {
+  void builderSetsAllFields() {
     Map<String, String> details = new HashMap<>();
     details.put("field", "error");
-    ErrorResponse errorResponse = ErrorResponse.builder().details(details).build();
-    Map<String, String> returned = errorResponse.getDetails();
-    assertNotNull(returned);
-    assertTrue(returned.containsKey("field"));
-    assertThrows(UnsupportedOperationException.class, () -> returned.put("x", "y"));
-  }
-
-  @Test
-  @Tag("standard-processing")
-  @DisplayName("Should copy details map defensively in setDetails")
-  void shouldCopyDetailsMapDefensively() {
-    Map<String, String> details = new HashMap<>();
-    details.put("field", "error");
-    ErrorResponse errorResponse = ErrorResponse.builder().build();
-    errorResponse.setDetails(details);
-    details.put("field2", "error2");
-    assertFalse(errorResponse.getDetails().containsKey("field2"));
-  }
-
-  @Test
-  @Tag("standard-processing")
-  @DisplayName("Should set details to null when null parameter")
-  void shouldSetDetailsToNullWhenNullParameter() {
-    ErrorResponse errorResponse = ErrorResponse.builder()
-        .error("Test Error")
-        .message("Test Message")
+    LocalDateTime now = LocalDateTime.now();
+    ErrorResponse err = ErrorResponse.builder()
+        .timestamp(now)
+        .status(404)
+        .error("Not Found")
+        .message("Resource not found")
+        .path("/api/resource")
+        .requestId("req-123")
+        .details(details)
         .build();
-
-    errorResponse.setDetails(null);
-    assertNull(errorResponse.getDetails());
+    assertThat(err.getTimestamp()).isEqualTo(now);
+    assertThat(err.getStatus()).isEqualTo(404);
+    assertThat(err.getError()).isEqualTo("Not Found");
+    assertThat(err.getMessage()).isEqualTo("Resource not found");
+    assertThat(err.getPath()).isEqualTo("/api/resource");
+    assertThat(err.getRequestId()).isEqualTo("req-123");
+    assertThat(err.getDetails()).isSameAs(details);
   }
 
   @Test
+  @DisplayName("Setters and getters work for all fields")
   @Tag("standard-processing")
-  @DisplayName("Should implement equals and hashCode")
-  void shouldImplementEqualsAndHashCode() {
-    LocalDateTime timestamp = LocalDateTime.now();
-    ErrorResponse e1 = ErrorResponse.builder().timestamp(timestamp).status(400).error("e").message("m").build();
-    ErrorResponse e2 = ErrorResponse.builder().timestamp(timestamp).status(400).error("e").message("m").build();
-    assertEquals(e1, e2);
-    assertEquals(e1.hashCode(), e2.hashCode());
+  void settersAndGettersWork() {
+    ErrorResponse err = new ErrorResponse();
+    err.setStatus(500);
+    assertThat(err.getStatus()).isEqualTo(500);
+    Map<String, String> map = new HashMap<>();
+    err.setDetails(map);
+    assertThat(err.getDetails()).isSameAs(map);
   }
 
   @Test
+  @DisplayName("Equals/hashCode/toString are generated by Lombok")
   @Tag("standard-processing")
-  @DisplayName("Should implement toString")
-  void shouldImplementToString() {
-    ErrorResponse e = ErrorResponse.builder().status(400).error("e").message("m").build();
-    assertTrue(e.toString().contains("400"));
-    assertTrue(e.toString().contains("e"));
-    assertTrue(e.toString().contains("m"));
+  void equalsHashCodeToString() {
+    ErrorResponse err1 = ErrorResponse.builder().status(400).build();
+    ErrorResponse err2 = ErrorResponse.builder().status(400).build();
+    assertThat(err1).isEqualTo(err2);
+    assertThat(err1.hashCode()).isEqualTo(err2.hashCode());
+    assertThat(err1.toString()).contains("400");
+  }
+
+  @Test
+  @DisplayName("Null handling for all fields")
+  @Tag("error-processing")
+  void nullHandlingForAllFields() {
+    ErrorResponse err = ErrorResponse.builder().build();
+    assertThat(err.getTimestamp()).isNull();
+    assertThat(err.getStatus()).isEqualTo(0);
+    assertThat(err.getError()).isNull();
+    assertThat(err.getMessage()).isNull();
+    assertThat(err.getPath()).isNull();
+    assertThat(err.getRequestId()).isNull();
+    assertThat(err.getDetails()).isNotNull();
+    assertThat(err.getDetails()).isEmpty();
   }
 }

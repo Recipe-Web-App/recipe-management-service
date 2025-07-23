@@ -15,13 +15,13 @@ import lombok.ToString;
 @Embeddable
 @Getter
 @Setter
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
 @Builder
-@ToString
 @EqualsAndHashCode
+@ToString
 public class RecipeIngredientId implements Serializable {
-
+  /** Serial version UID for ensuring compatibility during serialization. */
   private static final long serialVersionUID = 1L;
 
   /** The recipe ID. */
@@ -29,16 +29,4 @@ public class RecipeIngredientId implements Serializable {
 
   /** The ingredient ID. */
   private Long ingredientId;
-
-  /**
-   * Copy constructor for RecipeIngredientId.
-   *
-   * <p>WARNING: This constructor is for defensive copying only.
-   *
-   * @param other the RecipeIngredientId to copy
-   */
-  public RecipeIngredientId(final RecipeIngredientId other) {
-    this.recipeId = other == null ? null : other.recipeId;
-    this.ingredientId = other == null ? null : other.ingredientId;
-  }
 }

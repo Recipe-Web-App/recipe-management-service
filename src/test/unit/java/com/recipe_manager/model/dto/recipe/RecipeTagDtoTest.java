@@ -8,171 +8,92 @@ import java.util.List;
 
 import com.recipe_manager.model.dto.media.RecipeTagMediaDto;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
-/**
- * Unit tests for RecipeTagDto.
- */
 @Tag("unit")
 class RecipeTagDtoTest {
 
-  private RecipeTagDto recipeTagDto;
-
-  @BeforeEach
-  void setUp() {
-    recipeTagDto = RecipeTagDto.builder()
-        .tagId(1L)
-        .name("Test Tag")
-        .build();
-  }
-
   @Test
-  @DisplayName("Should create recipe tag DTO with builder")
+  @DisplayName("All-args constructor assigns all fields")
   @Tag("standard-processing")
-  void shouldCreateRecipeTagDtoWithBuilder() {
-    // Then
-    assertThat(recipeTagDto.getTagId()).isEqualTo(1L);
-    assertThat(recipeTagDto.getName()).isEqualTo("Test Tag");
-  }
-
-  @Test
-  @DisplayName("Should set and get all properties")
-  @Tag("standard-processing")
-  void shouldSetAndGetAllProperties() {
-    // Given
-    Long newTagId = 2L;
-    String newName = "Updated Tag";
-    LocalDateTime createdAt = LocalDateTime.now();
-
-    // When
-    recipeTagDto.setTagId(newTagId);
-    recipeTagDto.setName(newName);
-    recipeTagDto.setCreatedAt(createdAt);
-
-    // Then
-    assertThat(recipeTagDto.getTagId()).isEqualTo(newTagId);
-    assertThat(recipeTagDto.getName()).isEqualTo(newName);
-    assertThat(recipeTagDto.getCreatedAt()).isEqualTo(createdAt);
-  }
-
-  @Test
-  @DisplayName("Should have correct toString representation")
-  @Tag("standard-processing")
-  void shouldHaveCorrectToStringRepresentation() {
-    // When
-    String toString = recipeTagDto.toString();
-
-    // Then
-    assertThat(toString).contains("RecipeTagDto");
-    assertThat(toString).contains("Test Tag");
-  }
-
-  @Test
-  @DisplayName("Should handle different tag names")
-  @Tag("standard-processing")
-  void shouldHandleDifferentTagNames() {
-    // Given
-    RecipeTagDto italianTag = RecipeTagDto.builder()
-        .tagId(1L)
-        .name("Italian")
-        .build();
-
-    RecipeTagDto vegetarianTag = RecipeTagDto.builder()
-        .tagId(2L)
-        .name("Vegetarian")
-        .build();
-
-    RecipeTagDto quickTag = RecipeTagDto.builder()
-        .tagId(3L)
-        .name("Quick & Easy")
-        .build();
-
-    // Then
-    assertThat(italianTag.getName()).isEqualTo("Italian");
-    assertThat(vegetarianTag.getName()).isEqualTo("Vegetarian");
-    assertThat(quickTag.getName()).isEqualTo("Quick & Easy");
-  }
-
-  @Test
-  @DisplayName("Should handle tag with special characters")
-  @Tag("standard-processing")
-  void shouldHandleTagWithSpecialCharacters() {
-    // Given
-    RecipeTagDto specialTag = RecipeTagDto.builder()
-        .tagId(1L)
-        .name("Tag with @#$% symbols & numbers 123")
-        .build();
-
-    // Then
-    assertThat(specialTag.getName()).isEqualTo("Tag with @#$% symbols & numbers 123");
-  }
-
-  @Test
-  @DisplayName("Should handle tag with maximum length name")
-  @Tag("standard-processing")
-  void shouldHandleTagWithMaximumLengthName() {
-    // Given
-    String maxLengthName = "A".repeat(50); // Maximum length per schema
-    RecipeTagDto maxTag = RecipeTagDto.builder()
-        .tagId(1L)
-        .name(maxLengthName)
-        .build();
-
-    // Then
-    assertThat(maxTag.getName()).isEqualTo(maxLengthName);
-    assertThat(maxTag.getName().length()).isEqualTo(50);
-  }
-
-  @Test
-  @DisplayName("Builder should defensively copy media list")
-  @Tag("standard-processing")
-  void builderShouldDefensivelyCopyMediaList() {
+  void allArgsConstructorAssignsFields() {
     List<RecipeTagMediaDto> media = new ArrayList<>();
-    media.add(new RecipeTagMediaDto());
-    RecipeTagDto dto = RecipeTagDto.builder()
-        .media(media)
-        .build();
-    media.add(new RecipeTagMediaDto());
-    assertThat(dto.getMedia()).hasSize(1);
+    LocalDateTime now = LocalDateTime.now();
+    RecipeTagDto dto = new RecipeTagDto(1L, 2L, "name", now, now, media);
+    assertThat(dto.getRecipeId()).isEqualTo(1L);
+    assertThat(dto.getTagId()).isEqualTo(2L);
+    assertThat(dto.getName()).isEqualTo("name");
+    assertThat(dto.getCreatedAt()).isEqualTo(now);
+    assertThat(dto.getUpdatedAt()).isEqualTo(now);
+    assertThat(dto.getMedia()).isSameAs(media);
   }
 
   @Test
-  @DisplayName("Builder should handle null media as empty")
-  @Tag("error-processing")
-  void builderShouldHandleNullMediaAsEmpty() {
-    RecipeTagDto dto = RecipeTagDto.builder()
-        .media(null)
-        .build();
+  @DisplayName("No-args constructor sets defaults and nulls")
+  @Tag("standard-processing")
+  void noArgsConstructorSetsDefaults() {
+    RecipeTagDto dto = new RecipeTagDto();
+    assertThat(dto.getMedia()).isNotNull();
+    assertThat(dto.getMedia()).isEmpty();
+    assertThat(dto.getName()).isNull();
+  }
+
+  @Test
+  @DisplayName("Builder sets fields and uses defaults")
+  @Tag("standard-processing")
+  void builderSetsFieldsAndDefaults() {
+    RecipeTagDto dto = RecipeTagDto.builder().name("T").build();
+    assertThat(dto.getName()).isEqualTo("T");
+    assertThat(dto.getMedia()).isNotNull();
     assertThat(dto.getMedia()).isEmpty();
   }
 
   @Test
-  @DisplayName("toString should include key fields and not be null")
+  @DisplayName("Setters and getters work for all fields")
   @Tag("standard-processing")
-  void toStringShouldIncludeKeyFields() {
-    RecipeTagDto dto = RecipeTagDto.builder()
-        .tagId(1L)
-        .name("Test Tag")
-        .build();
-    String str = dto.toString();
-    assertThat(str).isNotNull();
-    assertThat(str).contains("RecipeTagDto");
-    assertThat(str).contains("Test Tag");
+  void settersAndGettersWork() {
+    RecipeTagDto dto = new RecipeTagDto();
+    dto.setName("T");
+    assertThat(dto.getName()).isEqualTo("T");
+    List<RecipeTagMediaDto> list = new ArrayList<>();
+    dto.setMedia(list);
+    assertThat(dto.getMedia()).isSameAs(list);
   }
 
   @Test
-  @DisplayName("Should handle nulls for all fields")
+  @DisplayName("List mutability is direct (no defensive copy)")
+  @Tag("standard-processing")
+  void listMutabilityIsDirect() {
+    RecipeTagDto dto = new RecipeTagDto();
+    List<RecipeTagMediaDto> list = new ArrayList<>();
+    dto.setMedia(list);
+    list.add(new RecipeTagMediaDto());
+    assertThat(dto.getMedia()).hasSize(1);
+  }
+
+  @Test
+  @DisplayName("Equals/hashCode/toString are generated by Lombok")
+  @Tag("standard-processing")
+  void equalsHashCodeToString() {
+    RecipeTagDto dto1 = RecipeTagDto.builder().name("A").build();
+    RecipeTagDto dto2 = RecipeTagDto.builder().name("A").build();
+    assertThat(dto1).isEqualTo(dto2);
+    assertThat(dto1.hashCode()).isEqualTo(dto2.hashCode());
+    assertThat(dto1.toString()).contains("A");
+  }
+
+  @Test
+  @DisplayName("Null handling for all fields")
   @Tag("error-processing")
-  void shouldHandleNullsForAllFields() {
+  void nullHandlingForAllFields() {
     RecipeTagDto dto = new RecipeTagDto(null, null, null, null, null, null);
     assertThat(dto.getRecipeId()).isNull();
     assertThat(dto.getTagId()).isNull();
     assertThat(dto.getName()).isNull();
     assertThat(dto.getCreatedAt()).isNull();
     assertThat(dto.getUpdatedAt()).isNull();
-    assertThat(dto.getMedia()).isEmpty();
+    assertThat(dto.getMedia()).isNull();
   }
 }

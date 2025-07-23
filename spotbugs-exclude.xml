@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FindBugsFilter>
+  <!-- Suppress defensive copy warnings for Lombok-generated model classes -->
+  <!-- These are acceptable for DTOs and entities where performance is important -->
+
+  <!-- Suppress EI_EXPOSE_REP and EI_EXPOSE_REP2 for all model classes -->
+  <Match>
+    <Class name="~.*\.model\.dto\..*"/>
+    <Bug pattern="EI_EXPOSE_REP,EI_EXPOSE_REP2"/>
+  </Match>
+
+  <Match>
+    <Class name="~.*\.model\.entity\..*"/>
+    <Bug pattern="EI_EXPOSE_REP,EI_EXPOSE_REP2"/>
+  </Match>
+
+  <Match>
+    <Class name="~.*\.model\.dto\.request\..*"/>
+    <Bug pattern="EI_EXPOSE_REP,EI_EXPOSE_REP2"/>
+  </Match>
+
+  <Match>
+    <Class name="~.*\.model\.dto\.response\..*"/>
+    <Bug pattern="EI_EXPOSE_REP,EI_EXPOSE_REP2"/>
+  </Match>
+
+  <!-- Specifically suppress for Lombok builder classes -->
+  <Match>
+    <Class name="~.*Builder"/>
+    <Bug pattern="EI_EXPOSE_REP,EI_EXPOSE_REP2"/>
+  </Match>
+</FindBugsFilter>

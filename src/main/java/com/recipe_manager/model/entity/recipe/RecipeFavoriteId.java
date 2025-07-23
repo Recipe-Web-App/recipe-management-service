@@ -16,13 +16,13 @@ import lombok.ToString;
 @Embeddable
 @Getter
 @Setter
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
 @Builder
-@ToString
 @EqualsAndHashCode
+@ToString
 public class RecipeFavoriteId implements Serializable {
-
+  /** Serial version UID for ensuring compatibility during serialization. */
   private static final long serialVersionUID = 1L;
 
   /** The user ID. */
@@ -30,16 +30,4 @@ public class RecipeFavoriteId implements Serializable {
 
   /** The recipe ID. */
   private Long recipeId;
-
-  /**
-   * Copy constructor for RecipeFavoriteId.
-   *
-   * <p>WARNING: This constructor is for defensive copying only.
-   *
-   * @param other the RecipeFavoriteId to copy
-   */
-  public RecipeFavoriteId(final RecipeFavoriteId other) {
-    this.userId = other == null ? null : other.userId;
-    this.recipeId = other == null ? null : other.recipeId;
-  }
 }

@@ -1,14 +1,21 @@
 package com.recipe_manager.model.dto.response;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
-import lombok.Builder;
+import lombok.AllArgsConstructor;
+import lombok.Builder.Default;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+import lombok.experimental.SuperBuilder;
 
 /**
  * Standardized error response DTO for API error responses.
@@ -25,10 +32,15 @@ import lombok.Data;
  * </ul>
  */
 @Data
-@Builder
+@Getter
+@Setter
+@SuperBuilder
+@AllArgsConstructor
+@NoArgsConstructor
+@EqualsAndHashCode
+@ToString
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ErrorResponse {
-
   /** Timestamp of when the error occurred. */
   @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS")
   private LocalDateTime timestamp;
@@ -50,35 +62,6 @@ public class ErrorResponse {
 
   /** Optional validation details. */
   @JsonInclude(JsonInclude.Include.NON_EMPTY)
-  private Map<String, String> details;
-
-  /**
-   * Gets the details map with defensive copying.
-   *
-   * @return Unmodifiable copy of the details map
-   */
-  public Map<String, String> getDetails() {
-    return details != null ? Collections.unmodifiableMap(details) : null;
-  }
-
-  /**
-   * Sets the details map with defensive copying.
-   *
-   * @param details The details map to set
-   */
-  public void setDetails(final Map<String, String> details) {
-    this.details = details != null ? Map.copyOf(details) : null;
-  }
-
-  /**
-   * Custom builder method for details to implement defensive copying.
-   *
-   * @return This builder instance
-   */
-  public static final class ErrorResponseBuilder {
-    public ErrorResponseBuilder details(final Map<String, String> details) {
-      this.details = details != null ? Map.copyOf(details) : null;
-      return this;
-    }
-  }
+  @Default
+  private Map<String, String> details = new HashMap<>();
 }

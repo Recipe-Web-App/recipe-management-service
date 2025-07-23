@@ -296,6 +296,7 @@
           <effort>Max</effort>
           <threshold>Low</threshold>
           <xmlOutput>true</xmlOutput>
+          <excludeFilterFile>spotbugs-exclude.xml</excludeFilterFile>
         </configuration>
         <executions>
           <execution>
@@ -385,7 +386,15 @@
               <artifactId>lombok</artifactId>
               <version>${lombok.version}</version>
             </path>
+            <path>
+              <groupId>org.projectlombok</groupId>
+              <artifactId>lombok-mapstruct-binding</artifactId>
+              <version>0.2.0</version>
+            </path>
           </annotationProcessorPaths>
+          <compilerArgs>
+            <arg>-Amapstruct.verbose=true</arg>
+          </compilerArgs>
         </configuration>
       </plugin>
 

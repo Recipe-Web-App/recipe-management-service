@@ -38,5 +38,34 @@
     "src/test/performance/java"
   ],
   "java.project.outputPath": "target/classes",
-  "java.project.testOutputPath": "target/test-classes"
+  "java.project.testOutputPath": "target/test-classes",
+  "cSpell.words": [
+    "Amapstruct",
+    "assertj",
+    "codehaus",
+    "COVEREDRATIO",
+    "datafaker",
+    "diffplug",
+    "ekryd",
+    "favorited",
+    "flywaydb",
+    "jacoco",
+    "javax",
+    "jdbc",
+    "jjwt",
+    "jmeter",
+    "jsonwebtoken",
+    "lazerycode",
+    "logback",
+    "mapstruct",
+    "projectlombok",
+    "qameta",
+    "sortpom",
+    "spotbugs",
+    "springframework",
+    "testcontainers",
+    "testdb",
+    "wiremock"
+  ],
+  "java.debug.settings.onBuildFailureProceed": true
 }

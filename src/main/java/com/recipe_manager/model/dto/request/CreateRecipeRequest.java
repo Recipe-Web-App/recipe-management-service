@@ -2,30 +2,31 @@ package com.recipe_manager.model.dto.request;
 
 import java.util.List;
 
+import com.recipe_manager.model.dto.recipe.RecipeIngredientDto;
+import com.recipe_manager.model.dto.recipe.RecipeStepDto;
 import com.recipe_manager.model.enums.DifficultyLevel;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 
-/**
- * Request DTO for creating a new recipe. All fields are required.
- *
- * <p>WARNING: The all-args constructor has many parameters. Consider using the builder for clarity.
- */
+/** Request DTO for creating a new recipe. All fields are required. */
+@Data
 @Getter
 @Setter
-@SuperBuilder
 @NoArgsConstructor
+@SuperBuilder
+@EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 public final class CreateRecipeRequest extends AbstractRecipeRequest {
-
   /**
    * Returns the recipe title.
    *
@@ -100,7 +101,7 @@ public final class CreateRecipeRequest extends AbstractRecipeRequest {
   @Override
   @Valid
   @NotEmpty
-  public List<@Valid @NotNull CreateRecipeIngredientRequest> getIngredients() {
+  public List<@Valid @NotNull RecipeIngredientDto> getIngredients() {
     return super.getIngredients();
   }
 
@@ -112,58 +113,7 @@ public final class CreateRecipeRequest extends AbstractRecipeRequest {
   @Override
   @Valid
   @NotEmpty
-  public List<@Valid @NotNull CreateRecipeStepRequest> getSteps() {
+  public List<@Valid @NotNull RecipeStepDto> getSteps() {
     return super.getSteps();
-  }
-
-  /**
-   * All-args constructor for CreateRecipeRequest.
-   *
-   * <p>WARNING: This constructor has many parameters. Prefer using the builder for clarity.
-   *
-   * @param title the title
-   * @param description the description
-   * @param originUrl the origin URL
-   * @param servings the servings
-   * @param preparationTime the preparation time
-   * @param cookingTime the cooking time
-   * @param difficulty the difficulty
-   * @param ingredients the ingredients list
-   * @param steps the steps list
-   */
-  // CHECKSTYLE:OFF: ParameterNumber
-  public CreateRecipeRequest(
-      final String title,
-      final String description,
-      final String originUrl,
-      final java.math.BigDecimal servings,
-      final Integer preparationTime,
-      final Integer cookingTime,
-      final DifficultyLevel difficulty,
-      final List<CreateRecipeIngredientRequest> ingredients,
-      final List<CreateRecipeStepRequest> steps) {
-    super(
-        title,
-        description,
-        originUrl,
-        servings,
-        preparationTime,
-        cookingTime,
-        difficulty,
-        ingredients,
-        steps);
-  }
-
-  // CHECKSTYLE:ON: ParameterNumber
-
-  /**
-   * Builder constructor for CreateRecipeRequest.
-   *
-   * @param b the builder
-   */
-  protected CreateRecipeRequest(final CreateRecipeRequestBuilder<?, ?> b) {
-    super(b);
-    this.setIngredients(safeList(this.getIngredients()));
-    this.setSteps(safeList(this.getSteps()));
   }
 }

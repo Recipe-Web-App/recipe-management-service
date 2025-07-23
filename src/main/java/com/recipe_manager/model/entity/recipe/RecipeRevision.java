@@ -20,7 +20,9 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Builder.Default;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -29,19 +31,17 @@ import lombok.ToString;
 
 /**
  * Entity representing a revision to a recipe. Maps to the recipe_revisions table in the database.
- *
- * <p>WARNING: The all-args constructor has many parameters. Consider using the builder for clarity.
  */
 @Entity
 @Table(name = "recipe_revisions", schema = "recipe_manager")
 @Getter
 @Setter
+@AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@ToString
 @EqualsAndHashCode
+@ToString
 public class RecipeRevision {
-
   /** The unique ID of the revision. */
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -88,80 +88,6 @@ public class RecipeRevision {
   /** The creation timestamp. */
   @CreationTimestamp
   @Column(name = "created_at", nullable = false, updatable = false)
-  private LocalDateTime createdAt;
-
-  /**
-   * Returns the recipe entity.
-   *
-   * <p>Override this method with care if you subclass RecipeRevision. Document extension safety.
-   *
-   * @return the recipe
-   */
-  public Recipe getRecipe() {
-    return recipe == null ? null : new Recipe(recipe);
-  }
-
-  /**
-   * Sets the recipe entity.
-   *
-   * <p>Override this method with care if you subclass RecipeRevision. Document extension safety.
-   *
-   * @param recipe the recipe
-   */
-  public void setRecipe(final Recipe recipe) {
-    this.recipe = recipe == null ? null : new Recipe(recipe);
-  }
-
-  /**
-   * All-args constructor for RecipeRevision.
-   *
-   * <p>WARNING: This constructor has many parameters. Prefer using the builder for clarity.
-   *
-   * @param revisionId the revision ID
-   * @param recipe the recipe
-   * @param userId the user ID
-   * @param revisionCategory the revision category
-   * @param revisionType the revision type
-   * @param previousData the previous data
-   * @param newData the new data
-   * @param changeComment the change comment
-   * @param createdAt the creation timestamp
-   */
-  // CHECKSTYLE:OFF: ParameterNumber
-  public RecipeRevision(
-      final Long revisionId,
-      final Recipe recipe,
-      final UUID userId,
-      final RevisionCategory revisionCategory,
-      final RevisionType revisionType,
-      final String previousData,
-      final String newData,
-      final String changeComment,
-      final LocalDateTime createdAt) {
-    this.revisionId = revisionId;
-    this.recipe = recipe == null ? null : new Recipe(recipe);
-    this.userId = userId;
-    this.revisionCategory = revisionCategory;
-    this.revisionType = revisionType;
-    this.previousData = previousData;
-    this.newData = newData;
-    this.changeComment = changeComment;
-    this.createdAt = createdAt;
-  }
-
-  // CHECKSTYLE:ON: ParameterNumber
-
-  /** Builder for RecipeRevision. Use to construct instances with clarity and safety. */
-  public static class RecipeRevisionBuilder {
-    /**
-     * Sets the recipe.
-     *
-     * @param recipe the recipe
-     * @return this builder
-     */
-    public RecipeRevisionBuilder recipe(final Recipe recipe) {
-      this.recipe = recipe == null ? null : new Recipe(recipe);
-      return this;
-    }
-  }
+  @Default
+  private LocalDateTime createdAt = LocalDateTime.now();
 }

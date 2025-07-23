@@ -1,8 +1,8 @@
 package com.recipe_manager.model.dto.media;
 
-import java.time.LocalDateTime;
-import java.util.Objects;
-
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -12,83 +12,19 @@ import lombok.experimental.SuperBuilder;
 /**
  * Data Transfer Object for RecipeStep media. Used for transferring recipe step media data between
  * layers.
- *
- * <p>WARNING: The all-args constructor has many parameters. Consider using the builder for clarity.
  */
+@Data
 @Getter
 @Setter
+@AllArgsConstructor
 @NoArgsConstructor
 @SuperBuilder
-@ToString
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
 public final class RecipeStepMediaDto extends MediaDto {
-
   /** The recipe ID. */
   private Long recipeId;
 
   /** The step number. */
   private Integer stepNumber;
-
-  /**
-   * All-args constructor for RecipeStepMediaDto.
-   *
-   * <p>WARNING: This constructor has many parameters. Prefer using the builder for clarity.
-   *
-   * @param mediaId the media ID
-   * @param url the media URL
-   * @param altText the alt text
-   * @param contentType the content type
-   * @param fileSize the file size
-   * @param createdAt the creation timestamp
-   * @param updatedAt the update timestamp
-   * @param recipeId the recipe ID
-   * @param stepNumber the step number
-   */
-  // CHECKSTYLE:OFF: ParameterNumber
-  public RecipeStepMediaDto(
-      final Long mediaId,
-      final String url,
-      final String altText,
-      final String contentType,
-      final Long fileSize,
-      final LocalDateTime createdAt,
-      final LocalDateTime updatedAt,
-      final Long recipeId,
-      final Integer stepNumber) {
-    super(mediaId, url, altText, contentType, fileSize, createdAt, updatedAt);
-    this.recipeId = recipeId;
-    this.stepNumber = stepNumber;
-  }
-
-  // CHECKSTYLE:ON: ParameterNumber
-
-  /**
-   * Checks equality based on all fields.
-   *
-   * @param obj the object to compare
-   * @return true if equal, false otherwise
-   */
-  @Override
-  public boolean equals(final Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (!super.equals(obj)) {
-      return false;
-    }
-    if (obj == null || getClass() != obj.getClass()) {
-      return false;
-    }
-    final RecipeStepMediaDto that = (RecipeStepMediaDto) obj;
-    return Objects.equals(recipeId, that.recipeId) && Objects.equals(stepNumber, that.stepNumber);
-  }
-
-  /**
-   * Computes hash code based on all fields.
-   *
-   * @return the hash code
-   */
-  @Override
-  public int hashCode() {
-    return Objects.hash(super.hashCode(), recipeId, stepNumber);
-  }
 }

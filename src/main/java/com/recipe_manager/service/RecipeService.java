@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestBody;
 
+import com.recipe_manager.exception.BusinessException;
 import com.recipe_manager.exception.ResourceNotFoundException;
 import com.recipe_manager.model.dto.recipe.RecipeDto;
 import com.recipe_manager.model.dto.request.CreateRecipeRequest;
@@ -142,7 +143,7 @@ public class RecipeService {
     try {
       id = Long.parseLong(recipeId);
     } catch (NumberFormatException e) {
-      throw new ResourceNotFoundException("Invalid recipe ID: " + recipeId);
+      throw new BusinessException("Invalid recipe ID: " + recipeId);
     }
 
     // Fetch existing recipe
@@ -167,20 +168,59 @@ public class RecipeService {
    * Delete a recipe.
    *
    * @param recipeId the recipe ID
-   * @return placeholder response
+   * @return ResponseEntity with success message
    */
-  public ResponseEntity<String> deleteRecipe(final String recipeId) {
-    return ResponseEntity.ok("Delete Recipe - placeholder");
+  @Transactional
+  public ResponseEntity<Void> deleteRecipe(final String recipeId) {
+    // Parse recipeId
+    Long id;
+    try {
+      id = Long.parseLong(recipeId);
+    } catch (NumberFormatException e) {
+      throw new BusinessException("Invalid recipe ID: " + recipeId);
+    }
+
+    // Fetch the recipe to verify it exists and check ownership
+    Recipe recipe =
+        recipeRepository
+            .findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Recipe not found: " + recipeId));
+
+    // Check if the current user owns this recipe
+    if (!recipe.getUserId().equals(SecurityUtils.getCurrentUserId())) {
+      throw new AccessDeniedException("User does not have permission to delete this recipe");
+    }
+
+    // Delete the recipe
+    recipeRepository.delete(recipe);
+
+    return ResponseEntity.noContent().build();
   }
 
   /**
    * Get a recipe by ID.
    *
    * @param recipeId the recipe ID
-   * @return placeholder response
+   * @return ResponseEntity with the recipe data
    */
-  public ResponseEntity<String> getRecipe(final String recipeId) {
-    return ResponseEntity.ok("Get Full Recipe - placeholder");
+  public ResponseEntity<RecipeDto> getRecipe(final String recipeId) {
+    // Parse recipeId
+    Long id;
+    try {
+      id = Long.parseLong(recipeId);
+    } catch (NumberFormatException e) {
+      throw new BusinessException("Invalid recipe ID: " + recipeId);
+    }
+
+    // Fetch the recipe
+    Recipe recipe =
+        recipeRepository
+            .findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Recipe not found: " + recipeId));
+
+    // Convert to DTO using mapper
+    RecipeDto response = recipeMapper.toDto(recipe);
+    return ResponseEntity.ok(response);
   }
 
   /**

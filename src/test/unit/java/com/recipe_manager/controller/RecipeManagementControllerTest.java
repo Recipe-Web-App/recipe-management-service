@@ -194,11 +194,11 @@ class RecipeManagementControllerTest {
   @Tag("standard-processing")
   @DisplayName("Should handle DELETE /recipe-management/recipes/{recipeId}")
   void shouldHandleDeleteRecipes() throws Exception {
-    when(recipeService.deleteRecipe("1")).thenReturn(ResponseEntity.ok("Delete Recipe - placeholder"));
+    when(recipeService.deleteRecipe("1")).thenReturn(ResponseEntity.noContent().build());
 
     mockMvc.perform(delete("/recipe-management/recipes/1")
         .contentType(MediaType.APPLICATION_JSON))
-        .andExpect(status().isOk());
+        .andExpect(status().isNoContent());
   }
 
   /**

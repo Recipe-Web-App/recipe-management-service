@@ -111,7 +111,7 @@ public class RecipeManagementController {
    * @return placeholder response
    */
   @DeleteMapping("/{recipeId}")
-  public ResponseEntity<String> deleteRecipe(@PathVariable final String recipeId) {
+  public ResponseEntity<Void> deleteRecipe(@PathVariable final String recipeId) {
     return recipeService.deleteRecipe(recipeId);
   }
 
@@ -122,7 +122,7 @@ public class RecipeManagementController {
    * @return placeholder response
    */
   @GetMapping("/{recipeId}")
-  public ResponseEntity<String> getRecipe(@PathVariable final String recipeId) {
+  public ResponseEntity<RecipeDto> getRecipe(@PathVariable final String recipeId) {
     return recipeService.getRecipe(recipeId);
   }
 

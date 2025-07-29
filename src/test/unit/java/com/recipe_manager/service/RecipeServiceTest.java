@@ -15,6 +15,7 @@ import java.util.Arrays;
 import java.util.Optional;
 import java.util.UUID;
 
+import com.recipe_manager.exception.BusinessException;
 import com.recipe_manager.exception.ResourceNotFoundException;
 import com.recipe_manager.model.dto.recipe.RecipeDto;
 import com.recipe_manager.model.dto.recipe.RecipeIngredientDto;
@@ -534,14 +535,14 @@ class RecipeServiceTest {
 
     @Test
     @Tag("error-processing")
-    @DisplayName("Should throw ResourceNotFoundException for invalid recipe ID format")
+    @DisplayName("Should throw BusinessException for invalid recipe ID format")
     void shouldThrowExceptionForInvalidRecipeIdFormat() {
       // Given
       String invalidRecipeId = "invalid-id";
 
       // When & Then
       assertThatThrownBy(() -> recipeService.updateRecipe(invalidRecipeId, updateRecipeRequest))
-          .isInstanceOf(ResourceNotFoundException.class)
+          .isInstanceOf(BusinessException.class)
           .hasMessage("Invalid recipe ID: invalid-id");
 
       verify(recipeRepository, never()).findById(any());
@@ -602,7 +603,7 @@ class RecipeServiceTest {
       Recipe zeroIdRecipe = Recipe.builder()
           .recipeId(0L)
           .userId(currentUserId)
-          .title("Orginal Recipe Title")
+          .title("Original Recipe Title")
           .build();
 
       Recipe updatedRecipe = Recipe.builder()
@@ -643,32 +644,116 @@ class RecipeServiceTest {
 
     @Test
     @Tag("standard-processing")
-    @DisplayName("Should return placeholder response for delete recipe")
-    void shouldReturnPlaceholderResponseForDeleteRecipe() {
+    @DisplayName("Should successfully delete recipe for valid ID and owner")
+    void shouldDeleteRecipeForValidIdAndOwner() {
       // Given
       String recipeId = "1";
+      Long id = 1L;
+      UUID currentUserId = UUID.randomUUID();
 
-      // When
-      ResponseEntity<String> response = recipeService.deleteRecipe(recipeId);
+      Recipe recipe = Recipe.builder()
+          .recipeId(id)
+          .userId(currentUserId)
+          .title("Test Recipe")
+          .description("A test recipe")
+          .build();
 
-      // Then
-      assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-      assertThat(response.getBody()).isEqualTo("Delete Recipe - placeholder");
+      try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+        securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(currentUserId);
+        when(recipeRepository.findById(id)).thenReturn(Optional.of(recipe));
+        doNothing().when(recipeRepository).delete(recipe);
+
+        // When
+        ResponseEntity<Void> response = recipeService.deleteRecipe(recipeId);
+
+        // Then
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+        assertThat(response.getBody()).isNull();
+        verify(recipeRepository).findById(id);
+        verify(recipeRepository).delete(recipe);
+      }
     }
 
     @Test
-    @Tag("standard-processing")
-    @DisplayName("Should handle null recipe ID for delete")
-    void shouldHandleNullRecipeIdForDelete() {
+    @Tag("error-processing")
+    @DisplayName("Should throw ResourceNotFoundException for non-existent recipe ID")
+    void shouldThrowExceptionForNonExistentRecipeId() {
+      // Given
+      String recipeId = "999";
+      Long id = 999L;
+
+      when(recipeRepository.findById(id)).thenReturn(Optional.empty());
+
+      // When & Then
+      assertThatThrownBy(() -> recipeService.deleteRecipe(recipeId))
+          .isInstanceOf(ResourceNotFoundException.class)
+          .hasMessage("Recipe not found: " + recipeId);
+
+      verify(recipeRepository).findById(id);
+      verify(recipeRepository, never()).delete(any());
+    }
+
+    @Test
+    @Tag("error-processing")
+    @DisplayName("Should throw BusinessException for invalid recipe ID format")
+    void shouldThrowExceptionForInvalidRecipeIdFormat() {
+      // Given
+      String recipeId = "invalid";
+
+      // When & Then
+      assertThatThrownBy(() -> recipeService.deleteRecipe(recipeId))
+          .isInstanceOf(BusinessException.class)
+          .hasMessage("Invalid recipe ID: " + recipeId);
+
+      verify(recipeRepository, never()).findById(any());
+      verify(recipeRepository, never()).delete(any());
+    }
+
+    @Test
+    @Tag("error-processing")
+    @DisplayName("Should throw AccessDeniedException when user does not own recipe")
+    void shouldThrowExceptionWhenUserDoesNotOwnRecipe() {
+      // Given
+      String recipeId = "1";
+      Long id = 1L;
+      UUID currentUserId = UUID.randomUUID();
+      UUID differentUserId = UUID.randomUUID();
+
+      Recipe recipe = Recipe.builder()
+          .recipeId(id)
+          .userId(differentUserId) // Different user owns this recipe
+          .title("Test Recipe")
+          .description("A test recipe")
+          .build();
+
+      try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+        securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(currentUserId);
+        when(recipeRepository.findById(id)).thenReturn(Optional.of(recipe));
+
+        // When & Then
+        assertThatThrownBy(() -> recipeService.deleteRecipe(recipeId))
+            .isInstanceOf(AccessDeniedException.class)
+            .hasMessage("User does not have permission to delete this recipe");
+
+        verify(recipeRepository).findById(id);
+        verify(recipeRepository, never()).delete(any());
+      }
+    }
+
+    @Test
+    @Tag("error-processing")
+    @DisplayName("Should throw BusinessException for null recipe ID")
+    void shouldThrowExceptionForNullRecipeId() {
       // Given
       String recipeId = null;
 
-      // When
-      ResponseEntity<String> response = recipeService.deleteRecipe(recipeId);
+      // When & Then
+      assertThatThrownBy(() -> recipeService.deleteRecipe(recipeId))
+          .isInstanceOf(BusinessException.class)
+          .hasMessage("Invalid recipe ID: null");
 
-      // Then
-      assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-      assertThat(response.getBody()).isEqualTo("Delete Recipe - placeholder");
+      verify(recipeRepository, never()).findById(any());
+      verify(recipeRepository, never()).delete(any());
     }
   }
 
@@ -678,32 +763,89 @@ class RecipeServiceTest {
 
     @Test
     @Tag("standard-processing")
-    @DisplayName("Should return placeholder response for get recipe")
-    void shouldReturnPlaceholderResponseForGetRecipe() {
+    @DisplayName("Should return recipe for valid recipe ID")
+    void shouldReturnRecipeForValidId() {
       // Given
       String recipeId = "1";
+      Long id = 1L;
+      UUID currentUserId = UUID.randomUUID();
+
+      Recipe recipe = Recipe.builder()
+          .recipeId(id)
+          .userId(currentUserId)
+          .title("Test Recipe")
+          .description("A test recipe")
+          .build();
+
+      RecipeDto recipeDto = RecipeDto.builder()
+          .recipeId(id)
+          .userId(currentUserId)
+          .title("Test Recipe")
+          .description("A test recipe")
+          .build();
+
+      when(recipeRepository.findById(id)).thenReturn(Optional.of(recipe));
+      when(recipeMapper.toDto(recipe)).thenReturn(recipeDto);
 
       // When
-      ResponseEntity<String> response = recipeService.getRecipe(recipeId);
+      ResponseEntity<RecipeDto> response = recipeService.getRecipe(recipeId);
 
       // Then
       assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-      assertThat(response.getBody()).isEqualTo("Get Full Recipe - placeholder");
+      assertThat(response.getBody()).isEqualTo(recipeDto);
+      verify(recipeRepository).findById(id);
+      verify(recipeMapper).toDto(recipe);
     }
 
     @Test
-    @Tag("standard-processing")
-    @DisplayName("Should handle null recipe ID for get")
-    void shouldHandleNullRecipeIdForGet() {
+    @Tag("error-processing")
+    @DisplayName("Should throw ResourceNotFoundException for non-existent recipe ID")
+    void shouldThrowExceptionForNonExistentRecipeId() {
+      // Given
+      String recipeId = "999";
+      Long id = 999L;
+
+      when(recipeRepository.findById(id)).thenReturn(Optional.empty());
+
+      // When & Then
+      assertThatThrownBy(() -> recipeService.getRecipe(recipeId))
+          .isInstanceOf(ResourceNotFoundException.class)
+          .hasMessage("Recipe not found: " + recipeId);
+
+      verify(recipeRepository).findById(id);
+      verify(recipeMapper, never()).toDto(any());
+    }
+
+    @Test
+    @Tag("error-processing")
+    @DisplayName("Should throw BusinessException for invalid recipe ID format")
+    void shouldThrowExceptionForInvalidRecipeIdFormat() {
+      // Given
+      String recipeId = "invalid";
+
+      // When & Then
+      assertThatThrownBy(() -> recipeService.getRecipe(recipeId))
+          .isInstanceOf(BusinessException.class)
+          .hasMessage("Invalid recipe ID: " + recipeId);
+
+      verify(recipeRepository, never()).findById(any());
+      verify(recipeMapper, never()).toDto(any());
+    }
+
+    @Test
+    @Tag("error-processing")
+    @DisplayName("Should throw BusinessException for null recipe ID")
+    void shouldThrowExceptionForNullRecipeId() {
       // Given
       String recipeId = null;
 
-      // When
-      ResponseEntity<String> response = recipeService.getRecipe(recipeId);
+      // When & Then
+      assertThatThrownBy(() -> recipeService.getRecipe(recipeId))
+          .isInstanceOf(BusinessException.class)
+          .hasMessage("Invalid recipe ID: null");
 
-      // Then
-      assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-      assertThat(response.getBody()).isEqualTo("Get Full Recipe - placeholder");
+      verify(recipeRepository, never()).findById(any());
+      verify(recipeMapper, never()).toDto(any());
     }
   }
 

@@ -12,7 +12,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.recipe_manager.model.dto.recipe.RecipeDto;
 import com.recipe_manager.model.dto.request.CreateRecipeRequest;
+import com.recipe_manager.model.dto.request.SearchRecipesRequest;
 import com.recipe_manager.model.dto.request.UpdateRecipeRequest;
+import com.recipe_manager.model.dto.response.SearchRecipesResponse;
 import com.recipe_manager.service.IngredientService;
 import com.recipe_manager.service.MediaService;
 import com.recipe_manager.service.RecipeService;
@@ -29,6 +31,7 @@ import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.web.servlet.MockMvc;
@@ -67,7 +70,9 @@ class RecipeManagementControllerTest {
 
   @BeforeEach
   void setUp() {
-    mockMvc = MockMvcBuilders.standaloneSetup(recipeManagementController).build();
+    mockMvc = MockMvcBuilders.standaloneSetup(recipeManagementController)
+        .setCustomArgumentResolvers(new PageableHandlerMethodArgumentResolver())
+        .build();
   }
 
   /**
@@ -81,16 +86,31 @@ class RecipeManagementControllerTest {
   }
 
   /**
-   * Test GET /recipe-management/recipes/search endpoint.
+   * Test POST /recipe-management/recipes/search endpoint.
    */
   @Test
   @Tag("standard-processing")
-  @DisplayName("Should handle GET /recipe-management/recipes/search")
-  void shouldHandleGetRecipes() throws Exception {
-    when(recipeService.searchRecipes()).thenReturn(ResponseEntity.ok("Search Recipes - placeholder"));
+  @DisplayName("Should handle POST /recipe-management/recipes/search")
+  void shouldHandleSearchRecipes() throws Exception {
+    SearchRecipesResponse mockResponse = SearchRecipesResponse.builder()
+        .build();
 
-    mockMvc.perform(get("/recipe-management/recipes/search")
-        .contentType(MediaType.APPLICATION_JSON))
+    when(recipeService.searchRecipes(any(SearchRecipesRequest.class), any()))
+        .thenReturn(ResponseEntity.ok(mockResponse));
+
+    String validSearchRequestJson = "{" +
+        "\"title\":\"Test Recipe\"," +
+        "\"difficulty\":\"BEGINNER\"," +
+        "\"maxPreparationTimeMinutes\":30," +
+        "\"maxCookingTimeMinutes\":60," +
+        "\"servings\":4," +
+        "\"ingredientNames\":[\"flour\",\"sugar\"]," +
+        "\"ingredientMatchMode\":\"AND\"" +
+        "}";
+
+    mockMvc.perform(post("/recipe-management/recipes/search")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(validSearchRequestJson))
         .andExpect(status().isOk());
   }
 

@@ -1,5 +1,7 @@
 package com.recipe_manager.controller;
 
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,7 +15,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.recipe_manager.model.dto.recipe.RecipeDto;
 import com.recipe_manager.model.dto.request.CreateRecipeRequest;
+import com.recipe_manager.model.dto.request.SearchRecipesRequest;
 import com.recipe_manager.model.dto.request.UpdateRecipeRequest;
+import com.recipe_manager.model.dto.response.SearchRecipesResponse;
 import com.recipe_manager.service.IngredientService;
 import com.recipe_manager.service.MediaService;
 import com.recipe_manager.service.RecipeService;
@@ -31,10 +35,10 @@ import jakarta.validation.Valid;
  */
 @RestController
 @RequestMapping("/recipe-management/recipes")
-@SuppressFBWarnings(
-    value = "EI_EXPOSE_REP2",
-    justification = "Spring-managed beans are safe to inject and not exposed externally")
 public class RecipeManagementController {
+
+  /** Default page size for pagination. */
+  private static final int DEFAULT_PAGE_SIZE = 20;
 
   /** Service for core recipe operations. */
   private final RecipeService recipeService;
@@ -64,6 +68,9 @@ public class RecipeManagementController {
    * @param mediaService the media service
    * @param reviewService the review service
    */
+  @SuppressFBWarnings(
+      value = "EI_EXPOSE_REP2",
+      justification = "Spring-managed beans are safe to inject and not exposed externally")
   public RecipeManagementController(
       final RecipeService recipeService,
       final IngredientService ingredientService,
@@ -341,13 +348,17 @@ public class RecipeManagementController {
   }
 
   /**
-   * Search recipes.
+   * Search recipes based on flexible criteria.
    *
-   * @return placeholder response
+   * @param searchRequest the search criteria (request body)
+   * @param pageable pagination parameters (query parameters)
+   * @return ResponseEntity with paginated search results
    */
-  @GetMapping("/search")
-  public ResponseEntity<String> searchRecipes() {
-    return recipeService.searchRecipes();
+  @PostMapping("/search")
+  public ResponseEntity<SearchRecipesResponse> searchRecipes(
+      @Valid @RequestBody final SearchRecipesRequest searchRequest,
+      @PageableDefault(size = DEFAULT_PAGE_SIZE) final Pageable pageable) {
+    return recipeService.searchRecipes(searchRequest, pageable);
   }
 
   /**

@@ -3,6 +3,8 @@ package com.recipe_manager.service;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -14,7 +16,9 @@ import com.recipe_manager.exception.BusinessException;
 import com.recipe_manager.exception.ResourceNotFoundException;
 import com.recipe_manager.model.dto.recipe.RecipeDto;
 import com.recipe_manager.model.dto.request.CreateRecipeRequest;
+import com.recipe_manager.model.dto.request.SearchRecipesRequest;
 import com.recipe_manager.model.dto.request.UpdateRecipeRequest;
+import com.recipe_manager.model.dto.response.SearchRecipesResponse;
 import com.recipe_manager.model.entity.ingredient.Ingredient;
 import com.recipe_manager.model.entity.recipe.Recipe;
 import com.recipe_manager.model.entity.recipe.RecipeIngredient;
@@ -35,10 +39,22 @@ import jakarta.validation.Valid;
 @Validated
 public class RecipeService {
 
+  /** Repository used for accessing recipe data. */
   private final RecipeRepository recipeRepository;
+
+  /** Repository used for accessing ingredient data. */
   private final IngredientRepository ingredientRepository;
+
+  /** Mapper used for converting between recipe entities and DTOs. */
   private final RecipeMapper recipeMapper;
 
+  /**
+   * Service class for managing recipes.
+   *
+   * @param recipeRepository the repository used for accessing recipe data
+   * @param ingredientRepository the repository used for accessing ingredient data
+   * @param recipeMapper the mapper used for converting between recipe entities and DTOs
+   */
   public RecipeService(
       final RecipeRepository recipeRepository,
       final IngredientRepository ingredientRepository,
@@ -224,11 +240,35 @@ public class RecipeService {
   }
 
   /**
-   * Search for recipes.
+   * Search for recipes based on flexible criteria.
    *
-   * @return placeholder response
+   * @param searchRequest the search criteria
+   * @param pageable pagination information
+   * @return ResponseEntity with paginated search results
    */
-  public ResponseEntity<String> searchRecipes() {
-    return ResponseEntity.ok("Search Recipes - placeholder");
+  public ResponseEntity<SearchRecipesResponse> searchRecipes(
+      @Valid final SearchRecipesRequest searchRequest, final Pageable pageable) {
+
+    // Perform search using repository
+    Page<Recipe> recipePage = recipeRepository.searchRecipes(searchRequest, pageable);
+
+    // Convert recipes to DTOs
+    var recipeDtos = recipePage.getContent().stream().map(recipeMapper::toDto).toList();
+
+    // Build response with pagination metadata
+    SearchRecipesResponse response =
+        SearchRecipesResponse.builder()
+            .recipes(recipeDtos)
+            .page(recipePage.getNumber())
+            .size(recipePage.getSize())
+            .totalElements(recipePage.getTotalElements())
+            .totalPages(recipePage.getTotalPages())
+            .first(recipePage.isFirst())
+            .last(recipePage.isLast())
+            .numberOfElements(recipePage.getNumberOfElements())
+            .empty(recipePage.isEmpty())
+            .build();
+
+    return ResponseEntity.ok(response);
   }
 }

@@ -16,4 +16,6 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-public final class UpdateRecipeRequest extends AbstractRecipeRequest {}
+public final class UpdateRecipeRequest extends AbstractRecipeRequest {
+  // Fields inherited from AbstractRecipeRequest are optional and can be null.
+}

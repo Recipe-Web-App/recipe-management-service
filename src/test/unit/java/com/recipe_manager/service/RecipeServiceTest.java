@@ -20,10 +20,13 @@ import com.recipe_manager.exception.ResourceNotFoundException;
 import com.recipe_manager.model.dto.recipe.RecipeDto;
 import com.recipe_manager.model.dto.recipe.RecipeIngredientDto;
 import com.recipe_manager.model.dto.request.CreateRecipeRequest;
+import com.recipe_manager.model.dto.request.SearchRecipesRequest;
 import com.recipe_manager.model.dto.request.UpdateRecipeRequest;
+import com.recipe_manager.model.dto.response.SearchRecipesResponse;
 import com.recipe_manager.model.entity.ingredient.Ingredient;
 import com.recipe_manager.model.entity.recipe.Recipe;
 import com.recipe_manager.model.enums.DifficultyLevel;
+import com.recipe_manager.model.enums.IngredientMatchMode;
 import com.recipe_manager.model.enums.IngredientUnit;
 import com.recipe_manager.model.mapper.RecipeMapper;
 import com.recipe_manager.repository.ingredient.IngredientRepository;
@@ -41,6 +44,10 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -853,16 +860,160 @@ class RecipeServiceTest {
   @DisplayName("searchRecipes Tests")
   class SearchRecipesTests {
 
+    private SearchRecipesRequest searchRequest;
+    private Pageable pageable;
+    private Recipe recipe1;
+    private Recipe recipe2;
+    private RecipeDto recipeDto1;
+    private RecipeDto recipeDto2;
+    private Page<Recipe> recipePage;
+
+    @BeforeEach
+    void setUpSearchTests() {
+      searchRequest = new SearchRecipesRequest();
+      pageable = PageRequest.of(0, 10);
+
+      recipe1 = Recipe.builder()
+          .recipeId(1L)
+          .title("Chicken Pasta")
+          .description("Delicious pasta dish")
+          .difficulty(DifficultyLevel.EASY)
+          .preparationTime(30)
+          .cookingTime(20)
+          .servings(BigDecimal.valueOf(4))
+          .userId(UUID.fromString("123e4567-e89b-12d3-a456-426614174000"))
+          .build();
+
+      recipe2 = Recipe.builder()
+          .recipeId(2L)
+          .title("Beef Stir Fry")
+          .description("Quick and tasty")
+          .difficulty(DifficultyLevel.MEDIUM)
+          .preparationTime(15)
+          .cookingTime(10)
+          .servings(BigDecimal.valueOf(2))
+          .userId(UUID.fromString("123e4567-e89b-12d3-a456-426614174000"))
+          .build();
+
+      recipeDto1 = RecipeDto.builder()
+          .recipeId(1L)
+          .title("Chicken Pasta")
+          .description("Delicious pasta dish")
+          .build();
+
+      recipeDto2 = RecipeDto.builder()
+          .recipeId(2L)
+          .title("Beef Stir Fry")
+          .description("Quick and tasty")
+          .build();
+
+      recipePage = new PageImpl<>(Arrays.asList(recipe1, recipe2), pageable, 2);
+    }
+
     @Test
     @Tag("standard-processing")
-    @DisplayName("Should return placeholder response for search recipes")
-    void shouldReturnPlaceholderResponseForSearchRecipes() {
+    @DisplayName("Should search recipes successfully with all criteria")
+    void shouldSearchRecipesSuccessfullyWithAllCriteria() {
+      // Given
+      searchRequest.setRecipeNameQuery("Chicken");
+      searchRequest.setIngredients(Arrays.asList("chicken", "pasta"));
+      searchRequest.setIngredientMatchMode(IngredientMatchMode.AND);
+      searchRequest.setMaxPreparationTime(45);
+      searchRequest.setMaxCookingTime(30);
+      searchRequest.setMinServings(2);
+      searchRequest.setMaxServings(6);
+      searchRequest.setDifficulty(DifficultyLevel.EASY);
+
+      when(recipeRepository.searchRecipes(searchRequest, pageable)).thenReturn(recipePage);
+      when(recipeMapper.toDto(recipe1)).thenReturn(recipeDto1);
+      when(recipeMapper.toDto(recipe2)).thenReturn(recipeDto2);
+
       // When
-      ResponseEntity<String> response = recipeService.searchRecipes();
+      ResponseEntity<SearchRecipesResponse> response = recipeService.searchRecipes(searchRequest, pageable);
 
       // Then
       assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-      assertThat(response.getBody()).isEqualTo("Search Recipes - placeholder");
+      assertThat(response.getBody()).isNotNull();
+      assertThat(response.getBody().getRecipes()).hasSize(2);
+      assertThat(response.getBody().getRecipes().get(0).getTitle()).isEqualTo("Chicken Pasta");
+      assertThat(response.getBody().getRecipes().get(1).getTitle()).isEqualTo("Beef Stir Fry");
+      assertThat(response.getBody().getPage()).isEqualTo(0);
+      assertThat(response.getBody().getSize()).isEqualTo(10);
+      assertThat(response.getBody().getTotalElements()).isEqualTo(2);
+      assertThat(response.getBody().getTotalPages()).isEqualTo(1);
+
+      verify(recipeRepository).searchRecipes(searchRequest, pageable);
+      verify(recipeMapper).toDto(recipe1);
+      verify(recipeMapper).toDto(recipe2);
+    }
+
+    @Test
+    @Tag("standard-processing")
+    @DisplayName("Should return empty search results")
+    void shouldReturnEmptySearchResults() {
+      // Given
+      searchRequest.setRecipeNameQuery("NonExistentRecipe");
+      Page<Recipe> emptyPage = new PageImpl<>(new ArrayList<>(), pageable, 0);
+
+      when(recipeRepository.searchRecipes(searchRequest, pageable)).thenReturn(emptyPage);
+
+      // When
+      ResponseEntity<SearchRecipesResponse> response = recipeService.searchRecipes(searchRequest, pageable);
+
+      // Then
+      assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+      assertThat(response.getBody()).isNotNull();
+      assertThat(response.getBody().getRecipes()).isEmpty();
+      assertThat(response.getBody().getTotalElements()).isEqualTo(0);
+      assertThat(response.getBody().isEmpty()).isTrue();
+
+      verify(recipeRepository).searchRecipes(searchRequest, pageable);
+      verify(recipeMapper, never()).toDto(any(Recipe.class));
+    }
+
+    @Test
+    @Tag("standard-processing")
+    @DisplayName("Should handle pagination correctly")
+    void shouldHandlePaginationCorrectly() {
+      // Given
+      Pageable secondPage = PageRequest.of(1, 1);
+      Page<Recipe> paginatedPage = new PageImpl<>(Arrays.asList(recipe2), secondPage, 2);
+
+      when(recipeRepository.searchRecipes(searchRequest, secondPage)).thenReturn(paginatedPage);
+      when(recipeMapper.toDto(recipe2)).thenReturn(recipeDto2);
+
+      // When
+      ResponseEntity<SearchRecipesResponse> response = recipeService.searchRecipes(searchRequest, secondPage);
+
+      // Then
+      assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+      assertThat(response.getBody()).isNotNull();
+      assertThat(response.getBody().getRecipes()).hasSize(1);
+      assertThat(response.getBody().getPage()).isEqualTo(1);
+      assertThat(response.getBody().getSize()).isEqualTo(1);
+      assertThat(response.getBody().getTotalElements()).isEqualTo(2);
+      assertThat(response.getBody().getTotalPages()).isEqualTo(2);
+      assertThat(response.getBody().isFirst()).isFalse();
+      assertThat(response.getBody().isLast()).isTrue();
+
+      verify(recipeRepository).searchRecipes(searchRequest, secondPage);
+    }
+
+    @Test
+    @Tag("error-handling")
+    @DisplayName("Should throw exception when repository throws exception")
+    void shouldThrowExceptionWhenRepositoryThrowsException() {
+      // Given
+      when(recipeRepository.searchRecipes(searchRequest, pageable))
+          .thenThrow(new RuntimeException("Database error"));
+
+      // When & Then
+      assertThatThrownBy(() -> recipeService.searchRecipes(searchRequest, pageable))
+          .isInstanceOf(RuntimeException.class)
+          .hasMessage("Database error");
+
+      verify(recipeRepository).searchRecipes(searchRequest, pageable);
+      verify(recipeMapper, never()).toDto(any(Recipe.class));
     }
   }
 

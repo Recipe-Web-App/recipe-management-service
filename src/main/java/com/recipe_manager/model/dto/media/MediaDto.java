@@ -26,23 +26,23 @@ import lombok.experimental.SuperBuilder;
 @ToString
 abstract class MediaDto {
   /** The media ID. */
-  protected Long mediaId;
+  private Long mediaId;
 
   /** The media URL. */
-  protected String url;
+  private String url;
 
   /** The alt text for the media. */
-  protected String altText;
+  private String altText;
 
   /** The content type of the media. */
-  protected String contentType;
+  private String contentType;
 
   /** The file size in bytes. */
-  protected Long fileSize;
+  private Long fileSize;
 
   /** The creation timestamp. */
-  protected LocalDateTime createdAt;
+  private LocalDateTime createdAt;
 
   /** The last update timestamp. */
-  protected LocalDateTime updatedAt;
+  private LocalDateTime updatedAt;
 }

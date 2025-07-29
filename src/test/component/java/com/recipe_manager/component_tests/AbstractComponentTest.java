@@ -18,6 +18,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
@@ -70,6 +71,7 @@ public abstract class AbstractComponentTest {
     mockMvc = MockMvcBuilders.standaloneSetup(controller)
         .addFilters(new RequestIdFilter())
         .setControllerAdvice(new GlobalExceptionHandler())
+        .setCustomArgumentResolvers(new PageableHandlerMethodArgumentResolver())
         .build();
   }
 

@@ -2,6 +2,7 @@ package com.recipe_manager.controller;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -92,10 +93,22 @@ public class RecipeManagementController {
    * @param request the create recipe request DTO
    * @return ResponseEntity with the created recipe ID
    */
-  @PostMapping
+  @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<RecipeDto> createRecipe(
       @Valid @RequestBody final CreateRecipeRequest request) {
     return recipeService.createRecipe(request);
+  }
+
+  /**
+   * Get all recipes.
+   *
+   * @param pageable pagination parameters
+   * @return ResponseEntity with paginated list of recipes
+   */
+  @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<SearchRecipesResponse> getAllRecipes(
+      @PageableDefault(size = DEFAULT_PAGE_SIZE) final Pageable pageable) {
+    return recipeService.getAllRecipes(pageable);
   }
 
   /**
@@ -105,7 +118,7 @@ public class RecipeManagementController {
    * @param request the update recipe request DTO
    * @return ResponseEntity with the updated recipe ID
    */
-  @PutMapping("/{recipeId}")
+  @PutMapping(value = "/{recipeId}", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<RecipeDto> updateRecipe(
       @PathVariable final String recipeId, @Valid @RequestBody final UpdateRecipeRequest request) {
     return recipeService.updateRecipe(recipeId, request);
@@ -128,7 +141,7 @@ public class RecipeManagementController {
    * @param recipeId the recipe ID
    * @return placeholder response
    */
-  @GetMapping("/{recipeId}")
+  @GetMapping(value = "/{recipeId}", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<RecipeDto> getRecipe(@PathVariable final String recipeId) {
     return recipeService.getRecipe(recipeId);
   }

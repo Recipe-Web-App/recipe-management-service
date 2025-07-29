@@ -857,6 +857,147 @@ class RecipeServiceTest {
   }
 
   @Nested
+  @DisplayName("getAllRecipes Tests")
+  class GetAllRecipesTests {
+
+    private Pageable pageable;
+    private Recipe recipe1;
+    private Recipe recipe2;
+    private RecipeDto recipeDto1;
+    private RecipeDto recipeDto2;
+    private Page<Recipe> recipePage;
+
+    @BeforeEach
+    void setUp() {
+      pageable = PageRequest.of(0, 20);
+
+      recipe1 = new Recipe();
+      recipe1.setRecipeId(1L);
+      recipe1.setTitle("Test Recipe 1");
+      recipe1.setDescription("Test Description 1");
+
+      recipe2 = new Recipe();
+      recipe2.setRecipeId(2L);
+      recipe2.setTitle("Test Recipe 2");
+      recipe2.setDescription("Test Description 2");
+
+      recipeDto1 = RecipeDto.builder()
+          .recipeId(1L)
+          .title("Test Recipe 1")
+          .description("Test Description 1")
+          .build();
+
+      recipeDto2 = RecipeDto.builder()
+          .recipeId(2L)
+          .title("Test Recipe 2")
+          .description("Test Description 2")
+          .build();
+
+      recipePage = new PageImpl<>(Arrays.asList(recipe1, recipe2), pageable, 2);
+    }
+
+    @Test
+    @Tag("standard-processing")
+    @DisplayName("should return paginated recipes successfully")
+    void shouldReturnPaginatedRecipesSuccessfully() {
+      // Given
+      when(recipeRepository.findAll(pageable)).thenReturn(recipePage);
+      when(recipeMapper.toDto(recipe1)).thenReturn(recipeDto1);
+      when(recipeMapper.toDto(recipe2)).thenReturn(recipeDto2);
+
+      // When
+      var response = recipeService.getAllRecipes(pageable);
+
+      // Then
+      assertThat(response).isNotNull();
+      assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+
+      SearchRecipesResponse responseBody = response.getBody();
+      assertThat(responseBody).isNotNull();
+      assertThat(responseBody.getRecipes()).hasSize(2);
+      assertThat(responseBody.getRecipes().get(0)).isEqualTo(recipeDto1);
+      assertThat(responseBody.getRecipes().get(1)).isEqualTo(recipeDto2);
+      assertThat(responseBody.getPage()).isEqualTo(0);
+      assertThat(responseBody.getSize()).isEqualTo(20);
+      assertThat(responseBody.getTotalElements()).isEqualTo(2L);
+      assertThat(responseBody.getTotalPages()).isEqualTo(1);
+      assertThat(responseBody.isFirst()).isTrue();
+      assertThat(responseBody.isLast()).isTrue();
+      assertThat(responseBody.getNumberOfElements()).isEqualTo(2);
+      assertThat(responseBody.isEmpty()).isFalse();
+
+      verify(recipeRepository).findAll(pageable);
+      verify(recipeMapper).toDto(recipe1);
+      verify(recipeMapper).toDto(recipe2);
+    }
+
+    @Test
+    @Tag("standard-processing")
+    @DisplayName("should return empty page when no recipes exist")
+    void shouldReturnEmptyPageWhenNoRecipesExist() {
+      // Given
+      Page<Recipe> emptyPage = new PageImpl<>(new ArrayList<>(), pageable, 0);
+      when(recipeRepository.findAll(pageable)).thenReturn(emptyPage);
+
+      // When
+      var response = recipeService.getAllRecipes(pageable);
+
+      // Then
+      assertThat(response).isNotNull();
+      assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+
+      SearchRecipesResponse responseBody = response.getBody();
+      assertThat(responseBody).isNotNull();
+      assertThat(responseBody.getRecipes()).isEmpty();
+      assertThat(responseBody.getPage()).isEqualTo(0);
+      assertThat(responseBody.getSize()).isEqualTo(20);
+      assertThat(responseBody.getTotalElements()).isEqualTo(0L);
+      assertThat(responseBody.getTotalPages()).isEqualTo(0);
+      assertThat(responseBody.isFirst()).isTrue();
+      assertThat(responseBody.isLast()).isTrue();
+      assertThat(responseBody.getNumberOfElements()).isEqualTo(0);
+      assertThat(responseBody.isEmpty()).isTrue();
+
+      verify(recipeRepository).findAll(pageable);
+      verify(recipeMapper, never()).toDto(any());
+    }
+
+    @Test
+    @Tag("standard-processing")
+    @DisplayName("should handle pagination correctly for multiple pages")
+    void shouldHandlePaginationCorrectlyForMultiplePages() {
+      // Given
+      Pageable secondPage = PageRequest.of(1, 1);
+      Page<Recipe> pagedRecipes = new PageImpl<>(Arrays.asList(recipe2), secondPage, 2);
+      when(recipeRepository.findAll(secondPage)).thenReturn(pagedRecipes);
+      when(recipeMapper.toDto(recipe2)).thenReturn(recipeDto2);
+
+      // When
+      var response = recipeService.getAllRecipes(secondPage);
+
+      // Then
+      assertThat(response).isNotNull();
+      assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+
+      SearchRecipesResponse responseBody = response.getBody();
+      assertThat(responseBody).isNotNull();
+      assertThat(responseBody.getRecipes()).hasSize(1);
+      assertThat(responseBody.getRecipes().get(0)).isEqualTo(recipeDto2);
+      assertThat(responseBody.getPage()).isEqualTo(1);
+      assertThat(responseBody.getSize()).isEqualTo(1);
+      assertThat(responseBody.getTotalElements()).isEqualTo(2L);
+      assertThat(responseBody.getTotalPages()).isEqualTo(2);
+      assertThat(responseBody.isFirst()).isFalse();
+      assertThat(responseBody.isLast()).isTrue();
+      assertThat(responseBody.getNumberOfElements()).isEqualTo(1);
+      assertThat(responseBody.isEmpty()).isFalse();
+
+      verify(recipeRepository).findAll(secondPage);
+      verify(recipeMapper).toDto(recipe2);
+    }
+  }
+
+  @Nested
   @DisplayName("searchRecipes Tests")
   class SearchRecipesTests {
 

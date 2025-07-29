@@ -252,23 +252,43 @@ public class RecipeService {
     // Perform search using repository
     Page<Recipe> recipePage = recipeRepository.searchRecipes(searchRequest, pageable);
 
+    return ResponseEntity.ok(buildSearchRecipesResponse(recipePage));
+  }
+
+  /**
+   * Get all recipes with pagination.
+   *
+   * @param pageable pagination information
+   * @return ResponseEntity with paginated list of recipes
+   */
+  public ResponseEntity<SearchRecipesResponse> getAllRecipes(final Pageable pageable) {
+    // Fetch all recipes with pagination
+    Page<Recipe> recipePage = recipeRepository.findAll(pageable);
+
+    return ResponseEntity.ok(buildSearchRecipesResponse(recipePage));
+  }
+
+  /**
+   * Builds a SearchRecipesResponse from a Page of Recipe entities.
+   *
+   * @param recipePage the page of recipes
+   * @return SearchRecipesResponse with pagination metadata
+   */
+  private SearchRecipesResponse buildSearchRecipesResponse(final Page<Recipe> recipePage) {
     // Convert recipes to DTOs
     var recipeDtos = recipePage.getContent().stream().map(recipeMapper::toDto).toList();
 
     // Build response with pagination metadata
-    SearchRecipesResponse response =
-        SearchRecipesResponse.builder()
-            .recipes(recipeDtos)
-            .page(recipePage.getNumber())
-            .size(recipePage.getSize())
-            .totalElements(recipePage.getTotalElements())
-            .totalPages(recipePage.getTotalPages())
-            .first(recipePage.isFirst())
-            .last(recipePage.isLast())
-            .numberOfElements(recipePage.getNumberOfElements())
-            .empty(recipePage.isEmpty())
-            .build();
-
-    return ResponseEntity.ok(response);
+    return SearchRecipesResponse.builder()
+        .recipes(recipeDtos)
+        .page(recipePage.getNumber())
+        .size(recipePage.getSize())
+        .totalElements(recipePage.getTotalElements())
+        .totalPages(recipePage.getTotalPages())
+        .first(recipePage.isFirst())
+        .last(recipePage.isLast())
+        .numberOfElements(recipePage.getNumberOfElements())
+        .empty(recipePage.isEmpty())
+        .build();
   }
 }

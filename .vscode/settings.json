@@ -29,9 +29,8 @@
     "workingDirectory": "${workspaceFolder}",
     "vmargs": ["-Dfile.encoding=UTF-8"]
   },
-  "java.project.sourcePaths": ["src/main/java"],
-  "java.project.testSourcePaths": [
-    "src/test/java",
+  "java.project.sourcePaths": [
+    "src/main/java",
     "src/test/unit/java",
     "src/test/component/java",
     "src/test/dependency/java",

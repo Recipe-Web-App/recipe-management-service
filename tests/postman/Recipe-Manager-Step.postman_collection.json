@@ -1,0 +1,354 @@
+{
+  "info": {
+    "name": "Recipe Manager - Step Management",
+    "description": "Recipe step management with comments and media support",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{recipeManagementServiceAccessToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "testRecipeId",
+      "value": "123",
+      "type": "string",
+      "description": "Sample recipe ID for testing"
+    },
+    {
+      "key": "testStepId",
+      "value": "789",
+      "type": "string",
+      "description": "Sample step ID for testing"
+    }
+  ],
+  "item": [
+    {
+      "name": "Get Recipe Steps",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Recipe steps retrieved successfully', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Response is an array', function () {",
+              "    const response = pm.response.json();",
+              "    pm.expect(response).to.be.an('array');",
+              "});",
+              "",
+              "pm.test('Steps have required fields', function () {",
+              "    const response = pm.response.json();",
+              "    if (response.length > 0) {",
+              "        pm.expect(response[0]).to.have.property('id');",
+              "        pm.expect(response[0]).to.have.property('stepNumber');",
+              "        pm.expect(response[0]).to.have.property('instruction');",
+              "    }",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/recipes/{{testRecipeId}}/steps",
+          "host": ["{{recipeManagementServiceBaseUrl}}"],
+          "path": ["recipe-management", "recipes", "{{testRecipeId}}", "steps"]
+        }
+      }
+    },
+    {
+      "name": "Add Step Comment",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Step comment added successfully', function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "",
+              "pm.test('Comment has required fields', function () {",
+              "    const response = pm.response.json();",
+              "    pm.expect(response).to.have.property('id');",
+              "    pm.expect(response).to.have.property('comment');",
+              "    pm.expect(response).to.have.property('userId');",
+              "});",
+              "",
+              "pm.test('Extract comment ID', function () {",
+              "    const response = pm.response.json();",
+              "    if (response.id) {",
+              "        pm.environment.set('recipeManagementServiceCreatedStepCommentId', response.id);",
+              "    }",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"comment\": \"This step is crucial for the recipe's success. Make sure to follow the timing exactly to avoid overcooking.\",\n  \"isPublic\": true,\n  \"helpfulTip\": \"Pro tip: Use a timer to ensure perfect results every time!\"\n}"
+        },
+        "url": {
+          "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/recipes/{{testRecipeId}}/steps/{{testStepId}}/comment",
+          "host": ["{{recipeManagementServiceBaseUrl}}"],
+          "path": [
+            "recipe-management",
+            "recipes",
+            "{{testRecipeId}}",
+            "steps",
+            "{{testStepId}}",
+            "comment"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Edit Step Comment",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Step comment updated successfully', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Comment has updated content', function () {",
+              "    const response = pm.response.json();",
+              "    pm.expect(response.comment).to.include('Updated');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"comment\": \"Updated: This step is absolutely essential for success. Follow the timing precisely and watch for visual cues.\",\n  \"isPublic\": true,\n  \"helpfulTip\": \"Updated tip: Use both a timer AND visual cues for the best results. Look for the golden color!\"\n}"
+        },
+        "url": {
+          "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/recipes/{{testRecipeId}}/steps/{{testStepId}}/comment",
+          "host": ["{{recipeManagementServiceBaseUrl}}"],
+          "path": [
+            "recipe-management",
+            "recipes",
+            "{{testRecipeId}}",
+            "steps",
+            "{{testStepId}}",
+            "comment"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Delete Step Comment",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Step comment deleted successfully', function () {",
+              "    pm.response.to.have.status(204);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/recipes/{{testRecipeId}}/steps/{{testStepId}}/comment",
+          "host": ["{{recipeManagementServiceBaseUrl}}"],
+          "path": [
+            "recipe-management",
+            "recipes",
+            "{{testRecipeId}}",
+            "steps",
+            "{{testStepId}}",
+            "comment"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Add Step Media",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Step media added successfully', function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "",
+              "pm.test('Media has required fields', function () {",
+              "    const response = pm.response.json();",
+              "    pm.expect(response).to.have.property('id');",
+              "    pm.expect(response).to.have.property('mediaUrl');",
+              "    pm.expect(response).to.have.property('mediaType');",
+              "});",
+              "",
+              "pm.test('Extract media ID', function () {",
+              "    const response = pm.response.json();",
+              "    if (response.id) {",
+              "        pm.environment.set('recipeManagementServiceCreatedStepMediaId', response.id);",
+              "    }",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"mediaUrl\": \"https://example.com/videos/cooking-technique-demo.mp4\",\n  \"mediaType\": \"VIDEO\",\n  \"description\": \"Detailed video demonstration of the cooking technique for this step\",\n  \"altText\": \"Chef demonstrating proper cooking technique\",\n  \"duration\": 45\n}"
+        },
+        "url": {
+          "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/recipes/{{testRecipeId}}/steps/{{testStepId}}/media",
+          "host": ["{{recipeManagementServiceBaseUrl}}"],
+          "path": [
+            "recipe-management",
+            "recipes",
+            "{{testRecipeId}}",
+            "steps",
+            "{{testStepId}}",
+            "media"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Update Step Media",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Step media updated successfully', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Media has updated description', function () {",
+              "    const response = pm.response.json();",
+              "    pm.expect(response.description).to.include('Updated');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"mediaUrl\": \"https://example.com/videos/cooking-technique-demo-hd.mp4\",\n  \"mediaType\": \"VIDEO\",\n  \"description\": \"Updated: High-definition video demonstration with multiple camera angles showing the cooking technique\",\n  \"altText\": \"Updated chef demonstration with multiple angles\",\n  \"duration\": 60\n}"
+        },
+        "url": {
+          "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/recipes/{{testRecipeId}}/steps/{{testStepId}}/media",
+          "host": ["{{recipeManagementServiceBaseUrl}}"],
+          "path": [
+            "recipe-management",
+            "recipes",
+            "{{testRecipeId}}",
+            "steps",
+            "{{testStepId}}",
+            "media"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Delete Step Media",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Step media deleted successfully', function () {",
+              "    pm.response.to.have.status(204);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/recipes/{{testRecipeId}}/steps/{{testStepId}}/media",
+          "host": ["{{recipeManagementServiceBaseUrl}}"],
+          "path": [
+            "recipe-management",
+            "recipes",
+            "{{testRecipeId}}",
+            "steps",
+            "{{testStepId}}",
+            "media"
+          ]
+        }
+      }
+    }
+  ]
+}

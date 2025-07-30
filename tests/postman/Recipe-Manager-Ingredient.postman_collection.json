@@ -1,0 +1,448 @@
+{
+  "info": {
+    "name": "Recipe Manager - Ingredient Management",
+    "description": "Ingredient management endpoints including comments, media, scaling, and shopping lists",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{recipeManagementServiceAccessToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "testRecipeId",
+      "value": "123",
+      "type": "string",
+      "description": "Sample recipe ID for testing"
+    },
+    {
+      "key": "testIngredientId",
+      "value": "456",
+      "type": "string",
+      "description": "Sample ingredient ID for testing"
+    }
+  ],
+  "item": [
+    {
+      "name": "Get Recipe Ingredients",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Recipe ingredients retrieved successfully', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Response is an array', function () {",
+              "    const response = pm.response.json();",
+              "    pm.expect(response).to.be.an('array');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/recipes/{{testRecipeId}}/ingredients",
+          "host": ["{{recipeManagementServiceBaseUrl}}"],
+          "path": ["recipe-management", "recipes", "{{testRecipeId}}", "ingredients"]
+        }
+      }
+    },
+    {
+      "name": "Get All Ingredients",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('All ingredients retrieved successfully', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Response is an array', function () {",
+              "    const response = pm.response.json();",
+              "    pm.expect(response).to.be.an('array');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/ingredients",
+          "host": ["{{recipeManagementServiceBaseUrl}}"],
+          "path": ["recipe-management", "ingredients"]
+        }
+      }
+    },
+    {
+      "name": "Add Ingredient Comment",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Ingredient comment added successfully', function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "",
+              "pm.test('Comment has required fields', function () {",
+              "    const response = pm.response.json();",
+              "    pm.expect(response).to.have.property('id');",
+              "    pm.expect(response).to.have.property('comment');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"comment\": \"This ingredient adds great flavor to the dish. Make sure to use fresh ingredients.\",\n  \"isPublic\": true\n}"
+        },
+        "url": {
+          "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/recipes/{{testRecipeId}}/ingredients/{{testIngredientId}}/comment",
+          "host": ["{{recipeManagementServiceBaseUrl}}"],
+          "path": [
+            "recipe-management",
+            "recipes",
+            "{{testRecipeId}}",
+            "ingredients",
+            "{{testIngredientId}}",
+            "comment"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Edit Ingredient Comment",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Ingredient comment updated successfully', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Comment has updated content', function () {",
+              "    const response = pm.response.json();",
+              "    pm.expect(response.comment).to.include('Updated');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"comment\": \"Updated: This ingredient adds exceptional flavor to the dish. Always use the freshest ingredients available.\",\n  \"isPublic\": true\n}"
+        },
+        "url": {
+          "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/recipes/{{testRecipeId}}/ingredients/{{testIngredientId}}/comment",
+          "host": ["{{recipeManagementServiceBaseUrl}}"],
+          "path": [
+            "recipe-management",
+            "recipes",
+            "{{testRecipeId}}",
+            "ingredients",
+            "{{testIngredientId}}",
+            "comment"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Delete Ingredient Comment",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Ingredient comment deleted successfully', function () {",
+              "    pm.response.to.have.status(204);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/recipes/{{testRecipeId}}/ingredients/{{testIngredientId}}/comment",
+          "host": ["{{recipeManagementServiceBaseUrl}}"],
+          "path": [
+            "recipe-management",
+            "recipes",
+            "{{testRecipeId}}",
+            "ingredients",
+            "{{testIngredientId}}",
+            "comment"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Add Ingredient Media",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Ingredient media added successfully', function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "",
+              "pm.test('Media has required fields', function () {",
+              "    const response = pm.response.json();",
+              "    pm.expect(response).to.have.property('id');",
+              "    pm.expect(response).to.have.property('mediaUrl');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"mediaUrl\": \"https://example.com/images/ingredient-photo.jpg\",\n  \"mediaType\": \"IMAGE\",\n  \"description\": \"Fresh ingredient preparation photo\",\n  \"altText\": \"Fresh ingredient being prepared\"\n}"
+        },
+        "url": {
+          "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/recipes/{{testRecipeId}}/ingredients/{{testIngredientId}}/media",
+          "host": ["{{recipeManagementServiceBaseUrl}}"],
+          "path": [
+            "recipe-management",
+            "recipes",
+            "{{testRecipeId}}",
+            "ingredients",
+            "{{testIngredientId}}",
+            "media"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Update Ingredient Media",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Ingredient media updated successfully', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Media has updated description', function () {",
+              "    const response = pm.response.json();",
+              "    pm.expect(response.description).to.include('Updated');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"mediaUrl\": \"https://example.com/images/ingredient-photo-updated.jpg\",\n  \"mediaType\": \"IMAGE\",\n  \"description\": \"Updated: Fresh ingredient preparation photo with better lighting\",\n  \"altText\": \"Updated fresh ingredient being prepared\"\n}"
+        },
+        "url": {
+          "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/recipes/{{testRecipeId}}/ingredients/{{testIngredientId}}/media",
+          "host": ["{{recipeManagementServiceBaseUrl}}"],
+          "path": [
+            "recipe-management",
+            "recipes",
+            "{{testRecipeId}}",
+            "ingredients",
+            "{{testIngredientId}}",
+            "media"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Delete Ingredient Media",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Ingredient media deleted successfully', function () {",
+              "    pm.response.to.have.status(204);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/recipes/{{testRecipeId}}/ingredients/{{testIngredientId}}/media",
+          "host": ["{{recipeManagementServiceBaseUrl}}"],
+          "path": [
+            "recipe-management",
+            "recipes",
+            "{{testRecipeId}}",
+            "ingredients",
+            "{{testIngredientId}}",
+            "media"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Scale Recipe Ingredients",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Recipe ingredients scaled successfully', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Scaled ingredients returned', function () {",
+              "    const response = pm.response.json();",
+              "    pm.expect(response).to.be.an('array');",
+              "    pm.expect(response.length).to.be.greaterThan(0);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/recipes/{{testRecipeId}}/ingredients/scale?quantity=2.5",
+          "host": ["{{recipeManagementServiceBaseUrl}}"],
+          "path": ["recipe-management", "recipes", "{{testRecipeId}}", "ingredients", "scale"],
+          "query": [
+            {
+              "key": "quantity",
+              "value": "2.5"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Generate Shopping List",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Shopping list generated successfully', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Shopping list contains ingredients', function () {",
+              "    const response = pm.response.json();",
+              "    pm.expect(response).to.have.property('ingredients');",
+              "    pm.expect(response.ingredients).to.be.an('array');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/recipes/{{testRecipeId}}/ingredients/shopping-list",
+          "host": ["{{recipeManagementServiceBaseUrl}}"],
+          "path": [
+            "recipe-management",
+            "recipes",
+            "{{testRecipeId}}",
+            "ingredients",
+            "shopping-list"
+          ]
+        }
+      }
+    }
+  ]
+}

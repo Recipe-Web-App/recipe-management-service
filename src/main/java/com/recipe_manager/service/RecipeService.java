@@ -9,8 +9,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.RequestBody;
 
 import com.recipe_manager.exception.BusinessException;
 import com.recipe_manager.exception.ResourceNotFoundException;
@@ -28,15 +26,12 @@ import com.recipe_manager.repository.ingredient.IngredientRepository;
 import com.recipe_manager.repository.recipe.RecipeRepository;
 import com.recipe_manager.util.SecurityUtils;
 
-import jakarta.validation.Valid;
-
 /**
  * Service for core recipe operations.
  *
  * <p>All methods are placeholders and should be implemented.
  */
 @Service
-@Validated
 public class RecipeService {
 
   /** Repository used for accessing recipe data. */
@@ -71,8 +66,7 @@ public class RecipeService {
    * @return ResponseEntity with the created recipe ID
    */
   @Transactional
-  public ResponseEntity<RecipeDto> createRecipe(
-      @Valid @RequestBody final CreateRecipeRequest request) {
+  public ResponseEntity<RecipeDto> createRecipe(final CreateRecipeRequest request) {
     Recipe recipe =
         new Recipe(
             null, // recipeId (auto-generated)
@@ -247,7 +241,7 @@ public class RecipeService {
    * @return ResponseEntity with paginated search results
    */
   public ResponseEntity<SearchRecipesResponse> searchRecipes(
-      @Valid final SearchRecipesRequest searchRequest, final Pageable pageable) {
+      final SearchRecipesRequest searchRequest, final Pageable pageable) {
 
     // Perform search using repository
     Page<Recipe> recipePage = recipeRepository.searchRecipes(searchRequest, pageable);

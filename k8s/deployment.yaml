@@ -56,6 +56,11 @@ spec:
                 secretKeyRef:
                   name: recipe-manager-secrets
                   key: RECIPE_MANAGEMENT_DB_PASSWORD
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: recipe-manager-secrets
+                  key: JWT_SECRET
           livenessProbe:
             httpGet:
               path: /api/v1/recipe-manager/actuator/health

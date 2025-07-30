@@ -2,7 +2,6 @@ package com.recipe_manager;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 
@@ -25,25 +24,6 @@ import org.springframework.test.context.TestPropertySource;
     "spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration"
 })
 class RecipeManagerServiceApplicationTest {
-
-  @Test
-  @Tag("standard-processing")
-  @DisplayName("Should throw exception when trying to instantiate utility class")
-  void shouldThrowExceptionWhenInstantiating() {
-    // When & Then
-    assertThrows(UnsupportedOperationException.class, () -> {
-      try {
-        var constructor = RecipeManagerServiceApplication.class.getDeclaredConstructor();
-        constructor.setAccessible(true);
-        constructor.newInstance();
-      } catch (ReflectiveOperationException e) {
-        if (e.getCause() instanceof UnsupportedOperationException) {
-          throw (UnsupportedOperationException) e.getCause();
-        }
-        throw new RuntimeException(e);
-      }
-    });
-  }
 
   @Test
   @Tag("standard-processing")

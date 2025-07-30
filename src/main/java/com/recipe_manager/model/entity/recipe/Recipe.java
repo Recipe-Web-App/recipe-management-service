@@ -71,9 +71,6 @@ public class Recipe {
   /** Servings decimal scale as defined in DB schema. */
   private static final int SERVINGS_DECIMAL_SCALE = 2;
 
-  /** Max difficulty length as defined in DB schema. */
-  private static final int MAX_DIFFICULTY_LENGTH = 5;
-
   /** The unique ID of the recipe. */
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -113,7 +110,7 @@ public class Recipe {
 
   /** The difficulty level. */
   @Enumerated(EnumType.STRING)
-  @Column(name = "difficulty", length = MAX_DIFFICULTY_LENGTH)
+  @Column(name = "difficulty")
   private DifficultyLevel difficulty;
 
   /** The creation timestamp. */

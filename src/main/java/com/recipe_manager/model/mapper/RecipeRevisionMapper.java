@@ -19,8 +19,6 @@ public interface RecipeRevisionMapper {
    * @return the mapped RecipeRevisionDto
    */
   @Mapping(target = "recipeId", source = "recipe.recipeId")
-  @Mapping(target = "updatedAt", ignore = true)
-  @Mapping(target = "media", ignore = true)
   RecipeRevisionDto toDto(RecipeRevision entity);
 
   /**

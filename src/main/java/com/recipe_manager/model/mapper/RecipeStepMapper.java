@@ -38,8 +38,6 @@ public interface RecipeStepMapper {
    * @return the mapped RecipeStepDto
    */
   @Mapping(target = "recipeId", source = "recipe.recipeId")
-  @Mapping(target = "media", ignore = true)
-  @Mapping(target = "updatedAt", ignore = true)
   RecipeStepDto toDto(RecipeStep entity);
 
   /**

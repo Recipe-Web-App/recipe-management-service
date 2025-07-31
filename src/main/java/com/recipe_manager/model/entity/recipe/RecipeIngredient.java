@@ -2,13 +2,15 @@ package com.recipe_manager.model.entity.recipe;
 
 import java.math.BigDecimal;
 
+import org.hibernate.annotations.JdbcType;
+import org.hibernate.dialect.PostgreSQLEnumJdbcType;
+
 import com.recipe_manager.model.entity.ingredient.Ingredient;
 import com.recipe_manager.model.enums.IngredientUnit;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
@@ -64,7 +66,8 @@ public class RecipeIngredient {
   private BigDecimal quantity;
 
   /** The unit of measurement. */
-  @Enumerated(EnumType.STRING)
+  @Enumerated
+  @JdbcType(PostgreSQLEnumJdbcType.class)
   @Column(name = "unit")
   private IngredientUnit unit;
 

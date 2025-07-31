@@ -52,10 +52,6 @@ class RecipeFavoriteMapperTest {
     assertThat(result.getRecipeId()).isEqualTo(100L);
     assertThat(result.getUserId()).isEqualTo(userId);
     assertThat(result.getFavoritedAt()).isEqualTo(favoritedAt);
-    // Ignored fields should be null or default values
-    assertThat(result.getCreatedAt()).isNull();
-    assertThat(result.getUpdatedAt()).isNull();
-    assertThat(result.getMedia()).isNotNull().isEmpty(); // MapStruct returns empty list for @Default fields
   }
 
   @Test

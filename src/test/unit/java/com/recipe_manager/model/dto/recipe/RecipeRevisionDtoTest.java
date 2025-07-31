@@ -3,11 +3,8 @@ package com.recipe_manager.model.dto.recipe;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
-import com.recipe_manager.model.dto.media.RecipeRevisionMediaDto;
 import com.recipe_manager.model.enums.RevisionCategory;
 import com.recipe_manager.model.enums.RevisionType;
 
@@ -22,11 +19,10 @@ class RecipeRevisionDtoTest {
   @DisplayName("All-args constructor assigns all fields")
   @Tag("standard-processing")
   void allArgsConstructorAssignsFields() {
-    List<RecipeRevisionMediaDto> media = new ArrayList<>();
     UUID userId = UUID.randomUUID();
     LocalDateTime now = LocalDateTime.now();
     RecipeRevisionDto dto = new RecipeRevisionDto(1L, 2L, userId, RevisionCategory.INGREDIENT, RevisionType.ADD, "prev",
-        "new", "comment", now, now, media);
+        "new", "comment", now);
     assertThat(dto.getRevisionId()).isEqualTo(1L);
     assertThat(dto.getRecipeId()).isEqualTo(2L);
     assertThat(dto.getUserId()).isEqualTo(userId);
@@ -36,8 +32,6 @@ class RecipeRevisionDtoTest {
     assertThat(dto.getNewData()).isEqualTo("new");
     assertThat(dto.getChangeComment()).isEqualTo("comment");
     assertThat(dto.getCreatedAt()).isEqualTo(now);
-    assertThat(dto.getUpdatedAt()).isEqualTo(now);
-    assertThat(dto.getMedia()).isSameAs(media);
   }
 
   @Test
@@ -45,10 +39,9 @@ class RecipeRevisionDtoTest {
   @Tag("standard-processing")
   void noArgsConstructorSetsDefaults() {
     RecipeRevisionDto dto = new RecipeRevisionDto();
-    assertThat(dto.getMedia()).isNotNull();
-    assertThat(dto.getMedia()).isNotNull();
-    assertThat(dto.getMedia()).isEmpty();
     assertThat(dto.getPreviousData()).isNull();
+    assertThat(dto.getRevisionId()).isNull();
+    assertThat(dto.getRecipeId()).isNull();
   }
 
   @Test
@@ -57,8 +50,6 @@ class RecipeRevisionDtoTest {
   void builderSetsFieldsAndDefaults() {
     RecipeRevisionDto dto = RecipeRevisionDto.builder().changeComment("C").build();
     assertThat(dto.getChangeComment()).isEqualTo("C");
-    assertThat(dto.getMedia()).isNotNull();
-    assertThat(dto.getMedia()).isEmpty();
   }
 
   @Test
@@ -68,20 +59,21 @@ class RecipeRevisionDtoTest {
     RecipeRevisionDto dto = new RecipeRevisionDto();
     dto.setChangeComment("desc");
     assertThat(dto.getChangeComment()).isEqualTo("desc");
-    List<RecipeRevisionMediaDto> list = new ArrayList<>();
-    dto.setMedia(list);
-    assertThat(dto.getMedia()).isSameAs(list);
+
+    dto.setRevisionCategory(RevisionCategory.STEP);
+    assertThat(dto.getRevisionCategory()).isEqualTo(RevisionCategory.STEP);
   }
 
   @Test
-  @DisplayName("List mutability is direct (no defensive copy)")
+  @DisplayName("JSON data fields work correctly")
   @Tag("standard-processing")
-  void listMutabilityIsDirect() {
+  void jsonDataFields() {
     RecipeRevisionDto dto = new RecipeRevisionDto();
-    List<RecipeRevisionMediaDto> list = new ArrayList<>();
-    dto.setMedia(list);
-    list.add(new RecipeRevisionMediaDto());
-    assertThat(dto.getMedia()).hasSize(1);
+    dto.setPreviousData("{\"old\": \"value\"}");
+    assertThat(dto.getPreviousData()).isEqualTo("{\"old\": \"value\"}");
+
+    dto.setNewData("{\"new\": \"value\"}");
+    assertThat(dto.getNewData()).isEqualTo("{\"new\": \"value\"}");
   }
 
   @Test
@@ -99,7 +91,7 @@ class RecipeRevisionDtoTest {
   @DisplayName("Null handling for all fields")
   @Tag("error-processing")
   void nullHandlingForAllFields() {
-    RecipeRevisionDto dto = new RecipeRevisionDto(null, null, null, null, null, null, null, null, null, null, null);
+    RecipeRevisionDto dto = new RecipeRevisionDto(null, null, null, null, null, null, null, null, null);
     assertThat(dto.getRevisionId()).isNull();
     assertThat(dto.getRecipeId()).isNull();
     assertThat(dto.getUserId()).isNull();
@@ -109,7 +101,5 @@ class RecipeRevisionDtoTest {
     assertThat(dto.getNewData()).isNull();
     assertThat(dto.getChangeComment()).isNull();
     assertThat(dto.getCreatedAt()).isNull();
-    assertThat(dto.getUpdatedAt()).isNull();
-    assertThat(dto.getMedia()).isNull();
   }
 }

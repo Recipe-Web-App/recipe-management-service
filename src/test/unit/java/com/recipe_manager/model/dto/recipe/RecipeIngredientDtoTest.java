@@ -3,11 +3,7 @@ package com.recipe_manager.model.dto.recipe;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
-import com.recipe_manager.model.dto.media.RecipeIngredientMediaDto;
 import com.recipe_manager.model.enums.IngredientUnit;
 
 import org.junit.jupiter.api.DisplayName;
@@ -21,29 +17,19 @@ class RecipeIngredientDtoTest {
   @DisplayName("All-args constructor assigns all fields")
   @Tag("standard-processing")
   void allArgsConstructorAssignsFields() {
-    List<RecipeIngredientMediaDto> media = new ArrayList<>();
-    LocalDateTime now = LocalDateTime.now();
     RecipeIngredientDto dto = new RecipeIngredientDto(
         1L,
         2L,
         "name",
         BigDecimal.TEN,
         IngredientUnit.G,
-        true,
-        "notes",
-        now,
-        now,
-        media);
+        true);
     assertThat(dto.getRecipeId()).isEqualTo(1L);
     assertThat(dto.getIngredientId()).isEqualTo(2L);
     assertThat(dto.getIngredientName()).isEqualTo("name");
     assertThat(dto.getQuantity()).isEqualTo(BigDecimal.TEN);
     assertThat(dto.getUnit()).isEqualTo(IngredientUnit.G);
     assertThat(dto.getIsOptional()).isTrue();
-    assertThat(dto.getNotes()).isEqualTo("notes");
-    assertThat(dto.getCreatedAt()).isEqualTo(now);
-    assertThat(dto.getUpdatedAt()).isEqualTo(now);
-    assertThat(dto.getMedia()).isSameAs(media);
   }
 
   @Test
@@ -51,9 +37,9 @@ class RecipeIngredientDtoTest {
   @Tag("standard-processing")
   void noArgsConstructorSetsDefaults() {
     RecipeIngredientDto dto = new RecipeIngredientDto();
-    assertThat(dto.getMedia()).isNotNull();
-    assertThat(dto.getMedia()).isEmpty();
     assertThat(dto.getIngredientName()).isNull();
+    assertThat(dto.getRecipeId()).isNull();
+    assertThat(dto.getIngredientId()).isNull();
   }
 
   @Test
@@ -62,8 +48,6 @@ class RecipeIngredientDtoTest {
   void builderSetsFieldsAndDefaults() {
     RecipeIngredientDto dto = RecipeIngredientDto.builder().ingredientName("N").build();
     assertThat(dto.getIngredientName()).isEqualTo("N");
-    assertThat(dto.getMedia()).isNotNull();
-    assertThat(dto.getMedia()).isEmpty();
   }
 
   @Test
@@ -73,20 +57,21 @@ class RecipeIngredientDtoTest {
     RecipeIngredientDto dto = new RecipeIngredientDto();
     dto.setIngredientName("N");
     assertThat(dto.getIngredientName()).isEqualTo("N");
-    List<RecipeIngredientMediaDto> list = new ArrayList<>();
-    dto.setMedia(list);
-    assertThat(dto.getMedia()).isSameAs(list);
+
+    dto.setQuantity(BigDecimal.valueOf(5.5));
+    assertThat(dto.getQuantity()).isEqualTo(BigDecimal.valueOf(5.5));
   }
 
   @Test
-  @DisplayName("List mutability is direct (no defensive copy)")
+  @DisplayName("Unit and optional fields work correctly")
   @Tag("standard-processing")
-  void listMutabilityIsDirect() {
+  void unitAndOptionalFields() {
     RecipeIngredientDto dto = new RecipeIngredientDto();
-    List<RecipeIngredientMediaDto> list = new ArrayList<>();
-    dto.setMedia(list);
-    list.add(new RecipeIngredientMediaDto());
-    assertThat(dto.getMedia()).hasSize(1);
+    dto.setUnit(IngredientUnit.CUP);
+    assertThat(dto.getUnit()).isEqualTo(IngredientUnit.CUP);
+
+    dto.setIsOptional(true);
+    assertThat(dto.getIsOptional()).isTrue();
   }
 
   @Test
@@ -111,9 +96,5 @@ class RecipeIngredientDtoTest {
     assertThat(dto.getQuantity()).isNull();
     assertThat(dto.getUnit()).isNull();
     assertThat(dto.getIsOptional()).isNull();
-    assertThat(dto.getNotes()).isNull();
-    assertThat(dto.getCreatedAt()).isNull();
-    assertThat(dto.getUpdatedAt()).isNull();
-    assertThat(dto.getMedia()).isEmpty();
   }
 }

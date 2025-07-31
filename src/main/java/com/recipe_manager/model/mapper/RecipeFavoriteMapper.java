@@ -21,9 +21,6 @@ public interface RecipeFavoriteMapper {
   @Mapping(target = "recipeId", source = "recipe.recipeId")
   @Mapping(target = "userId", source = "id.userId")
   @Mapping(target = "favoritedAt", source = "favoritedAt")
-  @Mapping(target = "createdAt", ignore = true)
-  @Mapping(target = "updatedAt", ignore = true)
-  @Mapping(target = "media", ignore = true)
   RecipeFavoriteDto toDto(RecipeFavorite entity);
 
   /**

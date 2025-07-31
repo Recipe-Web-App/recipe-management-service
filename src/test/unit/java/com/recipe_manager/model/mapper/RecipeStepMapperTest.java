@@ -86,9 +86,6 @@ class RecipeStepMapperTest {
     assertThat(result.getTimerSeconds()).isEqualTo(300);
     assertThat(result.getRecipeId()).isEqualTo(15L);
     assertThat(result.getCreatedAt()).isNotNull();
-    // Ignored fields should be null or default values
-    assertThat(result.getMedia()).isNotNull().isEmpty(); // MapStruct returns empty list for @Default fields
-    assertThat(result.getUpdatedAt()).isNull();
   }
 
   @Test

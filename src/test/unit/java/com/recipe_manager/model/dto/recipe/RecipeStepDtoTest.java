@@ -3,10 +3,6 @@ package com.recipe_manager.model.dto.recipe;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-
-import com.recipe_manager.model.dto.media.RecipeStepMediaDto;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -19,7 +15,6 @@ class RecipeStepDtoTest {
   @DisplayName("All-args constructor assigns all fields")
   @Tag("standard-processing")
   void allArgsConstructorAssignsFields() {
-    List<RecipeStepMediaDto> media = new ArrayList<>();
     LocalDateTime now = LocalDateTime.now();
     RecipeStepDto dto = RecipeStepDto.builder()
         .stepId(1L)
@@ -29,8 +24,6 @@ class RecipeStepDtoTest {
         .optional(true)
         .timerSeconds(60)
         .createdAt(now)
-        .updatedAt(now)
-        .media(media)
         .build();
     assertThat(dto.getStepId()).isEqualTo(1L);
     assertThat(dto.getRecipeId()).isEqualTo(2L);
@@ -39,8 +32,6 @@ class RecipeStepDtoTest {
     assertThat(dto.getOptional()).isTrue();
     assertThat(dto.getTimerSeconds()).isEqualTo(60);
     assertThat(dto.getCreatedAt()).isEqualTo(now);
-    assertThat(dto.getUpdatedAt()).isEqualTo(now);
-    assertThat(dto.getMedia()).isSameAs(media);
   }
 
   @Test
@@ -55,9 +46,6 @@ class RecipeStepDtoTest {
     assertThat(dto.getOptional()).isNull();
     assertThat(dto.getTimerSeconds()).isNull();
     assertThat(dto.getCreatedAt()).isNull();
-    assertThat(dto.getUpdatedAt()).isNull();
-    assertThat(dto.getMedia()).isNotNull();
-    assertThat(dto.getMedia()).isEmpty();
   }
 
   @Test
@@ -68,8 +56,6 @@ class RecipeStepDtoTest {
     assertThat(dto.getStepNumber()).isEqualTo(2);
     assertThat(dto.getInstruction()).isEqualTo("D");
     assertThat(dto.getOptional()).isFalse();
-    assertThat(dto.getMedia()).isNotNull();
-    assertThat(dto.getMedia()).isEmpty();
   }
 
   @Test
@@ -85,9 +71,6 @@ class RecipeStepDtoTest {
     dto.setTimerSeconds(120);
     LocalDateTime now = LocalDateTime.now();
     dto.setCreatedAt(now);
-    dto.setUpdatedAt(now);
-    List<RecipeStepMediaDto> media = new ArrayList<>();
-    dto.setMedia(media);
     assertThat(dto.getStepId()).isEqualTo(10L);
     assertThat(dto.getRecipeId()).isEqualTo(20L);
     assertThat(dto.getStepNumber()).isEqualTo(3);
@@ -95,15 +78,15 @@ class RecipeStepDtoTest {
     assertThat(dto.getOptional()).isTrue();
     assertThat(dto.getTimerSeconds()).isEqualTo(120);
     assertThat(dto.getCreatedAt()).isEqualTo(now);
-    assertThat(dto.getUpdatedAt()).isEqualTo(now);
-    assertThat(dto.getMedia()).isSameAs(media);
   }
 
   @Test
-  @DisplayName("List mutability is direct (no defensive copy)")
+  @DisplayName("Timer functionality works correctly")
   @Tag("standard-processing")
-  void listMutabilityIsDirect() {
-    // No list field to mutate in RecipeStepDto; skip this test or adapt if needed.
+  void timerFunctionality() {
+    RecipeStepDto dto = new RecipeStepDto();
+    dto.setTimerSeconds(300);
+    assertThat(dto.getTimerSeconds()).isEqualTo(300);
   }
 
   @Test
@@ -129,8 +112,5 @@ class RecipeStepDtoTest {
     assertThat(dto.getOptional()).isNull();
     assertThat(dto.getTimerSeconds()).isNull();
     assertThat(dto.getCreatedAt()).isNull();
-    assertThat(dto.getUpdatedAt()).isNull();
-    assertThat(dto.getMedia()).isNotNull();
-    assertThat(dto.getMedia()).isEmpty();
   }
 }

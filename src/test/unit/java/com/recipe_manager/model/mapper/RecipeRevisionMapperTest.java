@@ -60,9 +60,6 @@ class RecipeRevisionMapperTest {
     assertThat(result.getNewData()).isEqualTo("{\"name\":\"Sugar\",\"quantity\":\"2 cups\"}");
     assertThat(result.getChangeComment()).isEqualTo("Increased sugar quantity");
     assertThat(result.getCreatedAt()).isEqualTo(createdAt);
-    // Ignored fields should be null or default values
-    assertThat(result.getUpdatedAt()).isNull();
-    assertThat(result.getMedia()).isNotNull().isEmpty(); // MapStruct returns empty list for @Default fields
   }
 
   @Test

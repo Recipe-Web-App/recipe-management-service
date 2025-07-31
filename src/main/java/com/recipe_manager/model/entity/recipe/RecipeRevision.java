@@ -4,13 +4,14 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.JdbcType;
+import org.hibernate.dialect.PostgreSQLEnumJdbcType;
 
 import com.recipe_manager.model.enums.RevisionCategory;
 import com.recipe_manager.model.enums.RevisionType;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -61,13 +62,15 @@ public class RecipeRevision {
 
   /** The revision category. */
   @NotNull
-  @Enumerated(EnumType.STRING)
+  @Enumerated
+  @JdbcType(PostgreSQLEnumJdbcType.class)
   @Column(name = "revision_category", nullable = false)
   private RevisionCategory revisionCategory;
 
   /** The revision type. */
   @NotNull
-  @Enumerated(EnumType.STRING)
+  @Enumerated
+  @JdbcType(PostgreSQLEnumJdbcType.class)
   @Column(name = "revision_type", nullable = false)
   private RevisionType revisionType;
 

@@ -2,11 +2,6 @@ package com.recipe_manager.model.dto.recipe;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-
-import com.recipe_manager.model.dto.media.RecipeTagMediaDto;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -19,15 +14,9 @@ class RecipeTagDtoTest {
   @DisplayName("All-args constructor assigns all fields")
   @Tag("standard-processing")
   void allArgsConstructorAssignsFields() {
-    List<RecipeTagMediaDto> media = new ArrayList<>();
-    LocalDateTime now = LocalDateTime.now();
-    RecipeTagDto dto = new RecipeTagDto(1L, 2L, "name", now, now, media);
-    assertThat(dto.getRecipeId()).isEqualTo(1L);
+    RecipeTagDto dto = new RecipeTagDto(2L, "name");
     assertThat(dto.getTagId()).isEqualTo(2L);
     assertThat(dto.getName()).isEqualTo("name");
-    assertThat(dto.getCreatedAt()).isEqualTo(now);
-    assertThat(dto.getUpdatedAt()).isEqualTo(now);
-    assertThat(dto.getMedia()).isSameAs(media);
   }
 
   @Test
@@ -35,9 +24,8 @@ class RecipeTagDtoTest {
   @Tag("standard-processing")
   void noArgsConstructorSetsDefaults() {
     RecipeTagDto dto = new RecipeTagDto();
-    assertThat(dto.getMedia()).isNotNull();
-    assertThat(dto.getMedia()).isEmpty();
     assertThat(dto.getName()).isNull();
+    assertThat(dto.getTagId()).isNull();
   }
 
   @Test
@@ -46,8 +34,6 @@ class RecipeTagDtoTest {
   void builderSetsFieldsAndDefaults() {
     RecipeTagDto dto = RecipeTagDto.builder().name("T").build();
     assertThat(dto.getName()).isEqualTo("T");
-    assertThat(dto.getMedia()).isNotNull();
-    assertThat(dto.getMedia()).isEmpty();
   }
 
   @Test
@@ -57,20 +43,18 @@ class RecipeTagDtoTest {
     RecipeTagDto dto = new RecipeTagDto();
     dto.setName("T");
     assertThat(dto.getName()).isEqualTo("T");
-    List<RecipeTagMediaDto> list = new ArrayList<>();
-    dto.setMedia(list);
-    assertThat(dto.getMedia()).isSameAs(list);
+
+    dto.setTagId(100L);
+    assertThat(dto.getTagId()).isEqualTo(100L);
   }
 
   @Test
-  @DisplayName("List mutability is direct (no defensive copy)")
+  @DisplayName("Tag name handling works correctly")
   @Tag("standard-processing")
-  void listMutabilityIsDirect() {
+  void tagNameHandling() {
     RecipeTagDto dto = new RecipeTagDto();
-    List<RecipeTagMediaDto> list = new ArrayList<>();
-    dto.setMedia(list);
-    list.add(new RecipeTagMediaDto());
-    assertThat(dto.getMedia()).hasSize(1);
+    dto.setName("Breakfast");
+    assertThat(dto.getName()).isEqualTo("Breakfast");
   }
 
   @Test
@@ -88,12 +72,8 @@ class RecipeTagDtoTest {
   @DisplayName("Null handling for all fields")
   @Tag("error-processing")
   void nullHandlingForAllFields() {
-    RecipeTagDto dto = new RecipeTagDto(null, null, null, null, null, null);
-    assertThat(dto.getRecipeId()).isNull();
+    RecipeTagDto dto = new RecipeTagDto(null, null);
     assertThat(dto.getTagId()).isNull();
     assertThat(dto.getName()).isNull();
-    assertThat(dto.getCreatedAt()).isNull();
-    assertThat(dto.getUpdatedAt()).isNull();
-    assertThat(dto.getMedia()).isNull();
   }
 }

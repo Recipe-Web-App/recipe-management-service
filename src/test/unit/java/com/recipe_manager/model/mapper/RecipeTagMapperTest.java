@@ -34,11 +34,6 @@ class RecipeTagMapperTest {
     assertThat(result).isNotNull();
     assertThat(result.getTagId()).isEqualTo(100L);
     assertThat(result.getName()).isEqualTo("Breakfast");
-    assertThat(result.getCreatedAt()).isNull(); // Always null since entity doesn't have this field
-    // Ignored fields should be null or default values
-    assertThat(result.getRecipeId()).isNull();
-    assertThat(result.getUpdatedAt()).isNull();
-    assertThat(result.getMedia()).isNotNull().isEmpty(); // MapStruct returns empty list for @Default fields
   }
 
   @Test
@@ -60,15 +55,8 @@ class RecipeTagMapperTest {
     assertThat(results).hasSize(2);
     assertThat(results.get(0).getTagId()).isEqualTo(200L);
     assertThat(results.get(0).getName()).isEqualTo("Lunch");
-    assertThat(results.get(0).getCreatedAt()).isNull(); // Always null since entity doesn't have this field
     assertThat(results.get(1).getTagId()).isEqualTo(300L);
     assertThat(results.get(1).getName()).isEqualTo("Dinner");
-    assertThat(results.get(1).getCreatedAt()).isNull(); // Always null since entity doesn't have this field
-    // All should have ignored fields as null
-    assertThat(results.get(0).getRecipeId()).isNull();
-    assertThat(results.get(0).getUpdatedAt()).isNull();
-    assertThat(results.get(1).getRecipeId()).isNull();
-    assertThat(results.get(1).getUpdatedAt()).isNull();
   }
 
   @Test
@@ -85,8 +73,6 @@ class RecipeTagMapperTest {
     assertThat(result).isNotNull();
     assertThat(result.getTagId()).isEqualTo(400L);
     assertThat(result.getName()).isEqualTo("Snack");
-    assertThat(result.getCreatedAt()).isNull(); // Always null since entity doesn't have this field
-    assertThat(result.getUpdatedAt()).isNull();
   }
 
   @Test
@@ -103,7 +89,6 @@ class RecipeTagMapperTest {
     assertThat(result).isNotNull();
     assertThat(result.getTagId()).isEqualTo(500L);
     assertThat(result.getName()).isEqualTo("");
-    assertThat(result.getCreatedAt()).isNull(); // Always null since entity doesn't have this field
   }
 
   @Test
@@ -120,6 +105,5 @@ class RecipeTagMapperTest {
     assertThat(result).isNotNull();
     assertThat(result.getTagId()).isEqualTo(600L);
     assertThat(result.getName()).isNull();
-    assertThat(result.getCreatedAt()).isNull(); // Always null since entity doesn't have this field
   }
 }

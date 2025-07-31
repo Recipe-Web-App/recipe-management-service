@@ -3,7 +3,6 @@ package com.recipe_manager.model.mapper;
 import java.util.List;
 
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
 
 import com.recipe_manager.model.dto.recipe.RecipeTagDto;
 import com.recipe_manager.model.entity.recipe.RecipeTag;
@@ -18,12 +17,6 @@ public interface RecipeTagMapper {
    * @param entity the RecipeTag entity
    * @return the mapped RecipeTagDto
    */
-  @Mapping(
-      target = "recipeId",
-      ignore = true) // RecipeTag doesn't have a direct recipeId, this would need context
-  @Mapping(target = "createdAt", ignore = true) // Entity doesn't have createdAt field
-  @Mapping(target = "updatedAt", ignore = true) // Entity doesn't have updatedAt field
-  @Mapping(target = "media", ignore = true) // Media not implemented yet
   RecipeTagDto toDto(RecipeTag entity);
 
   /**

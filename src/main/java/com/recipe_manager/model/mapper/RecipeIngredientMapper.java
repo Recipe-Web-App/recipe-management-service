@@ -40,10 +40,6 @@ public interface RecipeIngredientMapper {
   @Mapping(target = "ingredientId", source = "ingredient.ingredientId")
   @Mapping(target = "ingredientName", source = "ingredient.name")
   @Mapping(target = "recipeId", source = "recipe.recipeId")
-  @Mapping(target = "media", ignore = true)
-  @Mapping(target = "notes", ignore = true)
-  @Mapping(target = "createdAt", ignore = true)
-  @Mapping(target = "updatedAt", ignore = true)
   RecipeIngredientDto toDto(RecipeIngredient entity);
 
   /**

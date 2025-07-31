@@ -34,7 +34,6 @@ class RecipeIngredientMapperTest {
         .quantity(BigDecimal.valueOf(2.5))
         .unit(null)
         .isOptional(true)
-        .notes("Fine")
         .build();
 
     RecipeIngredient entity = mapper.toEntity(dto);
@@ -93,11 +92,6 @@ class RecipeIngredientMapperTest {
     assertThat(result.getQuantity()).isEqualTo(BigDecimal.valueOf(2.5));
     assertThat(result.getUnit()).isEqualTo(IngredientUnit.CUP);
     assertThat(result.getIsOptional()).isTrue();
-    // Ignored fields should be null or default values
-    assertThat(result.getMedia()).isNotNull().isEmpty(); // MapStruct returns empty list for @Default fields
-    assertThat(result.getNotes()).isNull();
-    assertThat(result.getCreatedAt()).isNull();
-    assertThat(result.getUpdatedAt()).isNull();
   }
 
   @Test

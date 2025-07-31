@@ -1,16 +1,10 @@
 package com.recipe_manager.model.dto.recipe;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
-import com.recipe_manager.model.dto.media.RecipeFavoriteMediaDto;
-
-import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Builder.Default;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -39,13 +33,4 @@ public class RecipeFavoriteDto {
 
   /** The timestamp when the recipe was favorited. */
   private LocalDateTime favoritedAt;
-
-  /** The creation timestamp. */
-  private LocalDateTime createdAt;
-
-  /** The last update timestamp. */
-  private LocalDateTime updatedAt;
-
-  /** The list of media associated with this favorite. */
-  @Valid @Default private List<RecipeFavoriteMediaDto> media = new ArrayList<>();
 }

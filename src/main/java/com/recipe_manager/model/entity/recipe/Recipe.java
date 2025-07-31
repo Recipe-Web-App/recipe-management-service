@@ -7,14 +7,15 @@ import java.util.List;
 import java.util.UUID;
 
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.JdbcType;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.dialect.PostgreSQLEnumJdbcType;
 
 import com.recipe_manager.model.enums.DifficultyLevel;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -109,7 +110,8 @@ public class Recipe {
   private Integer cookingTime;
 
   /** The difficulty level. */
-  @Enumerated(EnumType.STRING)
+  @Enumerated
+  @JdbcType(PostgreSQLEnumJdbcType.class)
   @Column(name = "difficulty")
   private DifficultyLevel difficulty;
 

@@ -3,11 +3,7 @@ package com.recipe_manager.model.dto.recipe;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
-
-import com.recipe_manager.model.dto.media.RecipeFavoriteMediaDto;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -20,16 +16,12 @@ class RecipeFavoriteDtoTest {
   @DisplayName("All-args constructor assigns all fields")
   @Tag("standard-processing")
   void allArgsConstructorAssignsFields() {
-    List<RecipeFavoriteMediaDto> media = new ArrayList<>();
     UUID userId = UUID.randomUUID();
     LocalDateTime now = LocalDateTime.now();
-    RecipeFavoriteDto dto = new RecipeFavoriteDto(1L, userId, now, now, now, media);
+    RecipeFavoriteDto dto = new RecipeFavoriteDto(1L, userId, now);
     assertThat(dto.getRecipeId()).isEqualTo(1L);
     assertThat(dto.getUserId()).isEqualTo(userId);
     assertThat(dto.getFavoritedAt()).isEqualTo(now);
-    assertThat(dto.getCreatedAt()).isEqualTo(now);
-    assertThat(dto.getUpdatedAt()).isEqualTo(now);
-    assertThat(dto.getMedia()).isSameAs(media);
   }
 
   @Test
@@ -37,9 +29,9 @@ class RecipeFavoriteDtoTest {
   @Tag("standard-processing")
   void noArgsConstructorSetsDefaults() {
     RecipeFavoriteDto dto = new RecipeFavoriteDto();
-    assertThat(dto.getMedia()).isNotNull();
-    assertThat(dto.getMedia()).isEmpty();
     assertThat(dto.getUserId()).isNull();
+    assertThat(dto.getRecipeId()).isNull();
+    assertThat(dto.getFavoritedAt()).isNull();
   }
 
   @Test
@@ -48,8 +40,6 @@ class RecipeFavoriteDtoTest {
   void builderSetsFieldsAndDefaults() {
     RecipeFavoriteDto dto = RecipeFavoriteDto.builder().favoritedAt(LocalDateTime.now()).build();
     assertThat(dto.getFavoritedAt()).isNotNull();
-    assertThat(dto.getMedia()).isNotNull();
-    assertThat(dto.getMedia()).isEmpty();
   }
 
   @Test
@@ -60,20 +50,20 @@ class RecipeFavoriteDtoTest {
     UUID userId = UUID.randomUUID();
     dto.setUserId(userId);
     assertThat(dto.getUserId()).isEqualTo(userId);
-    List<RecipeFavoriteMediaDto> list = new ArrayList<>();
-    dto.setMedia(list);
-    assertThat(dto.getMedia()).isSameAs(list);
+
+    Long recipeId = 123L;
+    dto.setRecipeId(recipeId);
+    assertThat(dto.getRecipeId()).isEqualTo(recipeId);
   }
 
   @Test
-  @DisplayName("List mutability is direct (no defensive copy)")
+  @DisplayName("Timestamp handling works correctly")
   @Tag("standard-processing")
-  void listMutabilityIsDirect() {
+  void timestampHandling() {
+    LocalDateTime now = LocalDateTime.now();
     RecipeFavoriteDto dto = new RecipeFavoriteDto();
-    List<RecipeFavoriteMediaDto> list = new ArrayList<>();
-    dto.setMedia(list);
-    list.add(new RecipeFavoriteMediaDto());
-    assertThat(dto.getMedia()).hasSize(1);
+    dto.setFavoritedAt(now);
+    assertThat(dto.getFavoritedAt()).isEqualTo(now);
   }
 
   @Test
@@ -95,9 +85,5 @@ class RecipeFavoriteDtoTest {
     assertThat(dto.getRecipeId()).isNull();
     assertThat(dto.getUserId()).isNull();
     assertThat(dto.getFavoritedAt()).isNull();
-    assertThat(dto.getCreatedAt()).isNull();
-    assertThat(dto.getUpdatedAt()).isNull();
-    assertThat(dto.getMedia()).isNotNull();
-    assertThat(dto.getMedia()).isEmpty();
   }
 }

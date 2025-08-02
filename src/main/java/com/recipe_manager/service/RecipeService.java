@@ -384,19 +384,24 @@ public class RecipeService {
       ingredientsToSearch = lowercaseIngredients.isEmpty() ? null : lowercaseIngredients;
     }
 
-    // Convert enum to string for database compatibility
-    String difficultyString =
-        searchRequest.getDifficulty() != null ? searchRequest.getDifficulty().name() : null;
+    // Create a new search request with the processed ingredients and tags
+    SearchRecipesRequest processedSearchRequest =
+        SearchRecipesRequest.builder()
+            .recipeNameQuery(searchRequest.getRecipeNameQuery())
+            .difficulty(searchRequest.getDifficulty())
+            .maxCookingTime(searchRequest.getMaxCookingTime())
+            .maxPreparationTime(searchRequest.getMaxPreparationTime())
+            .minServings(searchRequest.getMinServings())
+            .maxServings(searchRequest.getMaxServings())
+            .ingredients(searchRequest.getIngredients())
+            .tags(searchRequest.getTags())
+            .ingredientMatchMode(searchRequest.getIngredientMatchMode())
+            .build();
 
     // Perform search using repository
     Page<Recipe> recipePage =
         recipeRepository.searchRecipes(
-            searchRequest.getRecipeNameQuery(),
-            difficultyString,
-            searchRequest.getMaxCookingTime(),
-            searchRequest.getMaxPreparationTime(),
-            searchRequest.getMinServings(),
-            searchRequest.getMaxServings(),
+            processedSearchRequest,
             ingredientsToSearch != null
                 ? ingredientsToSearch.toArray(new String[0])
                 : new String[0],

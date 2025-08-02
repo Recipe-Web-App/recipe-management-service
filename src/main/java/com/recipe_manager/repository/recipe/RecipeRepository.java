@@ -16,7 +16,14 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long> {
   /**
    * Search recipes based on flexible criteria.
    *
-   * @param searchRequest the search criteria
+   * @param recipeNameQuery the recipe name query
+   * @param difficulty the difficulty level
+   * @param maxCookingTime maximum cooking time
+   * @param maxPreparationTime maximum preparation time
+   * @param minServings minimum servings
+   * @param maxServings maximum servings
+   * @param ingredientsList array of ingredient names
+   * @param tagsList array of tag names
    * @param pageable pagination information
    * @return page of recipes matching the search criteria
    */

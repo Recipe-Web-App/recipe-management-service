@@ -49,6 +49,9 @@ public class GlobalExceptionHandler {
   /** Logger for this class. */
   private static final Logger LOGGER = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
+  /** HTTP status code for internal server error. */
+  private static final int INTERNAL_SERVER_ERROR_STATUS = 500;
+
   /**
    * Handles validation errors from @Valid annotations.
    *
@@ -311,7 +314,7 @@ public class GlobalExceptionHandler {
 
     ErrorResponse errorResponse =
         createErrorResponse(
-            500,
+            INTERNAL_SERVER_ERROR_STATUS,
             "Database error",
             "A database error occurred while processing your request",
             null,

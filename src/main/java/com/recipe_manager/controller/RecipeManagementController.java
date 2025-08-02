@@ -1,15 +1,24 @@
 package com.recipe_manager.controller;
 
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.recipe_manager.model.dto.recipe.RecipeDto;
+import com.recipe_manager.model.dto.request.CreateRecipeRequest;
+import com.recipe_manager.model.dto.request.SearchRecipesRequest;
+import com.recipe_manager.model.dto.request.UpdateRecipeRequest;
+import com.recipe_manager.model.dto.response.SearchRecipesResponse;
 import com.recipe_manager.service.IngredientService;
 import com.recipe_manager.service.MediaService;
 import com.recipe_manager.service.RecipeService;
@@ -18,6 +27,7 @@ import com.recipe_manager.service.StepService;
 import com.recipe_manager.service.TagService;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import jakarta.validation.Valid;
 
 /**
  * REST controller for Recipe Management API endpoints.
@@ -26,10 +36,10 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
  */
 @RestController
 @RequestMapping("/recipe-management/recipes")
-@SuppressFBWarnings(
-    value = "EI_EXPOSE_REP2",
-    justification = "Spring-managed beans are safe to inject and not exposed externally")
 public class RecipeManagementController {
+
+  /** Default page size for pagination. */
+  private static final int DEFAULT_PAGE_SIZE = 20;
 
   /** Service for core recipe operations. */
   private final RecipeService recipeService;
@@ -59,6 +69,9 @@ public class RecipeManagementController {
    * @param mediaService the media service
    * @param reviewService the review service
    */
+  @SuppressFBWarnings(
+      value = "EI_EXPOSE_REP2",
+      justification = "Spring-managed beans are safe to inject and not exposed externally")
   public RecipeManagementController(
       final RecipeService recipeService,
       final IngredientService ingredientService,
@@ -77,22 +90,38 @@ public class RecipeManagementController {
   /**
    * Create a new recipe.
    *
-   * @return placeholder response
+   * @param request the create recipe request DTO
+   * @return ResponseEntity with the created recipe ID
    */
-  @PostMapping
-  public ResponseEntity<String> createRecipe() {
-    return recipeService.createRecipe();
+  @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<RecipeDto> createRecipe(
+      @Valid @RequestBody final CreateRecipeRequest request) {
+    return recipeService.createRecipe(request);
+  }
+
+  /**
+   * Get all recipes.
+   *
+   * @param pageable pagination parameters
+   * @return ResponseEntity with paginated list of recipes
+   */
+  @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<SearchRecipesResponse> getAllRecipes(
+      @PageableDefault(size = DEFAULT_PAGE_SIZE) final Pageable pageable) {
+    return recipeService.getAllRecipes(pageable);
   }
 
   /**
    * Update an existing recipe.
    *
    * @param recipeId the recipe ID
-   * @return placeholder response
+   * @param request the update recipe request DTO
+   * @return ResponseEntity with the updated recipe ID
    */
-  @PutMapping("/{recipeId}")
-  public ResponseEntity<String> updateRecipe(@PathVariable final String recipeId) {
-    return recipeService.updateRecipe(recipeId);
+  @PutMapping(value = "/{recipeId}", produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<RecipeDto> updateRecipe(
+      @PathVariable final String recipeId, @Valid @RequestBody final UpdateRecipeRequest request) {
+    return recipeService.updateRecipe(recipeId, request);
   }
 
   /**
@@ -102,7 +131,7 @@ public class RecipeManagementController {
    * @return placeholder response
    */
   @DeleteMapping("/{recipeId}")
-  public ResponseEntity<String> deleteRecipe(@PathVariable final String recipeId) {
+  public ResponseEntity<Void> deleteRecipe(@PathVariable final String recipeId) {
     return recipeService.deleteRecipe(recipeId);
   }
 
@@ -112,8 +141,8 @@ public class RecipeManagementController {
    * @param recipeId the recipe ID
    * @return placeholder response
    */
-  @GetMapping("/{recipeId}")
-  public ResponseEntity<String> getRecipe(@PathVariable final String recipeId) {
+  @GetMapping(value = "/{recipeId}", produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<RecipeDto> getRecipe(@PathVariable final String recipeId) {
     return recipeService.getRecipe(recipeId);
   }
 
@@ -332,13 +361,17 @@ public class RecipeManagementController {
   }
 
   /**
-   * Search recipes.
+   * Search recipes based on flexible criteria.
    *
-   * @return placeholder response
+   * @param searchRequest the search criteria (request body)
+   * @param pageable pagination parameters (query parameters)
+   * @return ResponseEntity with paginated search results
    */
-  @GetMapping("/search")
-  public ResponseEntity<String> searchRecipes() {
-    return recipeService.searchRecipes();
+  @PostMapping("/search")
+  public ResponseEntity<SearchRecipesResponse> searchRecipes(
+      @Valid @RequestBody final SearchRecipesRequest searchRequest,
+      @PageableDefault(size = DEFAULT_PAGE_SIZE) final Pageable pageable) {
+    return recipeService.searchRecipes(searchRequest, pageable);
   }
 
   /**

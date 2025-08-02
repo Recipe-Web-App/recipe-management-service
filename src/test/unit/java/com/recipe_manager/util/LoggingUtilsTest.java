@@ -1,14 +1,17 @@
 package com.recipe_manager.util;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.*;
 
+import java.util.UUID;
+
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
  * Test class for LoggingUtils.
@@ -16,6 +19,19 @@ import org.junit.jupiter.api.Test;
  */
 @Tag("unit")
 class LoggingUtilsTest {
+
+  private static final String DUMMY_USER_ID = UUID.randomUUID().toString();
+
+  @BeforeEach
+  void setUpSecurityContext() {
+    Authentication auth = new UsernamePasswordAuthenticationToken(DUMMY_USER_ID, null);
+    SecurityContextHolder.getContext().setAuthentication(auth);
+  }
+
+  @AfterEach
+  void clearSecurityContext() {
+    SecurityContextHolder.clearContext();
+  }
 
   /**
    * Test that logging utils can be instantiated.

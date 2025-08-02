@@ -1,6 +1,8 @@
 package com.recipe_manager.controller;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -8,6 +10,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.recipe_manager.model.dto.recipe.RecipeDto;
+import com.recipe_manager.model.dto.request.CreateRecipeRequest;
+import com.recipe_manager.model.dto.request.SearchRecipesRequest;
+import com.recipe_manager.model.dto.request.UpdateRecipeRequest;
+import com.recipe_manager.model.dto.response.SearchRecipesResponse;
 import com.recipe_manager.service.IngredientService;
 import com.recipe_manager.service.MediaService;
 import com.recipe_manager.service.RecipeService;
@@ -20,9 +27,11 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.web.servlet.MockMvc;
@@ -61,7 +70,9 @@ class RecipeManagementControllerTest {
 
   @BeforeEach
   void setUp() {
-    mockMvc = MockMvcBuilders.standaloneSetup(recipeManagementController).build();
+    mockMvc = MockMvcBuilders.standaloneSetup(recipeManagementController)
+        .setCustomArgumentResolvers(new PageableHandlerMethodArgumentResolver())
+        .build();
   }
 
   /**
@@ -75,16 +86,31 @@ class RecipeManagementControllerTest {
   }
 
   /**
-   * Test GET /recipe-management/recipes/search endpoint.
+   * Test POST /recipe-management/recipes/search endpoint.
    */
   @Test
   @Tag("standard-processing")
-  @DisplayName("Should handle GET /recipe-management/recipes/search")
-  void shouldHandleGetRecipes() throws Exception {
-    when(recipeService.searchRecipes()).thenReturn(ResponseEntity.ok("Search Recipes - placeholder"));
+  @DisplayName("Should handle POST /recipe-management/recipes/search")
+  void shouldHandleSearchRecipes() throws Exception {
+    SearchRecipesResponse mockResponse = SearchRecipesResponse.builder()
+        .build();
 
-    mockMvc.perform(get("/recipe-management/recipes/search")
-        .contentType(MediaType.APPLICATION_JSON))
+    when(recipeService.searchRecipes(any(SearchRecipesRequest.class), any()))
+        .thenReturn(ResponseEntity.ok(mockResponse));
+
+    String validSearchRequestJson = "{" +
+        "\"title\":\"Test Recipe\"," +
+        "\"difficulty\":\"BEGINNER\"," +
+        "\"maxPreparationTimeMinutes\":30," +
+        "\"maxCookingTimeMinutes\":60," +
+        "\"servings\":4," +
+        "\"ingredientNames\":[\"flour\",\"sugar\"]," +
+        "\"ingredientMatchMode\":\"AND\"" +
+        "}";
+
+    mockMvc.perform(post("/recipe-management/recipes/search")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(validSearchRequestJson))
         .andExpect(status().isOk());
   }
 
@@ -138,11 +164,30 @@ class RecipeManagementControllerTest {
   @Tag("standard-processing")
   @DisplayName("Should handle POST /recipe-management/recipes")
   void shouldHandlePostRecipes() throws Exception {
-    when(recipeService.createRecipe()).thenReturn(ResponseEntity.ok("Create Recipe - placeholder"));
+    String validRequestJson = "{" +
+        "\"title\":\"Test Recipe\"," +
+        "\"description\":\"A test recipe\"," +
+        "\"originUrl\":\"http://example.com\"," +
+        "\"servings\":2," +
+        "\"preparationTime\":10," +
+        "\"cookingTime\":20," +
+        "\"difficulty\":\"BEGINNER\"," +
+        "\"ingredients\":[{" +
+        "  \"ingredientName\":\"Flour\"," +
+        "  \"quantity\":1.0," +
+        "  \"isOptional\":false" +
+        "}]," +
+        "\"steps\":[{" +
+        "  \"stepNumber\":1," +
+        "  \"instruction\":\"Mix ingredients\"" +
+        "}]" +
+        "}";
+    when(recipeService.createRecipe(ArgumentMatchers.any(CreateRecipeRequest.class)))
+        .thenReturn(ResponseEntity.ok(RecipeDto.builder().build()));
 
     mockMvc.perform(post("/recipe-management/recipes")
         .contentType(MediaType.APPLICATION_JSON)
-        .content("{}"))
+        .content(validRequestJson))
         .andExpect(status().isOk());
   }
 
@@ -153,7 +198,8 @@ class RecipeManagementControllerTest {
   @Tag("standard-processing")
   @DisplayName("Should handle PUT /recipe-management/recipes/{recipeId}")
   void shouldHandlePutRecipes() throws Exception {
-    when(recipeService.updateRecipe("1")).thenReturn(ResponseEntity.ok("Update Recipe - placeholder"));
+    when(recipeService.updateRecipe(eq("1"), any(UpdateRecipeRequest.class)))
+        .thenReturn(ResponseEntity.ok(RecipeDto.builder().build()));
 
     mockMvc.perform(put("/recipe-management/recipes/1")
         .contentType(MediaType.APPLICATION_JSON)
@@ -168,11 +214,11 @@ class RecipeManagementControllerTest {
   @Tag("standard-processing")
   @DisplayName("Should handle DELETE /recipe-management/recipes/{recipeId}")
   void shouldHandleDeleteRecipes() throws Exception {
-    when(recipeService.deleteRecipe("1")).thenReturn(ResponseEntity.ok("Delete Recipe - placeholder"));
+    when(recipeService.deleteRecipe("1")).thenReturn(ResponseEntity.noContent().build());
 
     mockMvc.perform(delete("/recipe-management/recipes/1")
         .contentType(MediaType.APPLICATION_JSON))
-        .andExpect(status().isOk());
+        .andExpect(status().isNoContent());
   }
 
   /**

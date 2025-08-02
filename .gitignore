@@ -33,3 +33,12 @@ tmp/
 
 # Build files
 target/
+
+# Node Modules containing caches for pre-commit dependencies
+node_modules/
+
+# HTTP Client private config with credentials
+tests/http/config-private.json
+
+# Postman private environment files with credentials
+tests/postman/*-Private.postman_environment.json

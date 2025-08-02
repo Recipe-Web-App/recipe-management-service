@@ -14,11 +14,6 @@ import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.jdbc.core.JdbcTemplate;
 
-import java.lang.management.MemoryMXBean;
-import java.lang.management.MemoryUsage;
-import java.io.File;
-import java.lang.reflect.Field;
-
 /**
  * Test class for HealthCheckConfig.
  * Verifies that health check configuration loads correctly.

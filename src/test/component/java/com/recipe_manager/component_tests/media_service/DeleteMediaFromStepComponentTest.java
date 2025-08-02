@@ -8,14 +8,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.recipe_manager.component_tests.AbstractComponentTest;
-import com.recipe_manager.service.MediaService;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 
@@ -25,13 +22,9 @@ import org.springframework.http.ResponseEntity;
  */
 @Tag("component")
 class DeleteMediaFromStepComponentTest extends AbstractComponentTest {
-  @Mock
-  private MediaService mediaService;
-
   @Override
   @BeforeEach
   protected void setUp() {
-    MockitoAnnotations.openMocks(this);
     super.setUp();
     when(mediaService.deleteMediaFromStep(anyString(), anyString()))
         .thenReturn(ResponseEntity.ok("Delete Media from Step - placeholder"));

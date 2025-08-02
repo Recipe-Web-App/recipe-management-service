@@ -8,6 +8,7 @@ import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -23,7 +24,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.NoHandlerFoundException;
 
-import com.recipe_manager.model.dto.ErrorResponse;
+import com.recipe_manager.model.dto.response.ErrorResponse;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
@@ -47,6 +48,9 @@ public class GlobalExceptionHandler {
 
   /** Logger for this class. */
   private static final Logger LOGGER = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
+  /** HTTP status code for internal server error. */
+  private static final int INTERNAL_SERVER_ERROR_STATUS = 500;
 
   /**
    * Handles validation errors from @Valid annotations.
@@ -298,6 +302,29 @@ public class GlobalExceptionHandler {
   }
 
   /**
+   * Handles database access exceptions.
+   *
+   * @param ex The database access exception
+   * @param request The HTTP request
+   * @return Error response
+   */
+  @ExceptionHandler(InvalidDataAccessResourceUsageException.class)
+  public ResponseEntity<ErrorResponse> handleDatabaseException(
+      final InvalidDataAccessResourceUsageException ex, final HttpServletRequest request) {
+
+    ErrorResponse errorResponse =
+        createErrorResponse(
+            INTERNAL_SERVER_ERROR_STATUS,
+            "Database error",
+            "A database error occurred while processing your request",
+            null,
+            request);
+
+    LOGGER.error("Database error: {}", errorResponse, ex);
+    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+  }
+
+  /**
    * Handles all other unhandled exceptions.
    *
    * @param ex The unhandled exception
@@ -318,6 +345,7 @@ public class GlobalExceptionHandler {
   /**
    * Creates a standardized error response with request tracking information.
    *
+   * @param status The HTTP status code
    * @param title The error title
    * @param message The error message
    * @param details Additional error details
@@ -325,6 +353,7 @@ public class GlobalExceptionHandler {
    * @return ErrorResponse object
    */
   private ErrorResponse createErrorResponse(
+      final int status,
       final String title,
       final String message,
       final Map<String, String> details,
@@ -337,12 +366,29 @@ public class GlobalExceptionHandler {
 
     return ErrorResponse.builder()
         .timestamp(LocalDateTime.now())
-        .status(HttpStatus.BAD_REQUEST.value())
+        .status(status)
         .error(title)
         .message(message)
         .path(request.getRequestURI())
         .requestId(requestId)
         .details(details != null ? Map.copyOf(details) : null)
         .build();
+  }
+
+  /**
+   * Creates a standardized error response with request tracking information (legacy method).
+   *
+   * @param title The error title
+   * @param message The error message
+   * @param details Additional error details
+   * @param request The HTTP request
+   * @return ErrorResponse object
+   */
+  private ErrorResponse createErrorResponse(
+      final String title,
+      final String message,
+      final Map<String, String> details,
+      final HttpServletRequest request) {
+    return createErrorResponse(HttpStatus.BAD_REQUEST.value(), title, message, details, request);
   }
 }

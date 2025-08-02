@@ -3,8 +3,6 @@ package com.recipe_manager.config;
 import java.util.Arrays;
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -40,9 +38,6 @@ import com.recipe_manager.security.JwtAuthenticationFilter;
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
-
-  /** Security configuration logger. */
-  private static final Logger LOGGER = LoggerFactory.getLogger(SecurityConfig.class);
 
   /** Default token validity in seconds. */
   private static final long DEFAULT_TOKEN_VALIDITY_SECONDS = 3600L;

@@ -14,6 +14,12 @@ class RecipeKarateRunner {
   }
 
   @Karate.Test
+  @DisplayName("Get All Recipes Endpoint")
+  Karate testGetAllRecipes() {
+    return Karate.run("feature/recipe/get-all-recipes.feature").relativeTo(getClass());
+  }
+
+  @Karate.Test
   @DisplayName("Create Recipe Endpoint")
   Karate testCreateRecipe() {
     return Karate.run("feature/recipe/create-recipe.feature").relativeTo(getClass());

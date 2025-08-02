@@ -8,7 +8,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.Collections;
 
-import com.recipe_manager.model.dto.ErrorResponse;
+import com.recipe_manager.model.dto.response.ErrorResponse;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

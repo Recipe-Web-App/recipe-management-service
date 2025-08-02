@@ -97,7 +97,7 @@ public final class ServiceToServiceAuthFilter extends OncePerRequestFilter {
    * @param request The HTTP request
    * @return The request ID or "unknown" if not found
    */
-  String extractRequestId(HttpServletRequest request) {
+  String extractRequestId(final HttpServletRequest request) {
     String requestId = request.getHeader("X-Request-ID");
     return requestId != null ? requestId : "unknown";
   }

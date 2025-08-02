@@ -7,6 +7,11 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 public final class RecipeManagerServiceApplication {
 
+  /** Private constructor to prevent instantiation of utility class. */
+  private RecipeManagerServiceApplication() {
+    // Private constructor to hide the implicit public one
+  }
+
   /**
    * Main method to start the Spring Boot application.
    *

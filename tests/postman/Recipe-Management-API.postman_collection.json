@@ -1,0 +1,2725 @@
+{
+  "info": {
+    "name": "Recipe Management API",
+    "description": "Complete API testing collection for Recipe Manager Service with organized endpoints by category",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{recipeManagementServiceAccessToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "testRecipeId",
+      "value": "123",
+      "type": "string",
+      "description": "Sample recipe ID for testing"
+    },
+    {
+      "key": "testIngredientId",
+      "value": "456",
+      "type": "string",
+      "description": "Sample ingredient ID for testing"
+    },
+    {
+      "key": "testStepId",
+      "value": "789",
+      "type": "string",
+      "description": "Sample step ID for testing"
+    },
+    {
+      "key": "testReviewId",
+      "value": "456",
+      "type": "string",
+      "description": "Sample review ID for testing"
+    },
+    {
+      "key": "testTagName",
+      "value": "vegetarian",
+      "type": "string",
+      "description": "Sample tag name for testing"
+    }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
+      "description": "User authentication and authorization endpoints",
+      "item": [
+        {
+          "name": "General User Flow",
+          "description": "Authentication flow for general users",
+          "item": [
+            {
+              "name": "Register General User",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Registration successful', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Extract authentication tokens', function () {",
+                      "    const response = pm.response.json();",
+                      "    pm.environment.set('recipeManagementServiceAccessToken', response.token.accessToken);",
+                      "    pm.environment.set('recipeManagementServiceRefreshToken', response.token.refreshToken);",
+                      "    pm.environment.set('recipeManagementServiceUserId', response.user.userId);",
+                      "    pm.environment.set('recipeManagementServiceUsername', response.user.username);",
+                      "    pm.environment.set('recipeManagementServiceUserEmail', response.user.email);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"user_data\": {\n    \"username\": \"{{recipeManagementServiceTestUserUsername}}\",\n    \"email\": \"{{recipeManagementServiceTestUserEmail}}\",\n    \"password\": \"{{recipeManagementServiceTestUserPassword}}\",\n    \"full_name\": \"{{recipeManagementServiceTestUserFullName}}\",\n    \"bio\": \"{{recipeManagementServiceTestUserBio}}\"\n  }\n}"
+                },
+                "auth": {
+                  "type": "noauth"
+                },
+                "url": {
+                  "raw": "{{recipeManagementServiceAuthBaseUrl}}/register",
+                  "host": ["{{recipeManagementServiceAuthBaseUrl}}"],
+                  "path": ["register"]
+                }
+              }
+            },
+            {
+              "name": "Login General User (Username)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Login successful', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Extract authentication tokens', function () {",
+                      "    const response = pm.response.json();",
+                      "    pm.environment.set('recipeManagementServiceAccessToken', response.token.accessToken);",
+                      "    pm.environment.set('recipeManagementServiceRefreshToken', response.token.refreshToken);",
+                      "    pm.environment.set('recipeManagementServiceUserId', response.user.userId);",
+                      "    pm.environment.set('recipeManagementServiceUsername', response.user.username);",
+                      "    pm.environment.set('recipeManagementServiceUserEmail', response.user.email);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"username\": \"{{recipeManagementServiceTestUserUsername}}\",\n  \"password\": \"{{recipeManagementServiceTestUserPassword}}\"\n}"
+                },
+                "auth": {
+                  "type": "noauth"
+                },
+                "url": {
+                  "raw": "{{recipeManagementServiceAuthBaseUrl}}/login",
+                  "host": ["{{recipeManagementServiceAuthBaseUrl}}"],
+                  "path": ["login"]
+                }
+              }
+            },
+            {
+              "name": "Login General User (Email)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Login successful', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Extract authentication tokens', function () {",
+                      "    const response = pm.response.json();",
+                      "    pm.environment.set('recipeManagementServiceAccessToken', response.token.accessToken);",
+                      "    pm.environment.set('recipeManagementServiceRefreshToken', response.token.refreshToken);",
+                      "    pm.environment.set('recipeManagementServiceUserId', response.user.userId);",
+                      "    pm.environment.set('recipeManagementServiceUsername', response.user.username);",
+                      "    pm.environment.set('recipeManagementServiceUserEmail', response.user.email);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"{{recipeManagementServiceTestUserEmail}}\",\n  \"password\": \"{{recipeManagementServiceTestUserPassword}}\"\n}"
+                },
+                "auth": {
+                  "type": "noauth"
+                },
+                "url": {
+                  "raw": "{{recipeManagementServiceAuthBaseUrl}}/login",
+                  "host": ["{{recipeManagementServiceAuthBaseUrl}}"],
+                  "path": ["login"]
+                }
+              }
+            },
+            {
+              "name": "Refresh General User Token",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Token refresh successful', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Update authentication tokens', function () {",
+                      "    const response = pm.response.json();",
+                      "    pm.environment.set('recipeManagementServiceAccessToken', response.token.accessToken);",
+                      "    pm.environment.set('recipeManagementServiceRefreshToken', response.token.refreshToken);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"refresh_token\": \"{{recipeManagementServiceRefreshToken}}\"\n}"
+                },
+                "auth": {
+                  "type": "noauth"
+                },
+                "url": {
+                  "raw": "{{recipeManagementServiceAuthBaseUrl}}/refresh",
+                  "host": ["{{recipeManagementServiceAuthBaseUrl}}"],
+                  "path": ["refresh"]
+                }
+              }
+            },
+            {
+              "name": "Logout General User",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Logout successful', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Clear authentication tokens', function () {",
+                      "    pm.environment.unset('recipeManagementServiceAccessToken');",
+                      "    pm.environment.unset('recipeManagementServiceRefreshToken');",
+                      "    pm.environment.unset('recipeManagementServiceUserId');",
+                      "    pm.environment.unset('recipeManagementServiceUsername');",
+                      "    pm.environment.unset('recipeManagementServiceUserEmail');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{recipeManagementServiceAccessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{recipeManagementServiceAuthBaseUrl}}/logout",
+                  "host": ["{{recipeManagementServiceAuthBaseUrl}}"],
+                  "path": ["logout"]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Admin User Flow",
+          "description": "Authentication flow for admin users",
+          "item": [
+            {
+              "name": "Register Admin User",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Admin registration successful', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Extract admin authentication tokens', function () {",
+                      "    const response = pm.response.json();",
+                      "    pm.environment.set('recipeManagementServiceAdminAccessToken', response.token.accessToken);",
+                      "    pm.environment.set('recipeManagementServiceAdminRefreshToken', response.token.refreshToken);",
+                      "    pm.environment.set('recipeManagementServiceAdminUserId', response.user.userId);",
+                      "    pm.environment.set('recipeManagementServiceAdminUsername', response.user.username);",
+                      "    pm.environment.set('recipeManagementServiceAdminUserEmail', response.user.email);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"user_data\": {\n    \"username\": \"{{recipeManagementServiceAdminUserUsername}}\",\n    \"email\": \"{{recipeManagementServiceAdminUserEmail}}\",\n    \"password\": \"{{recipeManagementServiceAdminUserPassword}}\",\n    \"full_name\": \"{{recipeManagementServiceAdminUserFullName}}\",\n    \"bio\": \"{{recipeManagementServiceAdminUserBio}}\"\n  }\n}"
+                },
+                "auth": {
+                  "type": "noauth"
+                },
+                "url": {
+                  "raw": "{{recipeManagementServiceAuthBaseUrl}}/register",
+                  "host": ["{{recipeManagementServiceAuthBaseUrl}}"],
+                  "path": ["register"]
+                }
+              }
+            },
+            {
+              "name": "Login Admin User (Username)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Admin login successful', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Extract admin authentication tokens', function () {",
+                      "    const response = pm.response.json();",
+                      "    pm.environment.set('recipeManagementServiceAdminAccessToken', response.token.accessToken);",
+                      "    pm.environment.set('recipeManagementServiceAdminRefreshToken', response.token.refreshToken);",
+                      "    pm.environment.set('recipeManagementServiceAdminUserId', response.user.userId);",
+                      "    pm.environment.set('recipeManagementServiceAdminUsername', response.user.username);",
+                      "    pm.environment.set('recipeManagementServiceAdminUserEmail', response.user.email);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"username\": \"{{recipeManagementServiceAdminUserUsername}}\",\n  \"password\": \"{{recipeManagementServiceAdminUserPassword}}\"\n}"
+                },
+                "auth": {
+                  "type": "noauth"
+                },
+                "url": {
+                  "raw": "{{recipeManagementServiceAuthBaseUrl}}/login",
+                  "host": ["{{recipeManagementServiceAuthBaseUrl}}"],
+                  "path": ["login"]
+                }
+              }
+            },
+            {
+              "name": "Login Admin User (Email)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Admin login successful', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Extract admin authentication tokens', function () {",
+                      "    const response = pm.response.json();",
+                      "    pm.environment.set('recipeManagementServiceAdminAccessToken', response.token.accessToken);",
+                      "    pm.environment.set('recipeManagementServiceAdminRefreshToken', response.token.refreshToken);",
+                      "    pm.environment.set('recipeManagementServiceAdminUserId', response.user.userId);",
+                      "    pm.environment.set('recipeManagementServiceAdminUsername', response.user.username);",
+                      "    pm.environment.set('recipeManagementServiceAdminUserEmail', response.user.email);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"{{recipeManagementServiceAdminUserEmail}}\",\n  \"password\": \"{{recipeManagementServiceAdminUserPassword}}\"\n}"
+                },
+                "auth": {
+                  "type": "noauth"
+                },
+                "url": {
+                  "raw": "{{recipeManagementServiceAuthBaseUrl}}/login",
+                  "host": ["{{recipeManagementServiceAuthBaseUrl}}"],
+                  "path": ["login"]
+                }
+              }
+            },
+            {
+              "name": "Refresh Admin User Token",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Admin token refresh successful', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Update admin authentication tokens', function () {",
+                      "    const response = pm.response.json();",
+                      "    pm.environment.set('recipeManagementServiceAdminAccessToken', response.token.accessToken);",
+                      "    pm.environment.set('recipeManagementServiceAdminRefreshToken', response.token.refreshToken);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"refresh_token\": \"{{recipeManagementServiceAdminRefreshToken}}\"\n}"
+                },
+                "auth": {
+                  "type": "noauth"
+                },
+                "url": {
+                  "raw": "{{recipeManagementServiceAuthBaseUrl}}/refresh",
+                  "host": ["{{recipeManagementServiceAuthBaseUrl}}"],
+                  "path": ["refresh"]
+                }
+              }
+            },
+            {
+              "name": "Logout Admin User",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Admin logout successful', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Clear admin authentication tokens', function () {",
+                      "    pm.environment.unset('recipeManagementServiceAdminAccessToken');",
+                      "    pm.environment.unset('recipeManagementServiceAdminRefreshToken');",
+                      "    pm.environment.unset('recipeManagementServiceAdminUserId');",
+                      "    pm.environment.unset('recipeManagementServiceAdminUsername');",
+                      "    pm.environment.unset('recipeManagementServiceAdminUserEmail');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{recipeManagementServiceAdminAccessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{recipeManagementServiceAuthBaseUrl}}/logout",
+                  "host": ["{{recipeManagementServiceAuthBaseUrl}}"],
+                  "path": ["logout"]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Recipes",
+      "description": "Core recipe CRUD operations and search functionality",
+      "item": [
+        {
+          "name": "Create Recipe",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Recipe created successfully', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Extract recipe ID', function () {",
+                  "    const response = pm.response.json();",
+                  "    if (response.id) {",
+                  "        pm.environment.set('recipeManagementServiceCreatedRecipeId', response.id);",
+                  "    }",
+                  "});",
+                  "",
+                  "pm.test('Recipe has required fields', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('id');",
+                  "    pm.expect(response).to.have.property('title');",
+                  "    pm.expect(response).to.have.property('description');",
+                  "    pm.expect(response).to.have.property('ingredients');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Spaghetti Carbonara\",\n  \"description\": \"Classic Italian pasta dish with eggs, cheese, and pancetta\",\n  \"originUrl\": \"https://example.com/carbonara-recipe\",\n  \"servings\": 4,\n  \"preparationTime\": 15,\n  \"cookingTime\": 20,\n  \"difficulty\": \"MEDIUM\",\n  \"cuisine\": \"ITALIAN\",\n  \"ingredients\": [\n    {\n      \"ingredientName\": \"Spaghetti\",\n      \"quantity\": 400,\n      \"unit\": \"GRAMS\",\n      \"isOptional\": false\n    },\n    {\n      \"ingredientName\": \"Pancetta\",\n      \"quantity\": 150,\n      \"unit\": \"GRAMS\",\n      \"isOptional\": false\n    },\n    {\n      \"ingredientName\": \"Parmesan Cheese\",\n      \"quantity\": 100,\n      \"unit\": \"GRAMS\",\n      \"isOptional\": false\n    },\n    {\n      \"ingredientName\": \"Eggs\",\n      \"quantity\": 3,\n      \"unit\": \"PIECES\",\n      \"isOptional\": false\n    },\n    {\n      \"ingredientName\": \"Black Pepper\",\n      \"quantity\": 1,\n      \"unit\": \"TEASPOON\",\n      \"isOptional\": false\n    }\n  ],\n  \"steps\": [\n    {\n      \"stepNumber\": 1,\n      \"instruction\": \"Bring a large pot of salted water to boil and cook spaghetti according to package directions.\",\n      \"duration\": 10\n    },\n    {\n      \"stepNumber\": 2,\n      \"instruction\": \"While pasta cooks, dice pancetta and cook in a large skillet until crispy.\",\n      \"duration\": 5\n    },\n    {\n      \"stepNumber\": 3,\n      \"instruction\": \"In a bowl, whisk together eggs, grated Parmesan, and black pepper.\",\n      \"duration\": 2\n    },\n    {\n      \"stepNumber\": 4,\n      \"instruction\": \"Drain pasta and immediately toss with pancetta and egg mixture. Serve immediately.\",\n      \"duration\": 3\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/recipes",
+              "host": ["{{recipeManagementServiceBaseUrl}}"],
+              "path": ["recipe-management", "recipes"]
+            }
+          }
+        },
+        {
+          "name": "Get All Recipes",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Recipes retrieved successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response is an array', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.be.an('array');",
+                  "});",
+                  "",
+                  "pm.test('Recipes have required fields', function () {",
+                  "    const response = pm.response.json();",
+                  "    if (response.length > 0) {",
+                  "        pm.expect(response[0]).to.have.property('id');",
+                  "        pm.expect(response[0]).to.have.property('title');",
+                  "        pm.expect(response[0]).to.have.property('description');",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/recipes",
+              "host": ["{{recipeManagementServiceBaseUrl}}"],
+              "path": ["recipe-management", "recipes"]
+            }
+          }
+        },
+        {
+          "name": "Get Recipe by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Recipe retrieved successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Recipe has required fields', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('id');",
+                  "    pm.expect(response).to.have.property('title');",
+                  "    pm.expect(response).to.have.property('description');",
+                  "    pm.expect(response).to.have.property('ingredients');",
+                  "    pm.expect(response).to.have.property('steps');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/recipes/{{testRecipeId}}",
+              "host": ["{{recipeManagementServiceBaseUrl}}"],
+              "path": ["recipe-management", "recipes", "{{testRecipeId}}"]
+            }
+          }
+        },
+        {
+          "name": "Update Recipe",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Recipe updated successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Updated fields are correct', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.title).to.include('Updated');",
+                  "    pm.expect(response.servings).to.equal(6);",
+                  "    pm.expect(response.difficulty).to.equal('EASY');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Spaghetti Carbonara - Updated\",\n  \"description\": \"Classic Italian pasta dish with eggs, cheese, and pancetta - Updated version with improved technique\",\n  \"servings\": 6,\n  \"preparationTime\": 20,\n  \"cookingTime\": 25,\n  \"difficulty\": \"EASY\",\n  \"cuisine\": \"ITALIAN\"\n}"
+            },
+            "url": {
+              "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/recipes/{{testRecipeId}}",
+              "host": ["{{recipeManagementServiceBaseUrl}}"],
+              "path": ["recipe-management", "recipes", "{{testRecipeId}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Recipe",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Recipe deleted successfully', function () {",
+                  "    pm.response.to.have.status(204);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/recipes/{{testRecipeId}}",
+              "host": ["{{recipeManagementServiceBaseUrl}}"],
+              "path": ["recipe-management", "recipes", "{{testRecipeId}}"]
+            }
+          }
+        },
+        {
+          "name": "Search Recipes",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Search completed successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Search results are array', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.be.an('array');",
+                  "});",
+                  "",
+                  "pm.test('Search results have required fields', function () {",
+                  "    const response = pm.response.json();",
+                  "    if (response.length > 0) {",
+                  "        pm.expect(response[0]).to.have.property('id');",
+                  "        pm.expect(response[0]).to.have.property('title');",
+                  "        pm.expect(response[0]).to.have.property('description');",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"pasta\",\n  \"cuisine\": \"ITALIAN\",\n  \"difficulty\": \"MEDIUM\",\n  \"maxPreparationTime\": 30,\n  \"maxCookingTime\": 45,\n  \"servings\": 4,\n  \"tags\": [\"comfort-food\", \"dinner\"],\n  \"ingredients\": [\"pasta\", \"cheese\"]\n}"
+            },
+            "url": {
+              "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/recipes/search",
+              "host": ["{{recipeManagementServiceBaseUrl}}"],
+              "path": ["recipe-management", "recipes", "search"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Ingredients",
+      "description": "Ingredient management endpoints including comments, media, scaling, and shopping lists",
+      "item": [
+        {
+          "name": "Get Recipe Ingredients",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Recipe ingredients retrieved successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response is an array', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.be.an('array');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/recipes/{{testRecipeId}}/ingredients",
+              "host": ["{{recipeManagementServiceBaseUrl}}"],
+              "path": ["recipe-management", "recipes", "{{testRecipeId}}", "ingredients"]
+            }
+          }
+        },
+        {
+          "name": "Get All Ingredients",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('All ingredients retrieved successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response is an array', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.be.an('array');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/ingredients",
+              "host": ["{{recipeManagementServiceBaseUrl}}"],
+              "path": ["recipe-management", "ingredients"]
+            }
+          }
+        },
+        {
+          "name": "Add Ingredient Comment",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Ingredient comment added successfully', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Comment has required fields', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('id');",
+                  "    pm.expect(response).to.have.property('comment');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"comment\": \"This ingredient adds great flavor to the dish. Make sure to use fresh ingredients.\",\n  \"isPublic\": true\n}"
+            },
+            "url": {
+              "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/recipes/{{testRecipeId}}/ingredients/{{testIngredientId}}/comment",
+              "host": ["{{recipeManagementServiceBaseUrl}}"],
+              "path": [
+                "recipe-management",
+                "recipes",
+                "{{testRecipeId}}",
+                "ingredients",
+                "{{testIngredientId}}",
+                "comment"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Edit Ingredient Comment",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Ingredient comment updated successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Comment has updated content', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.comment).to.include('Updated');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"comment\": \"Updated: This ingredient adds exceptional flavor to the dish. Always use the freshest ingredients available.\",\n  \"isPublic\": true\n}"
+            },
+            "url": {
+              "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/recipes/{{testRecipeId}}/ingredients/{{testIngredientId}}/comment",
+              "host": ["{{recipeManagementServiceBaseUrl}}"],
+              "path": [
+                "recipe-management",
+                "recipes",
+                "{{testRecipeId}}",
+                "ingredients",
+                "{{testIngredientId}}",
+                "comment"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Ingredient Comment",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Ingredient comment deleted successfully', function () {",
+                  "    pm.response.to.have.status(204);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/recipes/{{testRecipeId}}/ingredients/{{testIngredientId}}/comment",
+              "host": ["{{recipeManagementServiceBaseUrl}}"],
+              "path": [
+                "recipe-management",
+                "recipes",
+                "{{testRecipeId}}",
+                "ingredients",
+                "{{testIngredientId}}",
+                "comment"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Add Ingredient Media",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Ingredient media added successfully', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Media has required fields', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('id');",
+                  "    pm.expect(response).to.have.property('mediaUrl');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"mediaUrl\": \"https://example.com/images/ingredient-photo.jpg\",\n  \"mediaType\": \"IMAGE\",\n  \"description\": \"Fresh ingredient preparation photo\",\n  \"altText\": \"Fresh ingredient being prepared\"\n}"
+            },
+            "url": {
+              "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/recipes/{{testRecipeId}}/ingredients/{{testIngredientId}}/media",
+              "host": ["{{recipeManagementServiceBaseUrl}}"],
+              "path": [
+                "recipe-management",
+                "recipes",
+                "{{testRecipeId}}",
+                "ingredients",
+                "{{testIngredientId}}",
+                "media"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Ingredient Media",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Ingredient media updated successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Media has updated description', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.description).to.include('Updated');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"mediaUrl\": \"https://example.com/images/ingredient-photo-updated.jpg\",\n  \"mediaType\": \"IMAGE\",\n  \"description\": \"Updated: Fresh ingredient preparation photo with better lighting\",\n  \"altText\": \"Updated fresh ingredient being prepared\"\n}"
+            },
+            "url": {
+              "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/recipes/{{testRecipeId}}/ingredients/{{testIngredientId}}/media",
+              "host": ["{{recipeManagementServiceBaseUrl}}"],
+              "path": [
+                "recipe-management",
+                "recipes",
+                "{{testRecipeId}}",
+                "ingredients",
+                "{{testIngredientId}}",
+                "media"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Ingredient Media",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Ingredient media deleted successfully', function () {",
+                  "    pm.response.to.have.status(204);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/recipes/{{testRecipeId}}/ingredients/{{testIngredientId}}/media",
+              "host": ["{{recipeManagementServiceBaseUrl}}"],
+              "path": [
+                "recipe-management",
+                "recipes",
+                "{{testRecipeId}}",
+                "ingredients",
+                "{{testIngredientId}}",
+                "media"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Scale Recipe Ingredients",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Recipe ingredients scaled successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Scaled ingredients returned', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.be.an('array');",
+                  "    pm.expect(response.length).to.be.greaterThan(0);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/recipes/{{testRecipeId}}/ingredients/scale?quantity=2.5",
+              "host": ["{{recipeManagementServiceBaseUrl}}"],
+              "path": ["recipe-management", "recipes", "{{testRecipeId}}", "ingredients", "scale"],
+              "query": [
+                {
+                  "key": "quantity",
+                  "value": "2.5"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Generate Shopping List",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Shopping list generated successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Shopping list contains ingredients', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('ingredients');",
+                  "    pm.expect(response.ingredients).to.be.an('array');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/recipes/{{testRecipeId}}/ingredients/shopping-list",
+              "host": ["{{recipeManagementServiceBaseUrl}}"],
+              "path": [
+                "recipe-management",
+                "recipes",
+                "{{testRecipeId}}",
+                "ingredients",
+                "shopping-list"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Steps",
+      "description": "Recipe step management with comments and media support",
+      "item": [
+        {
+          "name": "Get Recipe Steps",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Recipe steps retrieved successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response is an array', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.be.an('array');",
+                  "});",
+                  "",
+                  "pm.test('Steps have required fields', function () {",
+                  "    const response = pm.response.json();",
+                  "    if (response.length > 0) {",
+                  "        pm.expect(response[0]).to.have.property('id');",
+                  "        pm.expect(response[0]).to.have.property('stepNumber');",
+                  "        pm.expect(response[0]).to.have.property('instruction');",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/recipes/{{testRecipeId}}/steps",
+              "host": ["{{recipeManagementServiceBaseUrl}}"],
+              "path": ["recipe-management", "recipes", "{{testRecipeId}}", "steps"]
+            }
+          }
+        },
+        {
+          "name": "Add Step Comment",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Step comment added successfully', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Comment has required fields', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('id');",
+                  "    pm.expect(response).to.have.property('comment');",
+                  "    pm.expect(response).to.have.property('userId');",
+                  "});",
+                  "",
+                  "pm.test('Extract comment ID', function () {",
+                  "    const response = pm.response.json();",
+                  "    if (response.id) {",
+                  "        pm.environment.set('recipeManagementServiceCreatedStepCommentId', response.id);",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"comment\": \"This step is crucial for the recipe's success. Make sure to follow the timing exactly to avoid overcooking.\",\n  \"isPublic\": true,\n  \"helpfulTip\": \"Pro tip: Use a timer to ensure perfect results every time!\"\n}"
+            },
+            "url": {
+              "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/recipes/{{testRecipeId}}/steps/{{testStepId}}/comment",
+              "host": ["{{recipeManagementServiceBaseUrl}}"],
+              "path": [
+                "recipe-management",
+                "recipes",
+                "{{testRecipeId}}",
+                "steps",
+                "{{testStepId}}",
+                "comment"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Edit Step Comment",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Step comment updated successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Comment has updated content', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.comment).to.include('Updated');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"comment\": \"Updated: This step is absolutely essential for success. Follow the timing precisely and watch for visual cues.\",\n  \"isPublic\": true,\n  \"helpfulTip\": \"Updated tip: Use both a timer AND visual cues for the best results. Look for the golden color!\"\n}"
+            },
+            "url": {
+              "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/recipes/{{testRecipeId}}/steps/{{testStepId}}/comment",
+              "host": ["{{recipeManagementServiceBaseUrl}}"],
+              "path": [
+                "recipe-management",
+                "recipes",
+                "{{testRecipeId}}",
+                "steps",
+                "{{testStepId}}",
+                "comment"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Step Comment",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Step comment deleted successfully', function () {",
+                  "    pm.response.to.have.status(204);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/recipes/{{testRecipeId}}/steps/{{testStepId}}/comment",
+              "host": ["{{recipeManagementServiceBaseUrl}}"],
+              "path": [
+                "recipe-management",
+                "recipes",
+                "{{testRecipeId}}",
+                "steps",
+                "{{testStepId}}",
+                "comment"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Add Step Media",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Step media added successfully', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Media has required fields', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('id');",
+                  "    pm.expect(response).to.have.property('mediaUrl');",
+                  "    pm.expect(response).to.have.property('mediaType');",
+                  "});",
+                  "",
+                  "pm.test('Extract media ID', function () {",
+                  "    const response = pm.response.json();",
+                  "    if (response.id) {",
+                  "        pm.environment.set('recipeManagementServiceCreatedStepMediaId', response.id);",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"mediaUrl\": \"https://example.com/videos/cooking-technique-demo.mp4\",\n  \"mediaType\": \"VIDEO\",\n  \"description\": \"Detailed video demonstration of the cooking technique for this step\",\n  \"altText\": \"Chef demonstrating proper cooking technique\",\n  \"duration\": 45\n}"
+            },
+            "url": {
+              "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/recipes/{{testRecipeId}}/steps/{{testStepId}}/media",
+              "host": ["{{recipeManagementServiceBaseUrl}}"],
+              "path": [
+                "recipe-management",
+                "recipes",
+                "{{testRecipeId}}",
+                "steps",
+                "{{testStepId}}",
+                "media"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Step Media",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Step media updated successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Media has updated description', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.description).to.include('Updated');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"mediaUrl\": \"https://example.com/videos/cooking-technique-demo-hd.mp4\",\n  \"mediaType\": \"VIDEO\",\n  \"description\": \"Updated: High-definition video demonstration with multiple camera angles showing the cooking technique\",\n  \"altText\": \"Updated chef demonstration with multiple angles\",\n  \"duration\": 60\n}"
+            },
+            "url": {
+              "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/recipes/{{testRecipeId}}/steps/{{testStepId}}/media",
+              "host": ["{{recipeManagementServiceBaseUrl}}"],
+              "path": [
+                "recipe-management",
+                "recipes",
+                "{{testRecipeId}}",
+                "steps",
+                "{{testStepId}}",
+                "media"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Step Media",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Step media deleted successfully', function () {",
+                  "    pm.response.to.have.status(204);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/recipes/{{testRecipeId}}/steps/{{testStepId}}/media",
+              "host": ["{{recipeManagementServiceBaseUrl}}"],
+              "path": [
+                "recipe-management",
+                "recipes",
+                "{{testRecipeId}}",
+                "steps",
+                "{{testStepId}}",
+                "media"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Tags",
+      "description": "Tag management and search operations for recipes",
+      "item": [
+        {
+          "name": "Get Recipe Tags",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Recipe tags retrieved successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response is an array', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.be.an('array');",
+                  "});",
+                  "",
+                  "pm.test('Tags have required fields', function () {",
+                  "    const response = pm.response.json();",
+                  "    if (response.length > 0) {",
+                  "        pm.expect(response[0]).to.have.property('id');",
+                  "        pm.expect(response[0]).to.have.property('name');",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/recipes/{{testRecipeId}}/tags",
+              "host": ["{{recipeManagementServiceBaseUrl}}"],
+              "path": ["recipe-management", "recipes", "{{testRecipeId}}", "tags"]
+            }
+          }
+        },
+        {
+          "name": "Add Tag to Recipe",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Tag added to recipe successfully', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Tag has required fields', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('id');",
+                  "    pm.expect(response).to.have.property('name');",
+                  "    pm.expect(response).to.have.property('recipeId');",
+                  "});",
+                  "",
+                  "pm.test('Extract tag ID', function () {",
+                  "    const response = pm.response.json();",
+                  "    if (response.id) {",
+                  "        pm.environment.set('recipeManagementServiceCreatedTagId', response.id);",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"vegetarian\",\n  \"description\": \"Recipe suitable for vegetarians\",\n  \"category\": \"DIETARY\",\n  \"color\": \"#4CAF50\"\n}"
+            },
+            "url": {
+              "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/recipes/{{testRecipeId}}/tags",
+              "host": ["{{recipeManagementServiceBaseUrl}}"],
+              "path": ["recipe-management", "recipes", "{{testRecipeId}}", "tags"]
+            }
+          }
+        },
+        {
+          "name": "Remove Tag from Recipe",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Tag removed from recipe successfully', function () {",
+                  "    pm.response.to.have.status(204);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tagName\": \"{{testTagName}}\"\n}"
+            },
+            "url": {
+              "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/recipes/{{testRecipeId}}/tags",
+              "host": ["{{recipeManagementServiceBaseUrl}}"],
+              "path": ["recipe-management", "recipes", "{{testRecipeId}}", "tags"]
+            }
+          }
+        },
+        {
+          "name": "Get All Tags",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('All tags retrieved successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response is an array', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.be.an('array');",
+                  "});",
+                  "",
+                  "pm.test('Tags have required fields', function () {",
+                  "    const response = pm.response.json();",
+                  "    if (response.length > 0) {",
+                  "        pm.expect(response[0]).to.have.property('id');",
+                  "        pm.expect(response[0]).to.have.property('name');",
+                  "        pm.expect(response[0]).to.have.property('usageCount');",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/tags",
+              "host": ["{{recipeManagementServiceBaseUrl}}"],
+              "path": ["recipe-management", "tags"]
+            }
+          }
+        },
+        {
+          "name": "Get Popular Tags",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Popular tags retrieved successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response is an array', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.be.an('array');",
+                  "});",
+                  "",
+                  "pm.test('Popular tags are sorted by usage', function () {",
+                  "    const response = pm.response.json();",
+                  "    if (response.length > 1) {",
+                  "        pm.expect(response[0].usageCount).to.be.at.least(response[1].usageCount);",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/tags/popular?limit=10",
+              "host": ["{{recipeManagementServiceBaseUrl}}"],
+              "path": ["recipe-management", "tags", "popular"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Search Tags",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Tag search completed successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response is an array', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.be.an('array');",
+                  "});",
+                  "",
+                  "pm.test('Search results match query', function () {",
+                  "    const response = pm.response.json();",
+                  "    if (response.length > 0) {",
+                  "        pm.expect(response[0].name.toLowerCase()).to.include('pasta');",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/tags/search?query=pasta&limit=20",
+              "host": ["{{recipeManagementServiceBaseUrl}}"],
+              "path": ["recipe-management", "tags", "search"],
+              "query": [
+                {
+                  "key": "query",
+                  "value": "pasta"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Tags by Category",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Tags by category retrieved successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response is an array', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.be.an('array');",
+                  "});",
+                  "",
+                  "pm.test('All tags belong to requested category', function () {",
+                  "    const response = pm.response.json();",
+                  "    if (response.length > 0) {",
+                  "        pm.expect(response[0]).to.have.property('category');",
+                  "        pm.expect(response[0].category).to.equal('DIETARY');",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/tags?category=DIETARY",
+              "host": ["{{recipeManagementServiceBaseUrl}}"],
+              "path": ["recipe-management", "tags"],
+              "query": [
+                {
+                  "key": "category",
+                  "value": "DIETARY"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Media",
+      "description": "Media operations for recipes, ingredients, and steps",
+      "item": [
+        {
+          "name": "Recipe Media",
+          "description": "Media operations for recipes",
+          "item": [
+            {
+              "name": "Add Media to Recipe",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Recipe media added successfully', function () {",
+                      "    pm.response.to.have.status(201);",
+                      "});",
+                      "",
+                      "pm.test('Media has required fields', function () {",
+                      "    const response = pm.response.json();",
+                      "    pm.expect(response).to.have.property('id');",
+                      "    pm.expect(response).to.have.property('mediaUrl');",
+                      "    pm.expect(response).to.have.property('mediaType');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"mediaUrl\": \"https://example.com/images/recipe-hero-image.jpg\",\n  \"mediaType\": \"IMAGE\",\n  \"description\": \"Main hero image for the recipe\",\n  \"altText\": \"Delicious finished dish\",\n  \"isPrimary\": true\n}"
+                },
+                "url": {
+                  "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/recipes/{{testRecipeId}}/media",
+                  "host": ["{{recipeManagementServiceBaseUrl}}"],
+                  "path": ["recipe-management", "recipes", "{{testRecipeId}}", "media"]
+                }
+              }
+            },
+            {
+              "name": "Update Media on Recipe",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Recipe media updated successfully', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Media has updated description', function () {",
+                      "    const response = pm.response.json();",
+                      "    pm.expect(response.description).to.include('Updated');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"mediaUrl\": \"https://example.com/images/recipe-hero-image-updated.jpg\",\n  \"mediaType\": \"IMAGE\",\n  \"description\": \"Updated: Main hero image for the recipe with better lighting\",\n  \"altText\": \"Updated delicious finished dish\",\n  \"isPrimary\": true\n}"
+                },
+                "url": {
+                  "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/recipes/{{testRecipeId}}/media",
+                  "host": ["{{recipeManagementServiceBaseUrl}}"],
+                  "path": ["recipe-management", "recipes", "{{testRecipeId}}", "media"]
+                }
+              }
+            },
+            {
+              "name": "Delete Media from Recipe",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Recipe media deleted successfully', function () {",
+                      "    pm.response.to.have.status(204);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/recipes/{{testRecipeId}}/media",
+                  "host": ["{{recipeManagementServiceBaseUrl}}"],
+                  "path": ["recipe-management", "recipes", "{{testRecipeId}}", "media"]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Ingredient Media",
+          "description": "Media operations for ingredients",
+          "item": [
+            {
+              "name": "Add Media to Ingredient",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Ingredient media added successfully', function () {",
+                      "    pm.response.to.have.status(201);",
+                      "});",
+                      "",
+                      "pm.test('Media has required fields', function () {",
+                      "    const response = pm.response.json();",
+                      "    pm.expect(response).to.have.property('id');",
+                      "    pm.expect(response).to.have.property('mediaUrl');",
+                      "    pm.expect(response).to.have.property('mediaType');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"mediaUrl\": \"https://example.com/images/ingredient-preparation.jpg\",\n  \"mediaType\": \"IMAGE\",\n  \"description\": \"How to properly prepare this ingredient\",\n  \"altText\": \"Ingredient being prepared\"\n}"
+                },
+                "url": {
+                  "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/recipes/{{testRecipeId}}/ingredients/{{testIngredientId}}/media",
+                  "host": ["{{recipeManagementServiceBaseUrl}}"],
+                  "path": [
+                    "recipe-management",
+                    "recipes",
+                    "{{testRecipeId}}",
+                    "ingredients",
+                    "{{testIngredientId}}",
+                    "media"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Update Media on Ingredient",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Ingredient media updated successfully', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Media has updated description', function () {",
+                      "    const response = pm.response.json();",
+                      "    pm.expect(response.description).to.include('Updated');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"mediaUrl\": \"https://example.com/images/ingredient-preparation-updated.jpg\",\n  \"mediaType\": \"IMAGE\",\n  \"description\": \"Updated: How to properly prepare this ingredient with detailed technique\",\n  \"altText\": \"Updated ingredient being prepared\"\n}"
+                },
+                "url": {
+                  "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/recipes/{{testRecipeId}}/ingredients/{{testIngredientId}}/media",
+                  "host": ["{{recipeManagementServiceBaseUrl}}"],
+                  "path": [
+                    "recipe-management",
+                    "recipes",
+                    "{{testRecipeId}}",
+                    "ingredients",
+                    "{{testIngredientId}}",
+                    "media"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Delete Media from Ingredient",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Ingredient media deleted successfully', function () {",
+                      "    pm.response.to.have.status(204);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/recipes/{{testRecipeId}}/ingredients/{{testIngredientId}}/media",
+                  "host": ["{{recipeManagementServiceBaseUrl}}"],
+                  "path": [
+                    "recipe-management",
+                    "recipes",
+                    "{{testRecipeId}}",
+                    "ingredients",
+                    "{{testIngredientId}}",
+                    "media"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Step Media",
+          "description": "Media operations for recipe steps",
+          "item": [
+            {
+              "name": "Add Media to Step",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Step media added successfully', function () {",
+                      "    pm.response.to.have.status(201);",
+                      "});",
+                      "",
+                      "pm.test('Media has required fields', function () {",
+                      "    const response = pm.response.json();",
+                      "    pm.expect(response).to.have.property('id');",
+                      "    pm.expect(response).to.have.property('mediaUrl');",
+                      "    pm.expect(response).to.have.property('mediaType');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"mediaUrl\": \"https://example.com/videos/cooking-step-demo.mp4\",\n  \"mediaType\": \"VIDEO\",\n  \"description\": \"Video demonstration of this cooking step\",\n  \"altText\": \"Cooking technique demonstration\"\n}"
+                },
+                "url": {
+                  "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/recipes/{{testRecipeId}}/steps/{{testStepId}}/media",
+                  "host": ["{{recipeManagementServiceBaseUrl}}"],
+                  "path": [
+                    "recipe-management",
+                    "recipes",
+                    "{{testRecipeId}}",
+                    "steps",
+                    "{{testStepId}}",
+                    "media"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Update Media on Step",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Step media updated successfully', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Media has updated description', function () {",
+                      "    const response = pm.response.json();",
+                      "    pm.expect(response.description).to.include('Updated');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"mediaUrl\": \"https://example.com/videos/cooking-step-demo-updated.mp4\",\n  \"mediaType\": \"VIDEO\",\n  \"description\": \"Updated: Enhanced video demonstration of this cooking step with close-ups\",\n  \"altText\": \"Updated cooking technique demonstration\"\n}"
+                },
+                "url": {
+                  "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/recipes/{{testRecipeId}}/steps/{{testStepId}}/media",
+                  "host": ["{{recipeManagementServiceBaseUrl}}"],
+                  "path": [
+                    "recipe-management",
+                    "recipes",
+                    "{{testRecipeId}}",
+                    "steps",
+                    "{{testStepId}}",
+                    "media"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Delete Media from Step",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Step media deleted successfully', function () {",
+                      "    pm.response.to.have.status(204);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/recipes/{{testRecipeId}}/steps/{{testStepId}}/media",
+                  "host": ["{{recipeManagementServiceBaseUrl}}"],
+                  "path": [
+                    "recipe-management",
+                    "recipes",
+                    "{{testRecipeId}}",
+                    "steps",
+                    "{{testStepId}}",
+                    "media"
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Reviews",
+      "description": "Recipe review and rating management endpoints",
+      "item": [
+        {
+          "name": "Add Recipe Review",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Recipe review added successfully', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Review has required fields', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('id');",
+                  "    pm.expect(response).to.have.property('rating');",
+                  "    pm.expect(response).to.have.property('comment');",
+                  "    pm.expect(response).to.have.property('userId');",
+                  "});",
+                  "",
+                  "pm.test('Extract review ID', function () {",
+                  "    const response = pm.response.json();",
+                  "    if (response.id) {",
+                  "        pm.environment.set('recipeManagementServiceCreatedReviewId', response.id);",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rating\": 5,\n  \"comment\": \"This recipe is absolutely delicious! The carbonara turned out perfectly creamy and flavorful. Easy to follow instructions and great results.\",\n  \"wouldRecommend\": true,\n  \"difficultyRating\": \"EASY\",\n  \"cookingNotes\": \"I used pecorino romano instead of parmesan and it was amazing. The key is to temper the eggs properly.\"\n}"
+            },
+            "url": {
+              "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/recipes/{{testRecipeId}}/review",
+              "host": ["{{recipeManagementServiceBaseUrl}}"],
+              "path": ["recipe-management", "recipes", "{{testRecipeId}}", "review"]
+            }
+          }
+        },
+        {
+          "name": "Get Recipe Reviews",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Recipe reviews retrieved successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response is an array', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.be.an('array');",
+                  "});",
+                  "",
+                  "pm.test('Reviews have required fields', function () {",
+                  "    const response = pm.response.json();",
+                  "    if (response.length > 0) {",
+                  "        pm.expect(response[0]).to.have.property('id');",
+                  "        pm.expect(response[0]).to.have.property('rating');",
+                  "        pm.expect(response[0]).to.have.property('comment');",
+                  "        pm.expect(response[0]).to.have.property('userId');",
+                  "        pm.expect(response[0]).to.have.property('createdAt');",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/recipes/{{testRecipeId}}/review",
+              "host": ["{{recipeManagementServiceBaseUrl}}"],
+              "path": ["recipe-management", "recipes", "{{testRecipeId}}", "review"]
+            }
+          }
+        },
+        {
+          "name": "Edit Recipe Review",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Recipe review updated successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Review has updated content', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.comment).to.include('Updated');",
+                  "    pm.expect(response.rating).to.equal(4);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rating\": 4,\n  \"comment\": \"Updated: This recipe is very good! The carbonara was creamy and tasty. A few minor tweaks would make it perfect.\",\n  \"wouldRecommend\": true,\n  \"difficultyRating\": \"MEDIUM\",\n  \"cookingNotes\": \"Updated: Used pecorino romano. Next time I'll add a bit more black pepper for extra flavor.\"\n}"
+            },
+            "url": {
+              "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/recipes/{{testRecipeId}}/review",
+              "host": ["{{recipeManagementServiceBaseUrl}}"],
+              "path": ["recipe-management", "recipes", "{{testRecipeId}}", "review"]
+            }
+          }
+        },
+        {
+          "name": "Delete Recipe Review",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Recipe review deleted successfully', function () {",
+                  "    pm.response.to.have.status(204);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/recipes/{{testRecipeId}}/review",
+              "host": ["{{recipeManagementServiceBaseUrl}}"],
+              "path": ["recipe-management", "recipes", "{{testRecipeId}}", "review"]
+            }
+          }
+        },
+        {
+          "name": "Get All Reviews",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('All reviews retrieved successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response is an array', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.be.an('array');",
+                  "});",
+                  "",
+                  "pm.test('Reviews have required fields', function () {",
+                  "    const response = pm.response.json();",
+                  "    if (response.length > 0) {",
+                  "        pm.expect(response[0]).to.have.property('id');",
+                  "        pm.expect(response[0]).to.have.property('rating');",
+                  "        pm.expect(response[0]).to.have.property('recipeId');",
+                  "        pm.expect(response[0]).to.have.property('userId');",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/reviews",
+              "host": ["{{recipeManagementServiceBaseUrl}}"],
+              "path": ["recipe-management", "reviews"]
+            }
+          }
+        },
+        {
+          "name": "Get Review by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Review retrieved successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Review has required fields', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('id');",
+                  "    pm.expect(response).to.have.property('rating');",
+                  "    pm.expect(response).to.have.property('comment');",
+                  "    pm.expect(response).to.have.property('recipeId');",
+                  "    pm.expect(response).to.have.property('userId');",
+                  "    pm.expect(response).to.have.property('createdAt');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/reviews/{{testReviewId}}",
+              "host": ["{{recipeManagementServiceBaseUrl}}"],
+              "path": ["recipe-management", "reviews", "{{testReviewId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Actuator",
+      "description": "Health checks, metrics, and operational endpoints for Recipe Manager Service",
+      "item": [
+        {
+          "name": "Get Application Health",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Health check successful', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Health status is UP', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.status).to.equal('UP');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{recipeManagementServiceBaseUrl}}/actuator/health",
+              "host": ["{{recipeManagementServiceBaseUrl}}"],
+              "path": ["actuator", "health"]
+            }
+          }
+        },
+        {
+          "name": "Get Application Info",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Info endpoint accessible', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('App info contains build details', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('build');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{recipeManagementServiceBaseUrl}}/actuator/info",
+              "host": ["{{recipeManagementServiceBaseUrl}}"],
+              "path": ["actuator", "info"]
+            }
+          }
+        },
+        {
+          "name": "Get Application Metrics",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Metrics endpoint accessible', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Metrics contain names', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('names');",
+                  "    pm.expect(response.names).to.be.an('array');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{recipeManagementServiceBaseUrl}}/actuator/metrics",
+              "host": ["{{recipeManagementServiceBaseUrl}}"],
+              "path": ["actuator", "metrics"]
+            }
+          }
+        },
+        {
+          "name": "Get Application Environment",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Environment endpoint accessible', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Environment contains active profiles', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('activeProfiles');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{recipeManagementServiceBaseUrl}}/actuator/env",
+              "host": ["{{recipeManagementServiceBaseUrl}}"],
+              "path": ["actuator", "env"]
+            }
+          }
+        },
+        {
+          "name": "Get Configuration Properties",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Configuration properties accessible', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Configuration contains contexts', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('contexts');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{recipeManagementServiceBaseUrl}}/actuator/configprops",
+              "host": ["{{recipeManagementServiceBaseUrl}}"],
+              "path": ["actuator", "configprops"]
+            }
+          }
+        },
+        {
+          "name": "Get Prometheus Metrics",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Prometheus metrics accessible', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response contains Prometheus format', function () {",
+                  "    const responseText = pm.response.text();",
+                  "    pm.expect(responseText).to.include('# HELP');",
+                  "    pm.expect(responseText).to.include('# TYPE');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{recipeManagementServiceBaseUrl}}/actuator/prometheus",
+              "host": ["{{recipeManagementServiceBaseUrl}}"],
+              "path": ["actuator", "prometheus"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

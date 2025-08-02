@@ -46,15 +46,6 @@ public final class LoggingUtils {
   }
 
   /**
-   * Gets the current user ID from MDC context.
-   *
-   * @return The current user ID or null if not set
-   */
-  public static String getCurrentUserId() {
-    return MDC.get("userId");
-  }
-
-  /**
    * Logs a security event with appropriate context.
    *
    * @param event The security event type
@@ -104,7 +95,7 @@ public final class LoggingUtils {
         entityType,
         entityId,
         result,
-        getCurrentUserId(),
+        SecurityUtils.getCurrentUserId(),
         getCurrentRequestId());
   }
 
@@ -120,7 +111,7 @@ public final class LoggingUtils {
         "ERROR: {} - Context: {} - User: {} - RequestId: {}",
         error,
         context,
-        getCurrentUserId(),
+        SecurityUtils.getCurrentUserId(),
         getCurrentRequestId(),
         exception);
   }
@@ -165,7 +156,7 @@ public final class LoggingUtils {
         path,
         statusCode,
         durationMs,
-        getCurrentUserId(),
+        SecurityUtils.getCurrentUserId(),
         getCurrentRequestId(),
         userAgent);
   }

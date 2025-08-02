@@ -174,6 +174,10 @@ public class RecipeService {
 
 ## Integration with User Management Service
 
+### Shared JWT Secret Key
+
+**CRITICAL**: Both the user-management-service and recipe-manager-service MUST use the same JWT secret key for authentication to work correctly.
+
 ### Token Generation (User Management Service)
 
 ```java
@@ -211,6 +215,35 @@ app:
       secret: ${JWT_SECRET}
       expiration: 86400000
 ```
+
+### Environment Variables
+
+Ensure both services have the same JWT_SECRET environment variable:
+
+```bash
+# Set the same value for both services
+export JWT_SECRET="your-very-secure-secret-key-that-should-be-at-least-32-characters-long"
+```
+
+### Kubernetes Deployment
+
+For recipe-manager-service, ensure JWT_SECRET is included in your .env file:
+
+```bash
+# .env file
+JWT_SECRET=your-shared-jwt-secret-key-here
+```
+
+### Common Issues
+
+1. **403 Forbidden with "JWT signature does not match"**
+
+   - Services are using different JWT secret keys
+   - Verify JWT_SECRET environment variable is set correctly for both services
+
+2. **Token validation fails**
+   - Check that both services use the same signing algorithm (HS256)
+   - Ensure secret key is base64 encoded if required
 
 ## Service-to-Service Authentication
 

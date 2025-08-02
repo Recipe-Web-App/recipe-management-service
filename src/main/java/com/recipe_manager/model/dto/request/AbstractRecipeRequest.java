@@ -6,6 +6,7 @@ import java.util.List;
 
 import com.recipe_manager.model.dto.recipe.RecipeIngredientDto;
 import com.recipe_manager.model.dto.recipe.RecipeStepDto;
+import com.recipe_manager.model.dto.recipe.RecipeTagDto;
 import com.recipe_manager.model.enums.DifficultyLevel;
 
 import jakarta.validation.Valid;
@@ -58,4 +59,7 @@ public abstract class AbstractRecipeRequest {
 
   /** The list of steps. */
   @Valid @Default private List<RecipeStepDto> steps = new ArrayList<>();
+
+  /** The list of tags. */
+  @Valid @Default private List<RecipeTagDto> tags = new ArrayList<>();
 }

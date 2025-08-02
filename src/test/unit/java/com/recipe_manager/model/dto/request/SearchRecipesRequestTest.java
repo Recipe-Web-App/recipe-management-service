@@ -2,6 +2,7 @@ package com.recipe_manager.model.dto.request;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
 
@@ -21,6 +22,7 @@ class SearchRecipesRequestTest {
   void builderSetsAllFields() {
     // Given
     List<String> ingredients = Arrays.asList("chicken", "pasta", "garlic");
+    List<String> tags = Arrays.asList("italian", "quick");
 
     // When
     SearchRecipesRequest request = SearchRecipesRequest.builder()
@@ -30,8 +32,9 @@ class SearchRecipesRequestTest {
         .difficulty(DifficultyLevel.MEDIUM)
         .maxCookingTime(30)
         .maxPreparationTime(45)
-        .minServings(2)
-        .maxServings(6)
+        .minServings(BigDecimal.valueOf(2))
+        .maxServings(BigDecimal.valueOf(6))
+        .tags(tags)
         .build();
 
     // Then
@@ -41,8 +44,9 @@ class SearchRecipesRequestTest {
     assertThat(request.getDifficulty()).isEqualTo(DifficultyLevel.MEDIUM);
     assertThat(request.getMaxCookingTime()).isEqualTo(30);
     assertThat(request.getMaxPreparationTime()).isEqualTo(45);
-    assertThat(request.getMinServings()).isEqualTo(2);
-    assertThat(request.getMaxServings()).isEqualTo(6);
+    assertThat(request.getMinServings()).isEqualTo(BigDecimal.valueOf(2));
+    assertThat(request.getMaxServings()).isEqualTo(BigDecimal.valueOf(6));
+    assertThat(request.getTags()).isSameAs(tags);
   }
 
   @Test
@@ -65,6 +69,7 @@ class SearchRecipesRequestTest {
     // Given
     SearchRecipesRequest request = new SearchRecipesRequest();
     List<String> ingredients = Arrays.asList("tomato", "basil");
+    List<String> tags = Arrays.asList("vegetarian", "italian");
 
     // When
     request.setRecipeNameQuery("Margherita Pizza");
@@ -73,8 +78,9 @@ class SearchRecipesRequestTest {
     request.setDifficulty(DifficultyLevel.HARD);
     request.setMaxCookingTime(25);
     request.setMaxPreparationTime(15);
-    request.setMinServings(1);
-    request.setMaxServings(4);
+    request.setMinServings(BigDecimal.valueOf(1));
+    request.setMaxServings(BigDecimal.valueOf(4));
+    request.setTags(tags);
 
     // Then
     assertThat(request.getRecipeNameQuery()).isEqualTo("Margherita Pizza");
@@ -83,8 +89,9 @@ class SearchRecipesRequestTest {
     assertThat(request.getDifficulty()).isEqualTo(DifficultyLevel.HARD);
     assertThat(request.getMaxCookingTime()).isEqualTo(25);
     assertThat(request.getMaxPreparationTime()).isEqualTo(15);
-    assertThat(request.getMinServings()).isEqualTo(1);
-    assertThat(request.getMaxServings()).isEqualTo(4);
+    assertThat(request.getMinServings()).isEqualTo(BigDecimal.valueOf(1));
+    assertThat(request.getMaxServings()).isEqualTo(BigDecimal.valueOf(4));
+    assertThat(request.getTags()).isSameAs(tags);
   }
 
   @Test
@@ -103,6 +110,7 @@ class SearchRecipesRequestTest {
     assertThat(request.getMaxPreparationTime()).isNull();
     assertThat(request.getMinServings()).isNull();
     assertThat(request.getMaxServings()).isNull();
+    assertThat(request.getTags()).isNull();
   }
 
   @Test
@@ -111,6 +119,7 @@ class SearchRecipesRequestTest {
   void allArgsConstructorSetsAllFields() {
     // Given
     List<String> ingredients = Arrays.asList("beef", "onion");
+    List<String> tags = Arrays.asList("comfort-food", "winter");
 
     // When
     SearchRecipesRequest request = new SearchRecipesRequest(
@@ -120,8 +129,9 @@ class SearchRecipesRequestTest {
         DifficultyLevel.EASY,
         60,
         20,
-        3,
-        8);
+        BigDecimal.valueOf(3),
+        BigDecimal.valueOf(8),
+        tags);
 
     // Then
     assertThat(request.getRecipeNameQuery()).isEqualTo("Beef Stew");
@@ -130,8 +140,9 @@ class SearchRecipesRequestTest {
     assertThat(request.getDifficulty()).isEqualTo(DifficultyLevel.EASY);
     assertThat(request.getMaxCookingTime()).isEqualTo(60);
     assertThat(request.getMaxPreparationTime()).isEqualTo(20);
-    assertThat(request.getMinServings()).isEqualTo(3);
-    assertThat(request.getMaxServings()).isEqualTo(8);
+    assertThat(request.getMinServings()).isEqualTo(BigDecimal.valueOf(3));
+    assertThat(request.getMaxServings()).isEqualTo(BigDecimal.valueOf(8));
+    assertThat(request.getTags()).isSameAs(tags);
   }
 
   @Test
@@ -191,8 +202,8 @@ class SearchRecipesRequestTest {
         .difficulty(DifficultyLevel.HARD)
         .maxCookingTime(30)
         .maxPreparationTime(15)
-        .minServings(2)
-        .maxServings(4)
+        .minServings(BigDecimal.valueOf(2))
+        .maxServings(BigDecimal.valueOf(4))
         .build();
 
     // When

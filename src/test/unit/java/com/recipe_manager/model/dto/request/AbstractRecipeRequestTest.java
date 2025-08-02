@@ -8,6 +8,7 @@ import java.util.List;
 
 import com.recipe_manager.model.dto.recipe.RecipeIngredientDto;
 import com.recipe_manager.model.dto.recipe.RecipeStepDto;
+import com.recipe_manager.model.dto.recipe.RecipeTagDto;
 import com.recipe_manager.model.enums.DifficultyLevel;
 
 import org.junit.jupiter.api.DisplayName;
@@ -28,6 +29,7 @@ class AbstractRecipeRequestTest {
   void builderSetsAllFields() {
     List<RecipeIngredientDto> ingredients = new ArrayList<>();
     List<RecipeStepDto> steps = new ArrayList<>();
+    List<RecipeTagDto> tags = new ArrayList<>();
     TestRecipeRequest req = TestRecipeRequest.builder()
         .title("T")
         .description("D")
@@ -38,6 +40,7 @@ class AbstractRecipeRequestTest {
         .difficulty(DifficultyLevel.EASY)
         .ingredients(ingredients)
         .steps(steps)
+        .tags(tags)
         .build();
     assertThat(req.getTitle()).isEqualTo("T");
     assertThat(req.getDescription()).isEqualTo("D");
@@ -48,6 +51,7 @@ class AbstractRecipeRequestTest {
     assertThat(req.getDifficulty()).isEqualTo(DifficultyLevel.EASY);
     assertThat(req.getIngredients()).isSameAs(ingredients);
     assertThat(req.getSteps()).isSameAs(steps);
+    assertThat(req.getTags()).isSameAs(tags);
   }
 
   @Test
@@ -77,5 +81,7 @@ class AbstractRecipeRequestTest {
     assertThat(req.getIngredients()).isEmpty();
     assertThat(req.getSteps()).isNotNull();
     assertThat(req.getSteps()).isEmpty();
+    assertThat(req.getTags()).isNotNull();
+    assertThat(req.getTags()).isEmpty();
   }
 }

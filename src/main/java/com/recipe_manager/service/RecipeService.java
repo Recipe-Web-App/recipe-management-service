@@ -1,5 +1,6 @@
 package com.recipe_manager.service;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -13,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.recipe_manager.exception.BusinessException;
 import com.recipe_manager.exception.ResourceNotFoundException;
 import com.recipe_manager.model.dto.recipe.RecipeDto;
+import com.recipe_manager.model.dto.recipe.RecipeIngredientDto;
 import com.recipe_manager.model.dto.request.CreateRecipeRequest;
 import com.recipe_manager.model.dto.request.SearchRecipesRequest;
 import com.recipe_manager.model.dto.request.UpdateRecipeRequest;
@@ -21,9 +23,12 @@ import com.recipe_manager.model.entity.ingredient.Ingredient;
 import com.recipe_manager.model.entity.recipe.Recipe;
 import com.recipe_manager.model.entity.recipe.RecipeIngredient;
 import com.recipe_manager.model.entity.recipe.RecipeIngredientId;
+import com.recipe_manager.model.entity.recipe.RecipeTag;
 import com.recipe_manager.model.mapper.RecipeMapper;
+import com.recipe_manager.model.mapper.RecipeStepMapper;
 import com.recipe_manager.repository.ingredient.IngredientRepository;
 import com.recipe_manager.repository.recipe.RecipeRepository;
+import com.recipe_manager.repository.recipe.RecipeTagRepository;
 import com.recipe_manager.util.SecurityUtils;
 
 /**
@@ -40,23 +45,35 @@ public class RecipeService {
   /** Repository used for accessing ingredient data. */
   private final IngredientRepository ingredientRepository;
 
+  /** Repository used for accessing recipe tag data. */
+  private final RecipeTagRepository recipeTagRepository;
+
   /** Mapper used for converting between recipe entities and DTOs. */
   private final RecipeMapper recipeMapper;
+
+  /** Mapper used for converting between recipe step entities and DTOs. */
+  private final RecipeStepMapper recipeStepMapper;
 
   /**
    * Service class for managing recipes.
    *
    * @param recipeRepository the repository used for accessing recipe data
    * @param ingredientRepository the repository used for accessing ingredient data
+   * @param recipeTagRepository the repository used for accessing recipe tag data
    * @param recipeMapper the mapper used for converting between recipe entities and DTOs
+   * @param recipeStepMapper the mapper used for converting between recipe step entities and DTOs
    */
   public RecipeService(
       final RecipeRepository recipeRepository,
       final IngredientRepository ingredientRepository,
-      final RecipeMapper recipeMapper) {
+      final RecipeTagRepository recipeTagRepository,
+      final RecipeMapper recipeMapper,
+      final RecipeStepMapper recipeStepMapper) {
     this.recipeRepository = recipeRepository;
     this.ingredientRepository = ingredientRepository;
+    this.recipeTagRepository = recipeTagRepository;
     this.recipeMapper = recipeMapper;
+    this.recipeStepMapper = recipeStepMapper;
   }
 
   /**
@@ -94,27 +111,7 @@ public class RecipeService {
           request.getIngredients().stream()
               .map(
                   ingredientReq -> {
-                    Ingredient ingredient = null;
-                    if (ingredientReq.getIngredientId() != null) {
-                      Optional<Ingredient> found =
-                          ingredientRepository.findById(ingredientReq.getIngredientId());
-                      ingredient = found.orElse(null);
-                    }
-                    if (ingredient == null && ingredientReq.getIngredientName() != null) {
-                      ingredient =
-                          ingredientRepository
-                              .findByNameIgnoreCase(ingredientReq.getIngredientName())
-                              .orElseGet(
-                                  () ->
-                                      ingredientRepository.save(
-                                          Ingredient.builder()
-                                              .name(ingredientReq.getIngredientName())
-                                              .build()));
-                    }
-                    if (ingredient == null) {
-                      throw new IllegalArgumentException(
-                          "Ingredient must have either a valid ID or name");
-                    }
+                    Ingredient ingredient = resolveIngredient(ingredientReq);
                     RecipeIngredientId id =
                         RecipeIngredientId.builder()
                             .recipeId(null) // will be set by JPA after recipe is saved
@@ -131,6 +128,33 @@ public class RecipeService {
                   })
               .collect(Collectors.toList());
       recipe.setRecipeIngredients(recipeIngredients);
+    }
+
+    // Map and persist steps
+    if (request.getSteps() != null && !request.getSteps().isEmpty()) {
+      var recipeSteps = recipeStepMapper.toEntityList(request.getSteps());
+      for (var step : recipeSteps) {
+        step.setRecipe(recipe);
+      }
+      recipe.setRecipeSteps(recipeSteps);
+    }
+
+    // Map and persist tags
+    if (request.getTags() != null && !request.getTags().isEmpty()) {
+      var recipeTags =
+          request.getTags().stream()
+              .map(
+                  tagDto -> {
+                    // Find existing tag by name or create new one
+                    return recipeTagRepository
+                        .findByNameIgnoreCase(tagDto.getName())
+                        .orElseGet(
+                            () ->
+                                recipeTagRepository.save(
+                                    RecipeTag.builder().name(tagDto.getName()).build()));
+                  })
+              .collect(Collectors.toList());
+      recipe.setRecipeTags(recipeTags);
     }
 
     Recipe saved = recipeRepository.save(recipe);
@@ -166,8 +190,98 @@ public class RecipeService {
       throw new AccessDeniedException("User does not have permission to update this recipe");
     }
 
-    // Update fields and nested collections using MapStruct
-    recipeMapper.updateRecipeFromRequest(request, recipe);
+    // Update basic fields manually to avoid null overwrites
+    if (request.getTitle() != null) {
+      recipe.setTitle(request.getTitle());
+    }
+    if (request.getDescription() != null) {
+      recipe.setDescription(request.getDescription());
+    }
+    if (request.getOriginUrl() != null) {
+      recipe.setOriginUrl(request.getOriginUrl());
+    }
+    if (request.getServings() != null) {
+      recipe.setServings(request.getServings());
+    }
+    if (request.getPreparationTime() != null) {
+      recipe.setPreparationTime(request.getPreparationTime());
+    }
+    if (request.getCookingTime() != null) {
+      recipe.setCookingTime(request.getCookingTime());
+    }
+    if (request.getDifficulty() != null) {
+      recipe.setDifficulty(request.getDifficulty());
+    }
+
+    // Update ingredients if provided
+    if (request.getIngredients() != null) {
+      // Clear existing ingredients
+      recipe.getRecipeIngredients().clear();
+
+      // Add new ingredients
+      if (!request.getIngredients().isEmpty()) {
+        final Recipe savedRecipe = recipe; // for lambda capture
+        var recipeIngredients =
+            request.getIngredients().stream()
+                .map(
+                    ingredientReq -> {
+                      Ingredient ingredient = resolveIngredient(ingredientReq);
+                      RecipeIngredientId rid =
+                          RecipeIngredientId.builder()
+                              .recipeId(savedRecipe.getRecipeId())
+                              .ingredientId(ingredient.getIngredientId())
+                              .build();
+                      return RecipeIngredient.builder()
+                          .id(rid)
+                          .recipe(savedRecipe)
+                          .ingredient(ingredient)
+                          .quantity(ingredientReq.getQuantity())
+                          .unit(ingredientReq.getUnit())
+                          .isOptional(ingredientReq.getIsOptional())
+                          .build();
+                    })
+                .collect(Collectors.toList());
+        recipe.getRecipeIngredients().addAll(recipeIngredients);
+      }
+    }
+
+    // Update steps if provided
+    if (request.getSteps() != null) {
+      // Clear existing steps
+      recipe.getRecipeSteps().clear();
+
+      // Add new steps
+      var recipeSteps = recipeStepMapper.toEntityList(request.getSteps());
+      for (var step : recipeSteps) {
+        step.setRecipe(recipe);
+      }
+      recipe.getRecipeSteps().addAll(recipeSteps);
+    }
+
+    // Update tags if provided
+    if (request.getTags() != null) {
+      // Get existing tag names for this recipe
+      var existingTagNames =
+          recipe.getRecipeTags().stream().map(RecipeTag::getName).collect(Collectors.toSet());
+
+      // Add only new tags that don't already exist
+      var newRecipeTags =
+          request.getTags().stream()
+              .filter(tagDto -> !existingTagNames.contains(tagDto.getName()))
+              .map(
+                  tagDto -> {
+                    // Find existing tag by name or create new one
+                    return recipeTagRepository
+                        .findByNameIgnoreCase(tagDto.getName())
+                        .orElseGet(
+                            () ->
+                                recipeTagRepository.save(
+                                    RecipeTag.builder().name(tagDto.getName()).build()));
+                  })
+              .collect(Collectors.toList());
+      recipe.getRecipeTags().addAll(newRecipeTags);
+    }
+
     Recipe saved = recipeRepository.save(recipe);
     RecipeDto response = recipeMapper.toDto(saved);
 
@@ -243,8 +357,51 @@ public class RecipeService {
   public ResponseEntity<SearchRecipesResponse> searchRecipes(
       final SearchRecipesRequest searchRequest, final Pageable pageable) {
 
+    // Preprocess tags to ensure case-insensitive matching by converting to
+    // lowercase
+    List<String> tagsToSearch = searchRequest.getTags();
+    if (searchRequest.getTags() != null && !searchRequest.getTags().isEmpty()) {
+      // Find actual tag names that match case-insensitively
+      var matchingTagNames =
+          searchRequest.getTags().stream()
+              .map(tagName -> recipeTagRepository.findByNameIgnoreCase(tagName))
+              .filter(Optional::isPresent)
+              .map(Optional::get)
+              .map(RecipeTag::getName)
+              .collect(Collectors.toList());
+
+      // Update the search request with the actual tag names from the database
+      tagsToSearch = matchingTagNames.isEmpty() ? null : matchingTagNames;
+    }
+
+    // Preprocess ingredients to ensure case-insensitive matching
+    List<String> ingredientsToSearch = null;
+    if (searchRequest.getIngredients() != null && !searchRequest.getIngredients().isEmpty()) {
+      List<String> lowercaseIngredients =
+          searchRequest.getIngredients().stream()
+              .map(String::toLowerCase)
+              .collect(Collectors.toList());
+      ingredientsToSearch = lowercaseIngredients.isEmpty() ? null : lowercaseIngredients;
+    }
+
+    // Convert enum to string for database compatibility
+    String difficultyString =
+        searchRequest.getDifficulty() != null ? searchRequest.getDifficulty().name() : null;
+
     // Perform search using repository
-    Page<Recipe> recipePage = recipeRepository.searchRecipes(searchRequest, pageable);
+    Page<Recipe> recipePage =
+        recipeRepository.searchRecipes(
+            searchRequest.getRecipeNameQuery(),
+            difficultyString,
+            searchRequest.getMaxCookingTime(),
+            searchRequest.getMaxPreparationTime(),
+            searchRequest.getMinServings(),
+            searchRequest.getMaxServings(),
+            ingredientsToSearch != null
+                ? ingredientsToSearch.toArray(new String[0])
+                : new String[0],
+            tagsToSearch != null ? tagsToSearch.toArray(new String[0]) : new String[0],
+            pageable);
 
     return ResponseEntity.ok(buildSearchRecipesResponse(recipePage));
   }
@@ -284,5 +441,40 @@ public class RecipeService {
         .numberOfElements(recipePage.getNumberOfElements())
         .empty(recipePage.isEmpty())
         .build();
+  }
+
+  /**
+   * Resolves an ingredient by ID or name, creating it if necessary.
+   *
+   * @param ingredientReq the ingredient request containing ID or name
+   * @return the resolved ingredient
+   * @throws IllegalArgumentException if ingredient has neither valid ID nor name
+   */
+  private Ingredient resolveIngredient(final RecipeIngredientDto ingredientReq) {
+    Ingredient ingredient = null;
+
+    // Try to find by ID first
+    if (ingredientReq.getIngredientId() != null) {
+      Optional<Ingredient> found = ingredientRepository.findById(ingredientReq.getIngredientId());
+      ingredient = found.orElse(null);
+    }
+
+    // If not found by ID, try to find or create by name
+    if (ingredient == null && ingredientReq.getIngredientName() != null) {
+      ingredient =
+          ingredientRepository
+              .findByNameIgnoreCase(ingredientReq.getIngredientName())
+              .orElseGet(
+                  () ->
+                      ingredientRepository.save(
+                          Ingredient.builder().name(ingredientReq.getIngredientName()).build()));
+    }
+
+    // Validate that we have a valid ingredient
+    if (ingredient == null) {
+      throw new IllegalArgumentException("Ingredient must have either a valid ID or name");
+    }
+
+    return ingredient;
   }
 }

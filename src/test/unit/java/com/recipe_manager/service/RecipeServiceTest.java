@@ -19,18 +19,24 @@ import com.recipe_manager.exception.BusinessException;
 import com.recipe_manager.exception.ResourceNotFoundException;
 import com.recipe_manager.model.dto.recipe.RecipeDto;
 import com.recipe_manager.model.dto.recipe.RecipeIngredientDto;
+import com.recipe_manager.model.dto.recipe.RecipeStepDto;
+import com.recipe_manager.model.dto.recipe.RecipeTagDto;
 import com.recipe_manager.model.dto.request.CreateRecipeRequest;
 import com.recipe_manager.model.dto.request.SearchRecipesRequest;
 import com.recipe_manager.model.dto.request.UpdateRecipeRequest;
 import com.recipe_manager.model.dto.response.SearchRecipesResponse;
 import com.recipe_manager.model.entity.ingredient.Ingredient;
 import com.recipe_manager.model.entity.recipe.Recipe;
+import com.recipe_manager.model.entity.recipe.RecipeStep;
+import com.recipe_manager.model.entity.recipe.RecipeTag;
 import com.recipe_manager.model.enums.DifficultyLevel;
 import com.recipe_manager.model.enums.IngredientMatchMode;
 import com.recipe_manager.model.enums.IngredientUnit;
 import com.recipe_manager.model.mapper.RecipeMapper;
+import com.recipe_manager.model.mapper.RecipeStepMapper;
 import com.recipe_manager.repository.ingredient.IngredientRepository;
 import com.recipe_manager.repository.recipe.RecipeRepository;
+import com.recipe_manager.repository.recipe.RecipeTagRepository;
 import com.recipe_manager.util.SecurityUtils;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -76,7 +82,13 @@ class RecipeServiceTest {
   private IngredientRepository ingredientRepository;
 
   @Mock
+  private RecipeTagRepository recipeTagRepository;
+
+  @Mock
   private RecipeMapper recipeMapper;
+
+  @Mock
+  private RecipeStepMapper recipeStepMapper;
 
   @InjectMocks
   private RecipeService recipeService;
@@ -496,6 +508,340 @@ class RecipeServiceTest {
         verify(recipeMapper).toDto(savedRecipe);
       }
     }
+
+    @Test
+    @Tag("standard-processing")
+    @DisplayName("Should create recipe with steps")
+    void shouldCreateRecipeWithSteps() {
+      // Given
+      RecipeStepDto stepDto = RecipeStepDto.builder()
+          .stepNumber(1)
+          .instruction("Mix ingredients")
+          .optional(false)
+          .timerSeconds(300)
+          .build();
+
+      createRecipeRequest.setSteps(Arrays.asList(stepDto));
+
+      RecipeStep step = RecipeStep.builder()
+          .stepId(1L)
+          .stepNumber(1)
+          .instruction("Mix ingredients")
+          .optional(false)
+          .timerSeconds(300)
+          .build();
+
+      Recipe savedRecipe = Recipe.builder()
+          .recipeId(1L)
+          .userId(currentUserId)
+          .build();
+
+      RecipeDto recipeDto = RecipeDto.builder()
+          .recipeId(1L)
+          .userId(currentUserId)
+          .build();
+
+      try (MockedStatic<SecurityUtils> mockedSecurity = Mockito.mockStatic(SecurityUtils.class)) {
+        mockedSecurity.when(SecurityUtils::getCurrentUserId).thenReturn(currentUserId);
+        when(recipeStepMapper.toEntityList(Arrays.asList(stepDto))).thenReturn(Arrays.asList(step));
+        when(recipeRepository.save(any(Recipe.class))).thenReturn(savedRecipe);
+        when(recipeMapper.toDto(savedRecipe)).thenReturn(recipeDto);
+
+        // When
+        ResponseEntity<RecipeDto> response = recipeService.createRecipe(createRecipeRequest);
+
+        // Then
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isEqualTo(recipeDto);
+        verify(recipeStepMapper).toEntityList(Arrays.asList(stepDto));
+        verify(recipeRepository).save(any(Recipe.class));
+        verify(recipeMapper).toDto(savedRecipe);
+      }
+    }
+
+    @Test
+    @Tag("standard-processing")
+    @DisplayName("Should create recipe with empty steps")
+    void shouldCreateRecipeWithEmptySteps() {
+      // Given
+      createRecipeRequest.setSteps(new ArrayList<>());
+
+      Recipe savedRecipe = Recipe.builder()
+          .recipeId(1L)
+          .userId(currentUserId)
+          .build();
+
+      RecipeDto recipeDto = RecipeDto.builder()
+          .recipeId(1L)
+          .userId(currentUserId)
+          .build();
+
+      try (MockedStatic<SecurityUtils> mockedSecurity = Mockito.mockStatic(SecurityUtils.class)) {
+        mockedSecurity.when(SecurityUtils::getCurrentUserId).thenReturn(currentUserId);
+        when(recipeRepository.save(any(Recipe.class))).thenReturn(savedRecipe);
+        when(recipeMapper.toDto(savedRecipe)).thenReturn(recipeDto);
+
+        // When
+        ResponseEntity<RecipeDto> response = recipeService.createRecipe(createRecipeRequest);
+
+        // Then
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isEqualTo(recipeDto);
+        verify(recipeStepMapper, never()).toEntityList(any());
+        verify(recipeRepository).save(any(Recipe.class));
+        verify(recipeMapper).toDto(savedRecipe);
+      }
+    }
+
+    @Test
+    @Tag("standard-processing")
+    @DisplayName("Should create recipe with null steps")
+    void shouldCreateRecipeWithNullSteps() {
+      // Given
+      createRecipeRequest.setSteps(null);
+
+      Recipe savedRecipe = Recipe.builder()
+          .recipeId(1L)
+          .userId(currentUserId)
+          .build();
+
+      RecipeDto recipeDto = RecipeDto.builder()
+          .recipeId(1L)
+          .userId(currentUserId)
+          .build();
+
+      try (MockedStatic<SecurityUtils> mockedSecurity = Mockito.mockStatic(SecurityUtils.class)) {
+        mockedSecurity.when(SecurityUtils::getCurrentUserId).thenReturn(currentUserId);
+        when(recipeRepository.save(any(Recipe.class))).thenReturn(savedRecipe);
+        when(recipeMapper.toDto(savedRecipe)).thenReturn(recipeDto);
+
+        // When
+        ResponseEntity<RecipeDto> response = recipeService.createRecipe(createRecipeRequest);
+
+        // Then
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isEqualTo(recipeDto);
+        verify(recipeStepMapper, never()).toEntityList(any());
+        verify(recipeRepository).save(any(Recipe.class));
+        verify(recipeMapper).toDto(savedRecipe);
+      }
+    }
+
+    @Test
+    @Tag("standard-processing")
+    @DisplayName("Should create recipe with existing tags")
+    void shouldCreateRecipeWithExistingTags() {
+      // Given
+      RecipeTagDto tagDto = RecipeTagDto.builder()
+          .name("Italian")
+          .build();
+
+      createRecipeRequest.setTags(Arrays.asList(tagDto));
+
+      RecipeTag existingTag = RecipeTag.builder()
+          .tagId(1L)
+          .name("Italian")
+          .build();
+
+      Recipe savedRecipe = Recipe.builder()
+          .recipeId(1L)
+          .userId(currentUserId)
+          .build();
+
+      RecipeDto recipeDto = RecipeDto.builder()
+          .recipeId(1L)
+          .userId(currentUserId)
+          .build();
+
+      try (MockedStatic<SecurityUtils> mockedSecurity = Mockito.mockStatic(SecurityUtils.class)) {
+        mockedSecurity.when(SecurityUtils::getCurrentUserId).thenReturn(currentUserId);
+        when(recipeTagRepository.findByNameIgnoreCase("Italian")).thenReturn(Optional.of(existingTag));
+        when(recipeRepository.save(any(Recipe.class))).thenReturn(savedRecipe);
+        when(recipeMapper.toDto(savedRecipe)).thenReturn(recipeDto);
+
+        // When
+        ResponseEntity<RecipeDto> response = recipeService.createRecipe(createRecipeRequest);
+
+        // Then
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isEqualTo(recipeDto);
+        verify(recipeTagRepository).findByNameIgnoreCase("Italian");
+        verify(recipeTagRepository, never()).save(any(RecipeTag.class));
+        verify(recipeRepository).save(any(Recipe.class));
+        verify(recipeMapper).toDto(savedRecipe);
+      }
+    }
+
+    @Test
+    @Tag("standard-processing")
+    @DisplayName("Should create recipe with new tags")
+    void shouldCreateRecipeWithNewTags() {
+      // Given
+      RecipeTagDto tagDto = RecipeTagDto.builder()
+          .name("Mexican")
+          .build();
+
+      createRecipeRequest.setTags(Arrays.asList(tagDto));
+
+      RecipeTag newTag = RecipeTag.builder()
+          .tagId(2L)
+          .name("Mexican")
+          .build();
+
+      Recipe savedRecipe = Recipe.builder()
+          .recipeId(1L)
+          .userId(currentUserId)
+          .build();
+
+      RecipeDto recipeDto = RecipeDto.builder()
+          .recipeId(1L)
+          .userId(currentUserId)
+          .build();
+
+      try (MockedStatic<SecurityUtils> mockedSecurity = Mockito.mockStatic(SecurityUtils.class)) {
+        mockedSecurity.when(SecurityUtils::getCurrentUserId).thenReturn(currentUserId);
+        when(recipeTagRepository.findByNameIgnoreCase("Mexican")).thenReturn(Optional.empty());
+        when(recipeTagRepository.save(any(RecipeTag.class))).thenReturn(newTag);
+        when(recipeRepository.save(any(Recipe.class))).thenReturn(savedRecipe);
+        when(recipeMapper.toDto(savedRecipe)).thenReturn(recipeDto);
+
+        // When
+        ResponseEntity<RecipeDto> response = recipeService.createRecipe(createRecipeRequest);
+
+        // Then
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isEqualTo(recipeDto);
+        verify(recipeTagRepository).findByNameIgnoreCase("Mexican");
+        verify(recipeTagRepository).save(any(RecipeTag.class));
+        verify(recipeRepository).save(any(Recipe.class));
+        verify(recipeMapper).toDto(savedRecipe);
+      }
+    }
+
+    @Test
+    @Tag("standard-processing")
+    @DisplayName("Should create recipe with empty tags")
+    void shouldCreateRecipeWithEmptyTags() {
+      // Given
+      createRecipeRequest.setTags(new ArrayList<>());
+
+      Recipe savedRecipe = Recipe.builder()
+          .recipeId(1L)
+          .userId(currentUserId)
+          .build();
+
+      RecipeDto recipeDto = RecipeDto.builder()
+          .recipeId(1L)
+          .userId(currentUserId)
+          .build();
+
+      try (MockedStatic<SecurityUtils> mockedSecurity = Mockito.mockStatic(SecurityUtils.class)) {
+        mockedSecurity.when(SecurityUtils::getCurrentUserId).thenReturn(currentUserId);
+        when(recipeRepository.save(any(Recipe.class))).thenReturn(savedRecipe);
+        when(recipeMapper.toDto(savedRecipe)).thenReturn(recipeDto);
+
+        // When
+        ResponseEntity<RecipeDto> response = recipeService.createRecipe(createRecipeRequest);
+
+        // Then
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isEqualTo(recipeDto);
+        verify(recipeTagRepository, never()).findByNameIgnoreCase(anyString());
+        verify(recipeTagRepository, never()).save(any(RecipeTag.class));
+        verify(recipeRepository).save(any(Recipe.class));
+        verify(recipeMapper).toDto(savedRecipe);
+      }
+    }
+
+    @Test
+    @Tag("standard-processing")
+    @DisplayName("Should create recipe with null tags")
+    void shouldCreateRecipeWithNullTags() {
+      // Given
+      createRecipeRequest.setTags(null);
+
+      Recipe savedRecipe = Recipe.builder()
+          .recipeId(1L)
+          .userId(currentUserId)
+          .build();
+
+      RecipeDto recipeDto = RecipeDto.builder()
+          .recipeId(1L)
+          .userId(currentUserId)
+          .build();
+
+      try (MockedStatic<SecurityUtils> mockedSecurity = Mockito.mockStatic(SecurityUtils.class)) {
+        mockedSecurity.when(SecurityUtils::getCurrentUserId).thenReturn(currentUserId);
+        when(recipeRepository.save(any(Recipe.class))).thenReturn(savedRecipe);
+        when(recipeMapper.toDto(savedRecipe)).thenReturn(recipeDto);
+
+        // When
+        ResponseEntity<RecipeDto> response = recipeService.createRecipe(createRecipeRequest);
+
+        // Then
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isEqualTo(recipeDto);
+        verify(recipeTagRepository, never()).findByNameIgnoreCase(anyString());
+        verify(recipeTagRepository, never()).save(any(RecipeTag.class));
+        verify(recipeRepository).save(any(Recipe.class));
+        verify(recipeMapper).toDto(savedRecipe);
+      }
+    }
+
+    @Test
+    @Tag("standard-processing")
+    @DisplayName("Should create recipe with mixed existing and new tags")
+    void shouldCreateRecipeWithMixedTags() {
+      // Given
+      RecipeTagDto existingTagDto = RecipeTagDto.builder()
+          .name("Italian")
+          .build();
+      RecipeTagDto newTagDto = RecipeTagDto.builder()
+          .name("Vegetarian")
+          .build();
+
+      createRecipeRequest.setTags(Arrays.asList(existingTagDto, newTagDto));
+
+      RecipeTag existingTag = RecipeTag.builder()
+          .tagId(1L)
+          .name("Italian")
+          .build();
+      RecipeTag newTag = RecipeTag.builder()
+          .tagId(2L)
+          .name("Vegetarian")
+          .build();
+
+      Recipe savedRecipe = Recipe.builder()
+          .recipeId(1L)
+          .userId(currentUserId)
+          .build();
+
+      RecipeDto recipeDto = RecipeDto.builder()
+          .recipeId(1L)
+          .userId(currentUserId)
+          .build();
+
+      try (MockedStatic<SecurityUtils> mockedSecurity = Mockito.mockStatic(SecurityUtils.class)) {
+        mockedSecurity.when(SecurityUtils::getCurrentUserId).thenReturn(currentUserId);
+        when(recipeTagRepository.findByNameIgnoreCase("Italian")).thenReturn(Optional.of(existingTag));
+        when(recipeTagRepository.findByNameIgnoreCase("Vegetarian")).thenReturn(Optional.empty());
+        when(recipeTagRepository.save(any(RecipeTag.class))).thenReturn(newTag);
+        when(recipeRepository.save(any(Recipe.class))).thenReturn(savedRecipe);
+        when(recipeMapper.toDto(savedRecipe)).thenReturn(recipeDto);
+
+        // When
+        ResponseEntity<RecipeDto> response = recipeService.createRecipe(createRecipeRequest);
+
+        // Then
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isEqualTo(recipeDto);
+        verify(recipeTagRepository).findByNameIgnoreCase("Italian");
+        verify(recipeTagRepository).findByNameIgnoreCase("Vegetarian");
+        verify(recipeTagRepository).save(any(RecipeTag.class));
+        verify(recipeRepository).save(any(Recipe.class));
+        verify(recipeMapper).toDto(savedRecipe);
+      }
+    }
   }
 
   @Nested
@@ -523,7 +869,6 @@ class RecipeServiceTest {
       try (MockedStatic<SecurityUtils> mockedSecurity = Mockito.mockStatic(SecurityUtils.class)) {
         mockedSecurity.when(SecurityUtils::getCurrentUserId).thenReturn(currentUserId);
         when(recipeRepository.findById(1L)).thenReturn(Optional.of(testRecipe));
-        doNothing().when(recipeMapper).updateRecipeFromRequest(any(UpdateRecipeRequest.class), any(Recipe.class));
         when(recipeRepository.save(any(Recipe.class))).thenReturn(updatedRecipe);
         when(recipeMapper.toDto(updatedRecipe)).thenReturn(recipeDto);
 
@@ -534,8 +879,7 @@ class RecipeServiceTest {
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isEqualTo(recipeDto);
         verify(recipeRepository).findById(1L);
-        verify(recipeMapper).updateRecipeFromRequest(updateRecipeRequest, testRecipe);
-        verify(recipeRepository).save(testRecipe);
+        verify(recipeRepository).save(any(Recipe.class));
         verify(recipeMapper).toDto(updatedRecipe);
       }
     }
@@ -596,7 +940,6 @@ class RecipeServiceTest {
             .hasMessage("User does not have permission to update this recipe");
 
         verify(recipeRepository).findById(1L);
-        verify(recipeMapper, never()).updateRecipeFromRequest(any(), any());
         verify(recipeRepository, never()).save(any());
       }
     }
@@ -628,7 +971,6 @@ class RecipeServiceTest {
       try (MockedStatic<SecurityUtils> mockedSecurity = Mockito.mockStatic(SecurityUtils.class)) {
         mockedSecurity.when(SecurityUtils::getCurrentUserId).thenReturn(currentUserId);
         when(recipeRepository.findById(0L)).thenReturn(Optional.of(zeroIdRecipe));
-        doNothing().when(recipeMapper).updateRecipeFromRequest(any(UpdateRecipeRequest.class), any(Recipe.class));
         when(recipeRepository.save(any(Recipe.class))).thenReturn(updatedRecipe);
         when(recipeMapper.toDto(updatedRecipe)).thenReturn(recipeDto);
 
@@ -639,7 +981,7 @@ class RecipeServiceTest {
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isEqualTo(recipeDto);
         verify(recipeRepository).findById(0L);
-        verify(recipeMapper).updateRecipeFromRequest(updateRecipeRequest, zeroIdRecipe);
+        verify(recipeRepository).save(any(Recipe.class));
         verify(recipeMapper).toDto(updatedRecipe);
       }
     }
@@ -1061,11 +1403,20 @@ class RecipeServiceTest {
       searchRequest.setIngredientMatchMode(IngredientMatchMode.AND);
       searchRequest.setMaxPreparationTime(45);
       searchRequest.setMaxCookingTime(30);
-      searchRequest.setMinServings(2);
-      searchRequest.setMaxServings(6);
+      searchRequest.setMinServings(BigDecimal.valueOf(2));
+      searchRequest.setMaxServings(BigDecimal.valueOf(6));
       searchRequest.setDifficulty(DifficultyLevel.EASY);
 
-      when(recipeRepository.searchRecipes(searchRequest, pageable)).thenReturn(recipePage);
+      when(recipeRepository.searchRecipes(
+          searchRequest.getRecipeNameQuery(),
+          "EASY",
+          searchRequest.getMaxCookingTime(),
+          searchRequest.getMaxPreparationTime(),
+          searchRequest.getMinServings(),
+          searchRequest.getMaxServings(),
+          new String[]{"chicken", "pasta"},
+          new String[0],
+          pageable)).thenReturn(recipePage);
       when(recipeMapper.toDto(recipe1)).thenReturn(recipeDto1);
       when(recipeMapper.toDto(recipe2)).thenReturn(recipeDto2);
 
@@ -1083,7 +1434,16 @@ class RecipeServiceTest {
       assertThat(response.getBody().getTotalElements()).isEqualTo(2);
       assertThat(response.getBody().getTotalPages()).isEqualTo(1);
 
-      verify(recipeRepository).searchRecipes(searchRequest, pageable);
+      verify(recipeRepository).searchRecipes(
+          searchRequest.getRecipeNameQuery(),
+          "EASY",
+          searchRequest.getMaxCookingTime(),
+          searchRequest.getMaxPreparationTime(),
+          searchRequest.getMinServings(),
+          searchRequest.getMaxServings(),
+          new String[]{"chicken", "pasta"},
+          new String[0],
+          pageable);
       verify(recipeMapper).toDto(recipe1);
       verify(recipeMapper).toDto(recipe2);
     }
@@ -1096,7 +1456,16 @@ class RecipeServiceTest {
       searchRequest.setRecipeNameQuery("NonExistentRecipe");
       Page<Recipe> emptyPage = new PageImpl<>(new ArrayList<>(), pageable, 0);
 
-      when(recipeRepository.searchRecipes(searchRequest, pageable)).thenReturn(emptyPage);
+      when(recipeRepository.searchRecipes(
+          searchRequest.getRecipeNameQuery(),
+          null,
+          searchRequest.getMaxCookingTime(),
+          searchRequest.getMaxPreparationTime(),
+          searchRequest.getMinServings(),
+          searchRequest.getMaxServings(),
+          new String[0],
+          new String[0],
+          pageable)).thenReturn(emptyPage);
 
       // When
       ResponseEntity<SearchRecipesResponse> response = recipeService.searchRecipes(searchRequest, pageable);
@@ -1108,7 +1477,16 @@ class RecipeServiceTest {
       assertThat(response.getBody().getTotalElements()).isEqualTo(0);
       assertThat(response.getBody().isEmpty()).isTrue();
 
-      verify(recipeRepository).searchRecipes(searchRequest, pageable);
+      verify(recipeRepository).searchRecipes(
+          searchRequest.getRecipeNameQuery(),
+          null,
+          searchRequest.getMaxCookingTime(),
+          searchRequest.getMaxPreparationTime(),
+          searchRequest.getMinServings(),
+          searchRequest.getMaxServings(),
+          new String[0],
+          new String[0],
+          pageable);
       verify(recipeMapper, never()).toDto(any(Recipe.class));
     }
 
@@ -1120,7 +1498,16 @@ class RecipeServiceTest {
       Pageable secondPage = PageRequest.of(1, 1);
       Page<Recipe> paginatedPage = new PageImpl<>(Arrays.asList(recipe2), secondPage, 2);
 
-      when(recipeRepository.searchRecipes(searchRequest, secondPage)).thenReturn(paginatedPage);
+      when(recipeRepository.searchRecipes(
+          searchRequest.getRecipeNameQuery(),
+          null,
+          searchRequest.getMaxCookingTime(),
+          searchRequest.getMaxPreparationTime(),
+          searchRequest.getMinServings(),
+          searchRequest.getMaxServings(),
+          new String[0],
+          new String[0],
+          secondPage)).thenReturn(paginatedPage);
       when(recipeMapper.toDto(recipe2)).thenReturn(recipeDto2);
 
       // When
@@ -1137,7 +1524,16 @@ class RecipeServiceTest {
       assertThat(response.getBody().isFirst()).isFalse();
       assertThat(response.getBody().isLast()).isTrue();
 
-      verify(recipeRepository).searchRecipes(searchRequest, secondPage);
+      verify(recipeRepository).searchRecipes(
+          searchRequest.getRecipeNameQuery(),
+          null,
+          searchRequest.getMaxCookingTime(),
+          searchRequest.getMaxPreparationTime(),
+          searchRequest.getMinServings(),
+          searchRequest.getMaxServings(),
+          new String[0],
+          new String[0],
+          secondPage);
     }
 
     @Test
@@ -1145,7 +1541,16 @@ class RecipeServiceTest {
     @DisplayName("Should throw exception when repository throws exception")
     void shouldThrowExceptionWhenRepositoryThrowsException() {
       // Given
-      when(recipeRepository.searchRecipes(searchRequest, pageable))
+      when(recipeRepository.searchRecipes(
+          searchRequest.getRecipeNameQuery(),
+          null,
+          searchRequest.getMaxCookingTime(),
+          searchRequest.getMaxPreparationTime(),
+          searchRequest.getMinServings(),
+          searchRequest.getMaxServings(),
+          new String[0],
+          new String[0],
+          pageable))
           .thenThrow(new RuntimeException("Database error"));
 
       // When & Then
@@ -1153,7 +1558,16 @@ class RecipeServiceTest {
           .isInstanceOf(RuntimeException.class)
           .hasMessage("Database error");
 
-      verify(recipeRepository).searchRecipes(searchRequest, pageable);
+      verify(recipeRepository).searchRecipes(
+          searchRequest.getRecipeNameQuery(),
+          null,
+          searchRequest.getMaxCookingTime(),
+          searchRequest.getMaxPreparationTime(),
+          searchRequest.getMinServings(),
+          searchRequest.getMaxServings(),
+          new String[0],
+          new String[0],
+          pageable);
       verify(recipeMapper, never()).toDto(any(Recipe.class));
     }
   }
@@ -1251,7 +1665,6 @@ class RecipeServiceTest {
       try (MockedStatic<SecurityUtils> mockedSecurity = Mockito.mockStatic(SecurityUtils.class)) {
         mockedSecurity.when(SecurityUtils::getCurrentUserId).thenReturn(currentUserId);
         when(recipeRepository.findById(Long.MAX_VALUE)).thenReturn(Optional.of(largeIdRecipe));
-        doNothing().when(recipeMapper).updateRecipeFromRequest(any(UpdateRecipeRequest.class), any(Recipe.class));
         when(recipeRepository.save(any(Recipe.class))).thenReturn(updatedRecipe);
         when(recipeMapper.toDto(updatedRecipe)).thenReturn(recipeDto);
 
@@ -1262,6 +1675,7 @@ class RecipeServiceTest {
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isEqualTo(recipeDto);
         verify(recipeRepository).findById(Long.MAX_VALUE);
+        verify(recipeRepository).save(any(Recipe.class));
         verify(recipeMapper).toDto(updatedRecipe);
       }
     }

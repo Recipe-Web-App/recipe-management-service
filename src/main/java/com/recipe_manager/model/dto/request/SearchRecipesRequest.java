@@ -1,5 +1,6 @@
 package com.recipe_manager.model.dto.request;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import com.recipe_manager.model.enums.DifficultyLevel;
@@ -44,8 +45,11 @@ public class SearchRecipesRequest {
   private Integer maxPreparationTime;
 
   /** Filter by minimum number of servings. */
-  private Integer minServings;
+  private BigDecimal minServings;
 
   /** Filter by maximum number of servings. */
-  private Integer maxServings;
+  private BigDecimal maxServings;
+
+  /** List of tag names to search for. */
+  private List<String> tags;
 }

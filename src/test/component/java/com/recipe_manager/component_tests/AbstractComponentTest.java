@@ -4,8 +4,10 @@ import com.recipe_manager.config.RequestIdFilter;
 import com.recipe_manager.controller.RecipeManagementController;
 import com.recipe_manager.exception.GlobalExceptionHandler;
 import com.recipe_manager.model.mapper.RecipeMapper;
+import com.recipe_manager.model.mapper.RecipeStepMapper;
 import com.recipe_manager.repository.ingredient.IngredientRepository;
 import com.recipe_manager.repository.recipe.RecipeRepository;
+import com.recipe_manager.repository.recipe.RecipeTagRepository;
 import com.recipe_manager.service.IngredientService;
 import com.recipe_manager.service.MediaService;
 import com.recipe_manager.service.RecipeService;
@@ -51,9 +53,15 @@ public abstract class AbstractComponentTest {
   @Mock
   protected IngredientRepository ingredientRepository;
 
+  @Mock
+  protected RecipeTagRepository recipeTagRepository;
+
   // Real mapper for component testing
   @Autowired
   protected RecipeMapper recipeMapper;
+
+  @Mock
+  protected RecipeStepMapper recipeStepMapper;
 
   @InjectMocks
   protected RecipeManagementController controller;
@@ -66,7 +74,8 @@ public abstract class AbstractComponentTest {
     MockitoAnnotations.openMocks(this);
 
     // Create real service instance for repository-level component testing
-    realRecipeService = new RecipeService(recipeRepository, ingredientRepository, recipeMapper);
+    realRecipeService = new RecipeService(
+        recipeRepository, ingredientRepository, recipeTagRepository, recipeMapper, recipeStepMapper);
 
     mockMvc = MockMvcBuilders.standaloneSetup(controller)
         .addFilters(new RequestIdFilter())

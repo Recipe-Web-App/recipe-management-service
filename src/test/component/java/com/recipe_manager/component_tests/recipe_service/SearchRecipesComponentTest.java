@@ -1,6 +1,8 @@
 package com.recipe_manager.component_tests.recipe_service;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
@@ -102,7 +104,16 @@ class SearchRecipesComponentTest extends AbstractComponentTest {
     Page<Recipe> recipePage = new PageImpl<>(Arrays.asList(testRecipe1),
         PageRequest.of(0, 20), 1);
 
-    when(recipeRepository.searchRecipes(any(SearchRecipesRequest.class), any(Pageable.class)))
+    when(recipeRepository.searchRecipes(
+        eq("Chicken"),
+        isNull(),
+        isNull(),
+        isNull(),
+        isNull(),
+        isNull(),
+        eq(new String[0]),
+        eq(new String[0]),
+        any(Pageable.class)))
         .thenReturn(recipePage);
 
     // When & Then
@@ -137,13 +148,22 @@ class SearchRecipesComponentTest extends AbstractComponentTest {
     searchRequest.setDifficulty(DifficultyLevel.EASY);
     searchRequest.setMaxCookingTime(30);
     searchRequest.setMaxPreparationTime(45);
-    searchRequest.setMinServings(2);
-    searchRequest.setMaxServings(6);
+    searchRequest.setMinServings(BigDecimal.valueOf(2));
+    searchRequest.setMaxServings(BigDecimal.valueOf(6));
 
     Page<Recipe> recipePage = new PageImpl<>(Arrays.asList(testRecipe1),
         org.springframework.data.domain.PageRequest.of(0, 20), 1);
 
-    when(recipeRepository.searchRecipes(any(SearchRecipesRequest.class), any(Pageable.class)))
+    when(recipeRepository.searchRecipes(
+        eq("pasta"),
+        eq("EASY"),
+        eq(30),
+        eq(45),
+        eq(BigDecimal.valueOf(2)),
+        eq(BigDecimal.valueOf(6)),
+        eq(new String[]{"chicken", "pasta"}),
+        eq(new String[0]),
+        any(Pageable.class)))
         .thenReturn(recipePage);
 
     // When & Then
@@ -166,7 +186,16 @@ class SearchRecipesComponentTest extends AbstractComponentTest {
     Page<Recipe> emptyPage = new PageImpl<>(Arrays.asList(),
         org.springframework.data.domain.PageRequest.of(0, 20), 0);
 
-    when(recipeRepository.searchRecipes(any(SearchRecipesRequest.class), any(Pageable.class)))
+    when(recipeRepository.searchRecipes(
+        eq("NonExistentRecipe"),
+        isNull(),
+        isNull(),
+        isNull(),
+        isNull(),
+        isNull(),
+        eq(new String[0]),
+        eq(new String[0]),
+        any(Pageable.class)))
         .thenReturn(emptyPage);
 
     // When & Then
@@ -189,7 +218,16 @@ class SearchRecipesComponentTest extends AbstractComponentTest {
     Page<Recipe> paginatedPage = new PageImpl<>(Arrays.asList(testRecipe2),
         org.springframework.data.domain.PageRequest.of(1, 1), 2);
 
-    when(recipeRepository.searchRecipes(any(SearchRecipesRequest.class), any(Pageable.class)))
+    when(recipeRepository.searchRecipes(
+        isNull(),
+        isNull(),
+        isNull(),
+        isNull(),
+        isNull(),
+        isNull(),
+        eq(new String[0]),
+        eq(new String[0]),
+        any(Pageable.class)))
         .thenReturn(paginatedPage);
 
     // When & Then
@@ -214,7 +252,16 @@ class SearchRecipesComponentTest extends AbstractComponentTest {
     Page<Recipe> allRecipes = new PageImpl<>(Arrays.asList(testRecipe1, testRecipe2),
         org.springframework.data.domain.PageRequest.of(0, 20), 2);
 
-    when(recipeRepository.searchRecipes(any(SearchRecipesRequest.class), any(Pageable.class)))
+    when(recipeRepository.searchRecipes(
+        isNull(),
+        isNull(),
+        isNull(),
+        isNull(),
+        isNull(),
+        isNull(),
+        eq(new String[0]),
+        eq(new String[0]),
+        any(Pageable.class)))
         .thenReturn(allRecipes);
 
     // When & Then

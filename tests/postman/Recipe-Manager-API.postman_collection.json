@@ -1,0 +1,725 @@
+{
+  "info": {
+    "name": "Recipe Manager API",
+    "description": "Complete API testing collection for Recipe Manager Service with automatic token management and response field extraction",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{accessToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "testRecipeId",
+      "value": "123",
+      "type": "string",
+      "description": "Sample recipe ID for testing"
+    },
+    {
+      "key": "testIngredientId",
+      "value": "456",
+      "type": "string",
+      "description": "Sample ingredient ID for testing"
+    },
+    {
+      "key": "testStepId",
+      "value": "789",
+      "type": "string",
+      "description": "Sample step ID for testing"
+    },
+    {
+      "key": "testReviewId",
+      "value": "456",
+      "type": "string",
+      "description": "Sample review ID for testing"
+    }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
+      "description": "User authentication and authorization endpoints",
+      "item": [
+        {
+          "name": "General User Flow",
+          "item": [
+            {
+              "name": "Register General User",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Registration successful', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Extract authentication tokens', function () {",
+                      "    const response = pm.response.json();",
+                      "    pm.environment.set('accessToken', response.token.accessToken);",
+                      "    pm.environment.set('refreshToken', response.token.refreshToken);",
+                      "    pm.environment.set('userId', response.user.userId);",
+                      "    pm.environment.set('username', response.user.username);",
+                      "    pm.environment.set('userEmail', response.user.email);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"user_data\": {\n    \"username\": \"{{testUserUsername}}\",\n    \"email\": \"{{testUserEmail}}\",\n    \"password\": \"{{testUserPassword}}\",\n    \"full_name\": \"{{testUserFullName}}\",\n    \"bio\": \"{{testUserBio}}\"\n  }\n}"
+                },
+                "url": {
+                  "raw": "{{authBaseUrl}}/register",
+                  "host": ["{{authBaseUrl}}"],
+                  "path": ["register"]
+                }
+              }
+            },
+            {
+              "name": "Login General User (Username)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Login successful', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Extract authentication tokens', function () {",
+                      "    const response = pm.response.json();",
+                      "    pm.environment.set('accessToken', response.token.accessToken);",
+                      "    pm.environment.set('refreshToken', response.token.refreshToken);",
+                      "    pm.environment.set('userId', response.user.userId);",
+                      "    pm.environment.set('username', response.user.username);",
+                      "    pm.environment.set('userEmail', response.user.email);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"username\": \"{{testUserUsername}}\",\n  \"password\": \"{{testUserPassword}}\"\n}"
+                },
+                "auth": {
+                  "type": "noauth"
+                },
+                "url": {
+                  "raw": "{{authBaseUrl}}/login",
+                  "host": ["{{authBaseUrl}}"],
+                  "path": ["login"]
+                }
+              }
+            },
+            {
+              "name": "Login General User (Email)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Login successful', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Extract authentication tokens', function () {",
+                      "    const response = pm.response.json();",
+                      "    pm.environment.set('accessToken', response.token.accessToken);",
+                      "    pm.environment.set('refreshToken', response.token.refreshToken);",
+                      "    pm.environment.set('userId', response.user.userId);",
+                      "    pm.environment.set('username', response.user.username);",
+                      "    pm.environment.set('userEmail', response.user.email);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"{{testUserEmail}}\",\n  \"password\": \"{{testUserPassword}}\"\n}"
+                },
+                "auth": {
+                  "type": "noauth"
+                },
+                "url": {
+                  "raw": "{{authBaseUrl}}/login",
+                  "host": ["{{authBaseUrl}}"],
+                  "path": ["login"]
+                }
+              }
+            },
+            {
+              "name": "Refresh General User Token",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Token refresh successful', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Update authentication tokens', function () {",
+                      "    const response = pm.response.json();",
+                      "    pm.environment.set('accessToken', response.token.accessToken);",
+                      "    pm.environment.set('refreshToken', response.token.refreshToken);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"refresh_token\": \"{{refreshToken}}\"\n}"
+                },
+                "auth": {
+                  "type": "noauth"
+                },
+                "url": {
+                  "raw": "{{authBaseUrl}}/refresh",
+                  "host": ["{{authBaseUrl}}"],
+                  "path": ["refresh"]
+                }
+              }
+            },
+            {
+              "name": "Logout General User",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Logout successful', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Clear authentication tokens', function () {",
+                      "    pm.environment.unset('accessToken');",
+                      "    pm.environment.unset('refreshToken');",
+                      "    pm.environment.unset('userId');",
+                      "    pm.environment.unset('username');",
+                      "    pm.environment.unset('userEmail');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{authBaseUrl}}/logout",
+                  "host": ["{{authBaseUrl}}"],
+                  "path": ["logout"]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Admin User Flow",
+          "item": [
+            {
+              "name": "Register Admin User",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Admin registration successful', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Extract admin authentication tokens', function () {",
+                      "    const response = pm.response.json();",
+                      "    pm.environment.set('adminAccessToken', response.token.accessToken);",
+                      "    pm.environment.set('adminRefreshToken', response.token.refreshToken);",
+                      "    pm.environment.set('adminUserId', response.user.userId);",
+                      "    pm.environment.set('adminUsername', response.user.username);",
+                      "    pm.environment.set('adminUserEmail', response.user.email);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"user_data\": {\n    \"username\": \"{{adminUserUsername}}\",\n    \"email\": \"{{adminUserEmail}}\",\n    \"password\": \"{{adminUserPassword}}\",\n    \"full_name\": \"{{adminUserFullName}}\",\n    \"bio\": \"{{adminUserBio}}\"\n  }\n}"
+                },
+                "auth": {
+                  "type": "noauth"
+                },
+                "url": {
+                  "raw": "{{authBaseUrl}}/register",
+                  "host": ["{{authBaseUrl}}"],
+                  "path": ["register"]
+                }
+              }
+            },
+            {
+              "name": "Login Admin User (Username)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Admin login successful', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Extract admin authentication tokens', function () {",
+                      "    const response = pm.response.json();",
+                      "    pm.environment.set('adminAccessToken', response.token.accessToken);",
+                      "    pm.environment.set('adminRefreshToken', response.token.refreshToken);",
+                      "    pm.environment.set('adminUserId', response.user.userId);",
+                      "    pm.environment.set('adminUsername', response.user.username);",
+                      "    pm.environment.set('adminUserEmail', response.user.email);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"username\": \"{{adminUserUsername}}\",\n  \"password\": \"{{adminUserPassword}}\"\n}"
+                },
+                "auth": {
+                  "type": "noauth"
+                },
+                "url": {
+                  "raw": "{{authBaseUrl}}/login",
+                  "host": ["{{authBaseUrl}}"],
+                  "path": ["login"]
+                }
+              }
+            },
+            {
+              "name": "Login Admin User (Email)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Admin login successful', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Extract admin authentication tokens', function () {",
+                      "    const response = pm.response.json();",
+                      "    pm.environment.set('adminAccessToken', response.token.accessToken);",
+                      "    pm.environment.set('adminRefreshToken', response.token.refreshToken);",
+                      "    pm.environment.set('adminUserId', response.user.userId);",
+                      "    pm.environment.set('adminUsername', response.user.username);",
+                      "    pm.environment.set('adminUserEmail', response.user.email);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"{{adminUserEmail}}\",\n  \"password\": \"{{adminUserPassword}}\"\n}"
+                },
+                "auth": {
+                  "type": "noauth"
+                },
+                "url": {
+                  "raw": "{{authBaseUrl}}/login",
+                  "host": ["{{authBaseUrl}}"],
+                  "path": ["login"]
+                }
+              }
+            },
+            {
+              "name": "Refresh Admin User Token",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Admin token refresh successful', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Update admin authentication tokens', function () {",
+                      "    const response = pm.response.json();",
+                      "    pm.environment.set('adminAccessToken', response.token.accessToken);",
+                      "    pm.environment.set('adminRefreshToken', response.token.refreshToken);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"refresh_token\": \"{{adminRefreshToken}}\"\n}"
+                },
+                "auth": {
+                  "type": "noauth"
+                },
+                "url": {
+                  "raw": "{{authBaseUrl}}/refresh",
+                  "host": ["{{authBaseUrl}}"],
+                  "path": ["refresh"]
+                }
+              }
+            },
+            {
+              "name": "Logout Admin User",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Admin logout successful', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Clear admin authentication tokens', function () {",
+                      "    pm.environment.unset('adminAccessToken');",
+                      "    pm.environment.unset('adminRefreshToken');",
+                      "    pm.environment.unset('adminUserId');",
+                      "    pm.environment.unset('adminUsername');",
+                      "    pm.environment.unset('adminUserEmail');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [],
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{adminAccessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{authBaseUrl}}/logout",
+                  "host": ["{{authBaseUrl}}"],
+                  "path": ["logout"]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Recipe Management",
+      "description": "CRUD operations for recipes including search functionality",
+      "item": [
+        {
+          "name": "Create Recipe",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Recipe created successfully', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Extract recipe ID', function () {",
+                  "    const response = pm.response.json();",
+                  "    if (response.id) {",
+                  "        pm.environment.set('createdRecipeId', response.id);",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Spaghetti Carbonara\",\n  \"description\": \"Classic Italian pasta dish with eggs, cheese, and pancetta\",\n  \"originUrl\": \"https://example.com/carbonara-recipe\",\n  \"servings\": 4,\n  \"preparationTime\": 15,\n  \"cookingTime\": 20,\n  \"difficulty\": \"MEDIUM\",\n  \"ingredients\": [\n    {\n      \"ingredientName\": \"Spaghetti\",\n      \"quantity\": 400,\n      \"unit\": \"GRAMS\",\n      \"isOptional\": false\n    },\n    {\n      \"ingredientName\": \"Pancetta\",\n      \"quantity\": 150,\n      \"unit\": \"GRAMS\",\n      \"isOptional\": false\n    },\n    {\n      \"ingredientName\": \"Parmesan Cheese\",\n      \"quantity\": 100,\n      \"unit\": \"GRAMS\",\n      \"isOptional\": false\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{recipeManagerBaseUrl}}/recipe-management/recipes",
+              "host": ["{{recipeManagerBaseUrl}}"],
+              "path": ["recipe-management", "recipes"]
+            }
+          }
+        },
+        {
+          "name": "Get All Recipes",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Recipes retrieved successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response is an array', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.be.an('array');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{recipeManagerBaseUrl}}/recipe-management/recipes",
+              "host": ["{{recipeManagerBaseUrl}}"],
+              "path": ["recipe-management", "recipes"]
+            }
+          }
+        },
+        {
+          "name": "Get Recipe by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Recipe retrieved successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Recipe has required fields', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('id');",
+                  "    pm.expect(response).to.have.property('title');",
+                  "    pm.expect(response).to.have.property('description');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{recipeManagerBaseUrl}}/recipe-management/recipes/{{testRecipeId}}",
+              "host": ["{{recipeManagerBaseUrl}}"],
+              "path": ["recipe-management", "recipes", "{{testRecipeId}}"]
+            }
+          }
+        },
+        {
+          "name": "Update Recipe",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Recipe updated successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Updated fields are correct', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.title).to.include('Updated');",
+                  "    pm.expect(response.servings).to.equal(6);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Spaghetti Carbonara - Updated\",\n  \"description\": \"Classic Italian pasta dish with eggs, cheese, and pancetta - Updated version\",\n  \"servings\": 6,\n  \"preparationTime\": 20,\n  \"cookingTime\": 25,\n  \"difficulty\": \"EASY\"\n}"
+            },
+            "url": {
+              "raw": "{{recipeManagerBaseUrl}}/recipe-management/recipes/{{testRecipeId}}",
+              "host": ["{{recipeManagerBaseUrl}}"],
+              "path": ["recipe-management", "recipes", "{{testRecipeId}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Recipe",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Recipe deleted successfully', function () {",
+                  "    pm.response.to.have.status(204);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{recipeManagerBaseUrl}}/recipe-management/recipes/{{testRecipeId}}",
+              "host": ["{{recipeManagerBaseUrl}}"],
+              "path": ["recipe-management", "recipes", "{{testRecipeId}}"]
+            }
+          }
+        },
+        {
+          "name": "Search Recipes",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Search completed successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Search results are array', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.be.an('array');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"pasta\",\n  \"cuisine\": \"ITALIAN\",\n  \"difficulty\": \"MEDIUM\",\n  \"maxPreparationTime\": 30,\n  \"maxCookingTime\": 45,\n  \"servings\": 4,\n  \"tags\": [\"vegetarian\", \"quick\"]\n}"
+            },
+            "url": {
+              "raw": "{{recipeManagerBaseUrl}}/recipe-management/recipes/search",
+              "host": ["{{recipeManagerBaseUrl}}"],
+              "path": ["recipe-management", "recipes", "search"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

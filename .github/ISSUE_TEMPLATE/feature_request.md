@@ -4,11 +4,14 @@ about: Suggest an idea for this project
 labels: enhancement
 ---
 
+# Feature Request
+
 ## Summary
 
 ## Motivation
 
 ## Acceptance Criteria
+
 - [ ]
 - [ ]
 

@@ -50,6 +50,32 @@ repos:
       - id: check-added-large-files
       - id: detect-private-key
 
+  # Enhanced secret detection
+  - repo: https://github.com/trufflesecurity/trufflehog
+    rev: v3.90.3
+    hooks:
+      - id: trufflehog
+        name: TruffleHog Secret Detection
+        entry: trufflehog git file://. --since-commit HEAD --only-verified --fail
+        language: system
+        stages: [pre-commit, pre-push]
+
+  # Docker security scanning
+  - repo: https://github.com/hadolint/hadolint
+    rev: v2.13.1-beta
+    hooks:
+      - id: hadolint-docker
+        name: Dockerfile Security Scan
+        args: ['--ignore', 'DL3008', '--ignore', 'DL3009']
+
+  # Markdown linting
+  - repo: https://github.com/igorshubovych/markdownlint-cli
+    rev: v0.45.0
+    hooks:
+      - id: markdownlint
+        name: Markdown Linting
+        args: ['--fix']
+
   # Maven specific checks
   - repo: local
     hooks:
@@ -89,15 +115,6 @@ repos:
         args: ['sortpom:sort']
         types: [java]
 
-      - id: spotless-check
-        name: spotless-check
-        entry: mvn
-        args: ['spotless:check']
-        language: system
-        pass_filenames: false
-        always_run: true
-        types: [java]
-
       - id: spotless-apply
         name: spotless-apply
         entry: mvn
@@ -124,3 +141,13 @@ repos:
         pass_filenames: false
         always_run: true
         files: pom.xml
+
+      - id: kube-score
+        name: kube-score
+        entry: >-
+          sh -c 'find k8s -name "*.yaml" -type f -not -path "*/templates/*" |
+          xargs kube-score score'
+        language: system
+        files: k8s/.*\.yaml$
+        pass_filenames: false
+        args: []

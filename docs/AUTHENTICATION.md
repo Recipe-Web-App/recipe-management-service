@@ -2,7 +2,9 @@
 
 ## Overview
 
-The Recipe Manager Service uses JWT (JSON Web Token) authentication that integrates with your user-management-service. This document explains how authentication works and how to configure it.
+The Recipe Manager Service uses JWT (JSON Web Token) authentication that
+integrates with your user-management-service. This document explains how
+authentication works and how to configure it.
 
 ## Architecture
 
@@ -176,7 +178,8 @@ public class RecipeService {
 
 ### Shared JWT Secret Key
 
-**CRITICAL**: Both the user-management-service and recipe-manager-service MUST use the same JWT secret key for authentication to work correctly.
+**CRITICAL**: Both the user-management-service and recipe-manager-service
+MUST use the same JWT secret key for authentication to work correctly.
 
 ### Token Generation (User Management Service)
 
@@ -216,7 +219,7 @@ app:
       expiration: 86400000
 ```
 
-### Environment Variables
+### Shared Environment Variables
 
 Ensure both services have the same JWT_SECRET environment variable:
 
@@ -234,7 +237,7 @@ For recipe-manager-service, ensure JWT_SECRET is included in your .env file:
 JWT_SECRET=your-shared-jwt-secret-key-here
 ```
 
-### Common Issues
+### Integration Issues
 
 1. **403 Forbidden with "JWT signature does not match"**
 
@@ -257,7 +260,7 @@ curl -H "X-Service-Auth: your-service-key" \
      http://localhost:8080/api/v1/internal/health
 ```
 
-### Configuration
+### Service Auth Configuration
 
 ```yaml
 app:
@@ -274,9 +277,11 @@ app:
 
 The service logs authentication events:
 
-```
-2024-01-15 10:30:45.123 [main] INFO  security.JwtAuthenticationFilter [abc-123-def] - User authenticated successfully: john.doe
-2024-01-15 10:30:45.124 [main] WARN  security.JwtAuthenticationFilter [abc-123-def] - JWT authentication failed: Token expired
+```log
+2024-01-15 10:30:45.123 [main] INFO  security.JwtAuthenticationFilter
+[abc-123-def] - User authenticated successfully: john.doe
+2024-01-15 10:30:45.124 [main] WARN  security.JwtAuthenticationFilter
+[abc-123-def] - JWT authentication failed: Token expired
 ```
 
 ### Security Metrics
@@ -314,7 +319,7 @@ The service logs authentication events:
 
 #### Invalid Token
 
-```
+```text
 JWT authentication failed: Invalid token signature
 ```
 
@@ -322,7 +327,7 @@ JWT authentication failed: Invalid token signature
 
 #### Expired Token
 
-```
+```text
 JWT authentication failed: Token expired
 ```
 
@@ -330,7 +335,7 @@ JWT authentication failed: Token expired
 
 #### Missing Authorization Header
 
-```
+```text
 JWT authentication failed: No token provided
 ```
 
@@ -338,7 +343,7 @@ JWT authentication failed: No token provided
 
 #### Insufficient Permissions
 
-```
+```text
 Access denied: You don't have permission to access this resource
 ```
 
@@ -373,7 +378,7 @@ logging:
 
 ## Security Considerations
 
-### Token Security
+### JWT Token Security
 
 - **Secret Rotation**: Regularly rotate JWT secrets
 - **Token Revocation**: Implement token blacklisting if needed
@@ -387,4 +392,5 @@ logging:
 - **Rate Limiting**: Implement rate limiting on authentication endpoints
 - **Monitoring**: Monitor for suspicious authentication patterns
 
-This authentication system provides secure, scalable authentication for your microservices architecture while maintaining simplicity and ease of use.
+This authentication system provides secure, scalable authentication for your
+microservices architecture while maintaining simplicity and ease of use.

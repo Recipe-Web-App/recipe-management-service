@@ -252,12 +252,14 @@
             <goals>
               <goal>apply</goal>
             </goals>
+            <phase>validate</phase>
           </execution>
           <execution>
             <id>spotless-check</id>
             <goals>
-              <goal>apply</goal>
+              <goal>check</goal>
             </goals>
+            <phase>validate</phase>
           </execution>
         </executions>
       </plugin>

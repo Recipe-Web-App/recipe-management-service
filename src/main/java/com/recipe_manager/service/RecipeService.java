@@ -401,7 +401,14 @@ public class RecipeService {
     // Perform search using repository
     Page<Recipe> recipePage =
         recipeRepository.searchRecipes(
-            processedSearchRequest,
+            processedSearchRequest.getRecipeNameQuery(),
+            processedSearchRequest.getDifficulty() != null
+                ? processedSearchRequest.getDifficulty().name()
+                : null,
+            processedSearchRequest.getMaxCookingTime(),
+            processedSearchRequest.getMaxPreparationTime(),
+            processedSearchRequest.getMinServings(),
+            processedSearchRequest.getMaxServings(),
             ingredientsToSearch != null
                 ? ingredientsToSearch.toArray(new String[0])
                 : new String[0],

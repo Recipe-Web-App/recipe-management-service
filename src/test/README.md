@@ -1,10 +1,12 @@
 # Recipe Manager Service - Test Framework
 
-This directory contains a comprehensive test framework for the Recipe Manager Service, implementing multiple testing strategies to ensure code quality, reliability, and performance.
+This directory contains a comprehensive test framework for the Recipe Manager
+Service, implementing multiple testing strategies to ensure code quality,
+reliability, and performance.
 
 ## Test Structure
 
-```
+```text
 src/test/
 ├── unit/                    # Unit tests with mocked dependencies
 │   └── java/com/recipe_manager/

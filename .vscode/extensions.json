@@ -1,19 +1,21 @@
 {
   "recommendations": [
     "vscjava.vscode-java-pack",
-    "redhat.java",
-    "vscjava.vscode-java-debug",
-    "vscjava.vscode-java-test",
-    "vscjava.vscode-maven",
-    "vscjava.vscode-java-dependency",
+    "shengchen.vscode-checkstyle",
+    "timonwong.shellcheck",
+    "streetsidesoftware.code-spell-checker",
+    "redhat.vscode-xml",
     "redhat.vscode-yaml",
+    "vmware.vscode-spring-boot",
+    "vscjava.vscode-spring-initializr",
+    "vscjava.vscode-spring-boot-dashboard",
+    "ms-azuretools.vscode-docker",
+    "ms-kubernetes-tools.vscode-kubernetes-tools",
+    "ms-ossdata.vscode-postgresql",
+    "eamodio.gitlens",
+    "humao.rest-client",
     "ms-vscode.vscode-json",
-    "ms-vscode.vscode-xml",
-    "ms-vscode.vscode-shellcheck",
-    "ms-vscode.vscode-checkstyle",
-    "ms-vscode.vscode-spotbugs",
-    "ms-vscode.vscode-pmd",
-    "ms-vscode.vscode-prettier",
-    "ms-vscode.vscode-editorconfig"
-  ]
+    "redhat.vscode-commons"
+  ],
+  "unwantedRecommendations": ["ms-vscode.vscode-java", "redhat.java"]
 }

@@ -18,7 +18,7 @@ spring:
   application:
     name: recipe-manager-service
   datasource:
-    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_DB:recipe_db}
+    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_DB:recipe_db}?stringtype=unspecified
     username: ${RECIPE_MANAGEMENT_DB_USER:recipe_user}
     password: ${RECIPE_MANAGEMENT_DB_PASSWORD:your_db_password}
     schema: ${POSTGRES_SCHEMA:my_schema}
@@ -31,7 +31,7 @@ spring:
       leak-detection-threshold: 60000
   jpa:
     hibernate:
-      ddl-auto: validate
+      ddl-auto: none
     show-sql: false
     properties:
       hibernate:

@@ -1,0 +1,14 @@
+---
+# k8s/poddisruptionbudget.yaml
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: recipe-manager-service-pdb
+  namespace: recipe-manager
+  labels:
+    app: recipe-manager-service
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: recipe-manager-service

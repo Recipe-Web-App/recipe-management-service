@@ -1,0 +1,35 @@
+# <type>[optional scope]: <description>
+#
+# [optional body]
+#
+# [optional footer(s)]
+#
+# Type can be:
+#   feat:     A new feature
+#   fix:      A bug fix
+#   docs:     Documentation only changes
+#   style:    Changes that do not affect the meaning of the code
+#   refactor: A code change that neither fixes a bug nor adds a feature
+#   perf:     A code change that improves performance
+#   test:     Adding missing tests or correcting existing tests
+#   build:    Changes that affect the build system or external dependencies
+#   ci:       Changes to our CI configuration files and scripts
+#   chore:    Other changes that don't modify src or test files
+#   revert:   Reverts a previous commit
+#
+# Breaking changes: Add BREAKING CHANGE: in the footer or ! after type/scope
+# Examples:
+#   feat: add email notifications
+#   fix(auth): resolve login timeout issue
+#   feat!: send an email to the customer when a product is shipped
+#   feat(api)!: send an email to the customer when a product is shipped
+#   chore!: drop support for Node 6
+#   docs: correct spelling of CHANGELOG
+#   feat(lang): add Polish language
+#   fix: prevent racing of requests
+#   perf: improve performance with lazy load implementation for images
+#   refactor: code cleanup and optimization
+#   test: add missing unit tests
+#   build(release): bump version to 1.0.0
+#   ci: add Travis configuration
+#   revert: revert "feat: add email notifications"

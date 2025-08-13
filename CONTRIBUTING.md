@@ -77,6 +77,7 @@ actively welcome your pull requests:
    ```bash
    pip install pre-commit
    pre-commit install
+   pre-commit install --hook-type commit-msg
    ```
 
 6. **Build and test**
@@ -164,25 +165,37 @@ mvn test -Dtest=RecipeServiceTest
 
 ### Commit Messages
 
-We follow [Conventional Commits](https://conventionalcommits.org/):
+We follow [Conventional Commits](https://conventionalcommits.org/) specification.
+This enables automated versioning and changelog generation.
 
 ```text
-type(scope): description
+<type>[optional scope]: <description>
 
 [optional body]
 
-[optional footer]
+[optional footer(s)]
 ```
 
 **Types**:
 
-- `feat`: New feature
-- `fix`: Bug fix
-- `docs`: Documentation changes
-- `style`: Code style changes (formatting, etc.)
-- `refactor`: Code refactoring
-- `test`: Adding or modifying tests
-- `chore`: Maintenance tasks
+- `feat`: A new feature (triggers minor version bump)
+- `fix`: A bug fix (triggers patch version bump)
+- `docs`: Documentation only changes
+- `style`: Changes that do not affect the meaning of the code
+- `refactor`: A code change that neither fixes a bug nor adds a feature
+- `perf`: A code change that improves performance
+- `test`: Adding missing tests or correcting existing tests
+- `build`: Changes that affect the build system or external dependencies
+- `ci`: Changes to CI configuration files and scripts
+- `chore`: Other changes that don't modify src or test files
+- `revert`: Reverts a previous commit
+
+**Breaking Changes**:
+Add `BREAKING CHANGE:` in the footer or `!` after type/scope to trigger major
+version bump:
+
+- `feat!: remove deprecated API endpoint`
+- `feat(api)!: change response format`
 
 **Examples**:
 
@@ -191,8 +204,45 @@ feat(recipe): add search functionality with filters
 
 fix(auth): resolve JWT token validation issue
 
+feat!: change API response format for all endpoints
+
+BREAKING CHANGE: All API responses now include a 'meta' field
+
 docs(readme): update installation instructions
+
+perf: improve database query performance by 40%
 ```
+
+**Setup Git Message Template**:
+
+```bash
+git config commit.template .gitmessage
+```
+
+This will use the provided template to help you write conventional commits.
+
+### Automated Releases
+
+This project uses [semantic-release](https://github.com/semantic-release/semantic-release)
+for automated versioning and releasing:
+
+- **Commits pushed to `main`** trigger the release workflow
+- **Version bumps** are determined by commit types:
+  - `fix:` → patch version (e.g., 1.0.0 → 1.0.1)
+  - `feat:` → minor version (e.g., 1.0.0 → 1.1.0)
+  - `BREAKING CHANGE:` or `!` → major version (e.g., 1.0.0 → 2.0.0)
+- **CHANGELOG.md** is automatically generated and updated
+- **GitHub releases** are created with release notes
+- **Maven pom.xml** version is automatically updated
+
+**What gets released:**
+
+- JAR artifacts are attached to GitHub releases
+- Docker images are built with version tags
+- Release notes include categorized changes (Features, Bug Fixes, etc.)
+
+**Skip releases:**
+Add `[skip ci]` to commit message to skip the release workflow.
 
 ## Pull Request Process
 

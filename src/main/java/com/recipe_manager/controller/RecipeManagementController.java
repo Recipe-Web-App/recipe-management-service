@@ -18,6 +18,7 @@ import com.recipe_manager.model.dto.recipe.RecipeDto;
 import com.recipe_manager.model.dto.request.CreateRecipeRequest;
 import com.recipe_manager.model.dto.request.SearchRecipesRequest;
 import com.recipe_manager.model.dto.request.UpdateRecipeRequest;
+import com.recipe_manager.model.dto.response.RecipeIngredientsResponse;
 import com.recipe_manager.model.dto.response.SearchRecipesResponse;
 import com.recipe_manager.service.IngredientService;
 import com.recipe_manager.service.MediaService;
@@ -162,10 +163,11 @@ public class RecipeManagementController {
    * Get recipe ingredients.
    *
    * @param recipeId the recipe ID
-   * @return placeholder response
+   * @return response with recipe ingredients
    */
-  @GetMapping("/{recipeId}/ingredients")
-  public ResponseEntity<String> getRecipeIngredients(@PathVariable final String recipeId) {
+  @GetMapping(value = "/{recipeId}/ingredients", produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<RecipeIngredientsResponse> getRecipeIngredients(
+      @PathVariable final String recipeId) {
     return ingredientService.getIngredients(recipeId);
   }
 

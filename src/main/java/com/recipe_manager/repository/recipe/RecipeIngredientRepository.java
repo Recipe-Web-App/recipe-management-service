@@ -1,5 +1,7 @@
 package com.recipe_manager.repository.recipe;
 
+import java.util.List;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -14,6 +16,11 @@ import com.recipe_manager.model.entity.recipe.RecipeIngredientId;
 public interface RecipeIngredientRepository
     extends JpaRepository<RecipeIngredient, RecipeIngredientId> {
 
-  // All methods removed - not currently used in main application code
-  // Only inherits basic CRUD operations from JpaRepository
+  /**
+   * Find all ingredients for a specific recipe using Spring Data JPA method naming convention.
+   *
+   * @param recipeId the recipe ID
+   * @return list of recipe ingredients
+   */
+  List<RecipeIngredient> findByRecipeRecipeId(Long recipeId);
 }

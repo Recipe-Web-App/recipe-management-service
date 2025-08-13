@@ -5,15 +5,23 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.recipe_manager.component_tests.AbstractComponentTest;
+import java.math.BigDecimal;
+import java.util.Arrays;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+
+import com.recipe_manager.component_tests.AbstractComponentTest;
+import com.recipe_manager.model.dto.recipe.RecipeIngredientDto;
+import com.recipe_manager.model.dto.response.RecipeIngredientsResponse;
+import com.recipe_manager.model.enums.IngredientUnit;
 
 /**
  * Component tests for GET /recipe-management/recipes/{recipeId}/ingredients
@@ -27,16 +35,36 @@ class GetIngredientsComponentTest extends AbstractComponentTest {
   @BeforeEach
   protected void setUp() {
     super.setUp();
-    when(ingredientService.getIngredients(anyString())).thenReturn(ResponseEntity.ok("Get Ingredients - placeholder"));
+
+    RecipeIngredientDto ingredient1 = RecipeIngredientDto.builder()
+        .recipeId(123L)
+        .ingredientId(1L)
+        .ingredientName("Salt")
+        .quantity(new BigDecimal("1.5"))
+        .unit(IngredientUnit.TSP)
+        .isOptional(false)
+        .build();
+
+    RecipeIngredientsResponse mockResponse = RecipeIngredientsResponse.builder()
+        .recipeId(123L)
+        .ingredients(Arrays.asList(ingredient1))
+        .totalCount(1)
+        .build();
+
+    when(ingredientService.getIngredients(anyString())).thenReturn(ResponseEntity.ok(mockResponse));
   }
 
   @Test
   @Tag("standard-processing")
   @DisplayName("Should return ingredients for valid recipe ID")
   void shouldReturnIngredientsForValidRecipeId() throws Exception {
-    mockMvc.perform(get("/recipe-management/recipes/123/ingredients"))
+    mockMvc.perform(get("/recipe-management/recipes/123/ingredients")
+        .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
-        .andExpect(content().string("Get Ingredients - placeholder"))
+        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+        .andExpect(jsonPath("$.recipeId").value(123))
+        .andExpect(jsonPath("$.totalCount").value(1))
+        .andExpect(jsonPath("$.ingredients[0].ingredientName").value("Salt"))
         .andExpect(header().exists("X-Request-ID"));
   }
 

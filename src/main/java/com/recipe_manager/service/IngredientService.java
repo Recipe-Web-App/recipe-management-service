@@ -19,7 +19,10 @@ import com.recipe_manager.repository.recipe.RecipeIngredientRepository;
 @Service
 public class IngredientService {
 
+  /** Repository for recipe ingredient data access operations. */
   private final RecipeIngredientRepository recipeIngredientRepository;
+
+  /** Mapper for converting between RecipeIngredient entities and DTOs. */
   private final RecipeIngredientMapper recipeIngredientMapper;
 
   public IngredientService(

@@ -3,9 +3,11 @@ package com.recipe_manager.component_tests;
 import com.recipe_manager.config.RequestIdFilter;
 import com.recipe_manager.controller.RecipeManagementController;
 import com.recipe_manager.exception.GlobalExceptionHandler;
+import com.recipe_manager.model.mapper.RecipeIngredientMapper;
 import com.recipe_manager.model.mapper.RecipeMapper;
 import com.recipe_manager.model.mapper.RecipeStepMapper;
 import com.recipe_manager.repository.ingredient.IngredientRepository;
+import com.recipe_manager.repository.recipe.RecipeIngredientRepository;
 import com.recipe_manager.repository.recipe.RecipeRepository;
 import com.recipe_manager.repository.recipe.RecipeTagRepository;
 import com.recipe_manager.service.IngredientService;
@@ -56,9 +58,15 @@ public abstract class AbstractComponentTest {
   @Mock
   protected RecipeTagRepository recipeTagRepository;
 
-  // Real mapper for component testing
-  @Autowired
+  @Mock
+  protected RecipeIngredientRepository recipeIngredientRepository;
+
+  // Real mappers for component testing
+  @Autowired(required = false)
   protected RecipeMapper recipeMapper;
+
+  @Autowired(required = false)
+  protected RecipeIngredientMapper recipeIngredientMapper;
 
   @Mock
   protected RecipeStepMapper recipeStepMapper;
@@ -68,14 +76,20 @@ public abstract class AbstractComponentTest {
 
   // Real service instances for component testing with repository mocking
   protected RecipeService realRecipeService;
+  protected IngredientService realIngredientService;
 
   @BeforeEach
   protected void setUp() {
     MockitoAnnotations.openMocks(this);
 
-    // Create real service instance for repository-level component testing
-    realRecipeService = new RecipeService(
-        recipeRepository, ingredientRepository, recipeTagRepository, recipeMapper, recipeStepMapper);
+    // Create real service instances for repository-level component testing
+    if (recipeMapper != null) {
+      realRecipeService = new RecipeService(
+          recipeRepository, ingredientRepository, recipeTagRepository, recipeMapper, recipeStepMapper);
+    }
+    if (recipeIngredientMapper != null) {
+      realIngredientService = new IngredientService(recipeIngredientRepository, recipeIngredientMapper);
+    }
 
     mockMvc = MockMvcBuilders.standaloneSetup(controller)
         .addFilters(new RequestIdFilter())
@@ -90,6 +104,9 @@ public abstract class AbstractComponentTest {
    * Call this in tests that want to exercise real service logic.
    */
   protected void useRealRecipeService() {
+    if (realRecipeService == null) {
+      throw new RuntimeException("RecipeMapper not available in this test context");
+    }
     // Manually set the real service in the controller
     // Note: This is a bit hacky but necessary for proper component testing
     try {
@@ -98,6 +115,26 @@ public abstract class AbstractComponentTest {
       field.set(controller, realRecipeService);
     } catch (Exception e) {
       throw new RuntimeException("Failed to inject real RecipeService", e);
+    }
+  }
+
+  /**
+   * Switch to using real IngredientService with mocked repositories for proper
+   * component testing.
+   * Call this in tests that want to exercise real service logic.
+   */
+  protected void useRealIngredientService() {
+    if (realIngredientService == null) {
+      throw new RuntimeException("RecipeIngredientMapper not available in this test context");
+    }
+    // Manually set the real service in the controller
+    // Note: This is a bit hacky but necessary for proper component testing
+    try {
+      var field = RecipeManagementController.class.getDeclaredField("ingredientService");
+      field.setAccessible(true);
+      field.set(controller, realIngredientService);
+    } catch (Exception e) {
+      throw new RuntimeException("Failed to inject real IngredientService", e);
     }
   }
 }

@@ -27,7 +27,15 @@ class GetRecipeIngredientsComponentTest extends AbstractComponentTest {
   @BeforeEach
   protected void setUp() {
     super.setUp();
-    when(ingredientService.getIngredients(anyString())).thenReturn(ResponseEntity.ok("Get Ingredients - placeholder"));
+    // Create a mock response with proper DTO structure
+    com.recipe_manager.model.dto.response.RecipeIngredientsResponse mockResponse =
+        com.recipe_manager.model.dto.response.RecipeIngredientsResponse.builder()
+            .recipeId(123L)
+            .ingredients(java.util.Arrays.asList())
+            .totalCount(0)
+            .build();
+
+    when(ingredientService.getIngredients(anyString())).thenReturn(ResponseEntity.ok(mockResponse));
   }
 
   @Test
@@ -37,7 +45,7 @@ class GetRecipeIngredientsComponentTest extends AbstractComponentTest {
     mockMvc.perform(get("/recipe-management/recipes/123/ingredients")
         .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
-        .andExpect(content().string("Get Ingredients - placeholder"))
+        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
         .andExpect(header().exists("X-Request-ID"));
   }
 

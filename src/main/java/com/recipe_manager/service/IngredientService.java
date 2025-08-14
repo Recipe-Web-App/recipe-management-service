@@ -1,7 +1,15 @@
 package com.recipe_manager.service;
 
+import java.util.List;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+
+import com.recipe_manager.model.dto.recipe.RecipeIngredientDto;
+import com.recipe_manager.model.dto.response.RecipeIngredientsResponse;
+import com.recipe_manager.model.entity.recipe.RecipeIngredient;
+import com.recipe_manager.model.mapper.RecipeIngredientMapper;
+import com.recipe_manager.repository.recipe.RecipeIngredientRepository;
 
 /**
  * Service for ingredient-related operations.
@@ -11,14 +19,38 @@ import org.springframework.stereotype.Service;
 @Service
 public class IngredientService {
 
+  /** Repository for recipe ingredient data access operations. */
+  private final RecipeIngredientRepository recipeIngredientRepository;
+
+  /** Mapper for converting between RecipeIngredient entities and DTOs. */
+  private final RecipeIngredientMapper recipeIngredientMapper;
+
+  public IngredientService(
+      final RecipeIngredientRepository recipeIngredientRepository,
+      final RecipeIngredientMapper recipeIngredientMapper) {
+    this.recipeIngredientRepository = recipeIngredientRepository;
+    this.recipeIngredientMapper = recipeIngredientMapper;
+  }
+
   /**
    * Get ingredients for a recipe.
    *
    * @param recipeId the recipe ID
-   * @return placeholder response
+   * @return response with recipe ingredients
    */
-  public ResponseEntity<String> getIngredients(final String recipeId) {
-    return ResponseEntity.ok("Get Recipe Ingredients - placeholder");
+  public ResponseEntity<RecipeIngredientsResponse> getIngredients(final String recipeId) {
+    final Long id = Long.parseLong(recipeId);
+    final List<RecipeIngredient> ingredients = recipeIngredientRepository.findByRecipeRecipeId(id);
+    final List<RecipeIngredientDto> ingredientDtos = recipeIngredientMapper.toDtoList(ingredients);
+
+    final RecipeIngredientsResponse response =
+        RecipeIngredientsResponse.builder()
+            .recipeId(id)
+            .ingredients(ingredientDtos)
+            .totalCount(ingredientDtos.size())
+            .build();
+
+    return ResponseEntity.ok(response);
   }
 
   /**

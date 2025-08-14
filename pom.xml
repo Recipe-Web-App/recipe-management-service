@@ -386,7 +386,6 @@
           <source>${java.version}</source>
           <target>${java.version}</target>
           <compilerArgs>
-            <arg>-Amapstruct.verbose=true</arg>
             <arg>-Amapstruct.suppressGeneratorTimestamp=true</arg>
             <arg>-Amapstruct.suppressGeneratorVersionComment=true</arg>
           </compilerArgs>

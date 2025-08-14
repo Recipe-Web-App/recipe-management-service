@@ -121,7 +121,13 @@ class RecipeManagementControllerTest {
   @Tag("standard-processing")
   @DisplayName("Should handle GET /recipe-management/recipes/{recipeId}/ingredients")
   void shouldHandleGetIngredients() throws Exception {
-    when(ingredientService.getIngredients("1")).thenReturn(ResponseEntity.ok("Get Ingredients - placeholder"));
+    com.recipe_manager.model.dto.response.RecipeIngredientsResponse mockResponse =
+        com.recipe_manager.model.dto.response.RecipeIngredientsResponse.builder()
+            .recipeId(1L)
+            .ingredients(java.util.Arrays.asList())
+            .totalCount(0)
+            .build();
+    when(ingredientService.getIngredients("1")).thenReturn(ResponseEntity.ok(mockResponse));
 
     mockMvc.perform(get("/recipe-management/recipes/1/ingredients")
         .contentType(MediaType.APPLICATION_JSON))

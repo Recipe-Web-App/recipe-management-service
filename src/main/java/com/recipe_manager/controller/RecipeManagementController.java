@@ -29,6 +29,7 @@ import com.recipe_manager.service.TagService;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 
 /**
  * REST controller for Recipe Management API endpoints.
@@ -199,11 +200,11 @@ public class RecipeManagementController {
    *
    * @param recipeId the recipe ID
    * @param quantity the scale quantity
-   * @return placeholder response
+   * @return response with scaled recipe ingredients
    */
-  @GetMapping("/{recipeId}/ingredients/scale")
-  public ResponseEntity<String> scaleRecipeIngredients(
-      @PathVariable final String recipeId, @RequestParam final float quantity) {
+  @GetMapping(value = "/{recipeId}/ingredients/scale", produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<RecipeIngredientsResponse> scaleRecipeIngredients(
+      @PathVariable final String recipeId, @RequestParam @Min(0) final float quantity) {
     return ingredientService.scaleIngredients(recipeId, quantity);
   }
 

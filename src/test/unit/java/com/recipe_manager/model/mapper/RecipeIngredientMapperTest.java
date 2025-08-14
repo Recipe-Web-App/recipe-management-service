@@ -138,4 +138,122 @@ class RecipeIngredientMapperTest {
     assertThat(results.get(1).getQuantity()).isEqualTo(BigDecimal.valueOf(0.5));
     assertThat(results.get(1).getIsOptional()).isTrue();
   }
+
+  @Test
+  @Tag("standard-processing")
+  @DisplayName("Should map RecipeIngredient entity to RecipeIngredientDto with scaled quantity")
+  void shouldMapEntityToDtoWithScale() {
+    Ingredient ingredient = Ingredient.builder()
+        .ingredientId(5L)
+        .name("Sugar")
+        .build();
+
+    Recipe recipe = Recipe.builder()
+        .recipeId(10L)
+        .build();
+
+    RecipeIngredient entity = RecipeIngredient.builder()
+        .ingredient(ingredient)
+        .recipe(recipe)
+        .quantity(BigDecimal.valueOf(2.0))
+        .unit(IngredientUnit.CUP)
+        .isOptional(true)
+        .build();
+
+    float scaleFactor = 2.5f;
+    RecipeIngredientDto result = mapper.toDtoWithScale(entity, scaleFactor);
+
+    assertThat(result).isNotNull();
+    assertThat(result.getIngredientId()).isEqualTo(5L);
+    assertThat(result.getIngredientName()).isEqualTo("Sugar");
+    assertThat(result.getRecipeId()).isEqualTo(10L);
+    assertThat(result.getQuantity()).isEqualByComparingTo(BigDecimal.valueOf(5.0)); // 2.0 * 2.5 = 5.0
+    assertThat(result.getUnit()).isEqualTo(IngredientUnit.CUP);
+    assertThat(result.getIsOptional()).isTrue();
+  }
+
+  @Test
+  @Tag("standard-processing")
+  @DisplayName("Should map a list of RecipeIngredient entities to RecipeIngredientDto list with scaled quantities")
+  void shouldMapEntityListToDtoWithScale() {
+    Ingredient ingredient1 = Ingredient.builder()
+        .ingredientId(1L)
+        .name("Flour")
+        .build();
+
+    Ingredient ingredient2 = Ingredient.builder()
+        .ingredientId(2L)
+        .name("Sugar")
+        .build();
+
+    Recipe recipe = Recipe.builder()
+        .recipeId(10L)
+        .build();
+
+    RecipeIngredient entity1 = RecipeIngredient.builder()
+        .ingredient(ingredient1)
+        .recipe(recipe)
+        .quantity(BigDecimal.valueOf(1.0))
+        .unit(IngredientUnit.CUP)
+        .isOptional(false)
+        .build();
+
+    RecipeIngredient entity2 = RecipeIngredient.builder()
+        .ingredient(ingredient2)
+        .recipe(recipe)
+        .quantity(BigDecimal.valueOf(0.5))
+        .unit(IngredientUnit.CUP)
+        .isOptional(true)
+        .build();
+
+    float scaleFactor = 3.0f;
+    List<RecipeIngredientDto> results = mapper.toDtoListWithScale(List.of(entity1, entity2), scaleFactor);
+
+    assertThat(results).hasSize(2);
+    assertThat(results.get(0).getIngredientName()).isEqualTo("Flour");
+    assertThat(results.get(0).getQuantity()).isEqualByComparingTo(BigDecimal.valueOf(3.0)); // 1.0 * 3.0 = 3.0
+    assertThat(results.get(0).getIsOptional()).isFalse();
+    assertThat(results.get(1).getIngredientName()).isEqualTo("Sugar");
+    assertThat(results.get(1).getQuantity()).isEqualByComparingTo(BigDecimal.valueOf(1.5)); // 0.5 * 3.0 = 1.5
+    assertThat(results.get(1).getIsOptional()).isTrue();
+  }
+
+  @Test
+  @Tag("error-processing")
+  @DisplayName("Should handle zero scale factor")
+  void shouldHandleZeroScaleFactor() {
+    Ingredient ingredient = Ingredient.builder()
+        .ingredientId(1L)
+        .name("Salt")
+        .build();
+
+    Recipe recipe = Recipe.builder()
+        .recipeId(10L)
+        .build();
+
+    RecipeIngredient entity = RecipeIngredient.builder()
+        .ingredient(ingredient)
+        .recipe(recipe)
+        .quantity(BigDecimal.valueOf(1.0))
+        .unit(IngredientUnit.TSP)
+        .isOptional(false)
+        .build();
+
+    float scaleFactor = 0.0f;
+    RecipeIngredientDto result = mapper.toDtoWithScale(entity, scaleFactor);
+
+    assertThat(result).isNotNull();
+    assertThat(result.getQuantity()).isEqualByComparingTo(BigDecimal.valueOf(0.0)); // 1.0 * 0.0 = 0.0
+    assertThat(result.getIngredientName()).isEqualTo("Salt");
+  }
+
+  @Test
+  @Tag("standard-processing")
+  @DisplayName("Should handle empty list with scale factor")
+  void shouldHandleEmptyListWithScaleFactor() {
+    float scaleFactor = 2.0f;
+    List<RecipeIngredientDto> results = mapper.toDtoListWithScale(List.of(), scaleFactor);
+
+    assertThat(results).isEmpty();
+  }
 }

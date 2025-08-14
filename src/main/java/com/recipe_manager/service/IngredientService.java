@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import com.recipe_manager.exception.BusinessException;
 import com.recipe_manager.model.dto.recipe.RecipeIngredientDto;
 import com.recipe_manager.model.dto.response.RecipeIngredientsResponse;
 import com.recipe_manager.model.entity.recipe.RecipeIngredient;
@@ -39,7 +40,12 @@ public class IngredientService {
    * @return response with recipe ingredients
    */
   public ResponseEntity<RecipeIngredientsResponse> getIngredients(final String recipeId) {
-    final Long id = Long.parseLong(recipeId);
+    Long id;
+    try {
+      id = Long.parseLong(recipeId);
+    } catch (NumberFormatException e) {
+      throw new BusinessException("Invalid recipe ID: " + recipeId);
+    }
     final List<RecipeIngredient> ingredients = recipeIngredientRepository.findByRecipeRecipeId(id);
     final List<RecipeIngredientDto> ingredientDtos = recipeIngredientMapper.toDtoList(ingredients);
 
@@ -58,10 +64,28 @@ public class IngredientService {
    *
    * @param recipeId the recipe ID
    * @param quantity the scale quantity
-   * @return placeholder response
+   * @return response with scaled recipe ingredients
    */
-  public ResponseEntity<String> scaleIngredients(final String recipeId, final float quantity) {
-    return ResponseEntity.ok("Scale Recipe Ingredients - placeholder");
+  public ResponseEntity<RecipeIngredientsResponse> scaleIngredients(
+      final String recipeId, final float quantity) {
+    Long id;
+    try {
+      id = Long.parseLong(recipeId);
+    } catch (NumberFormatException e) {
+      throw new BusinessException("Invalid recipe ID: " + recipeId);
+    }
+    final List<RecipeIngredient> ingredients = recipeIngredientRepository.findByRecipeRecipeId(id);
+    final List<RecipeIngredientDto> scaledIngredientDtos =
+        recipeIngredientMapper.toDtoListWithScale(ingredients, quantity);
+
+    final RecipeIngredientsResponse response =
+        RecipeIngredientsResponse.builder()
+            .recipeId(id)
+            .ingredients(scaledIngredientDtos)
+            .totalCount(scaledIngredientDtos.size())
+            .build();
+
+    return ResponseEntity.ok(response);
   }
 
   /**

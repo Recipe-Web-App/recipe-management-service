@@ -21,12 +21,34 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.TestPropertySource;
+
+import com.recipe_manager.model.mapper.RecipeFavoriteMapperImpl;
+import com.recipe_manager.model.mapper.RecipeIngredientMapperImpl;
+import com.recipe_manager.model.mapper.RecipeMapperImpl;
+import com.recipe_manager.model.mapper.RecipeRevisionMapperImpl;
+import com.recipe_manager.model.mapper.RecipeStepMapperImpl;
+import com.recipe_manager.model.mapper.RecipeTagMapperImpl;
 
 /**
  * Component tests for DELETE /recipe-management/recipes/{recipeId} endpoint.
  * Tests recipe deletion with repository I/O mocked and real service logic.
  */
+@SpringBootTest(classes = {
+    RecipeMapperImpl.class,
+    RecipeIngredientMapperImpl.class,
+    RecipeStepMapperImpl.class,
+    RecipeFavoriteMapperImpl.class,
+    RecipeRevisionMapperImpl.class,
+    RecipeTagMapperImpl.class
+})
+@TestPropertySource(properties = {
+    "spring.datasource.url=jdbc:h2:mem:testdb",
+    "spring.jpa.hibernate.ddl-auto=none",
+    "spring.flyway.enabled=false"
+})
 @Tag("component")
 class DeleteRecipeComponentTest extends AbstractComponentTest {
 

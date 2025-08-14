@@ -432,6 +432,7 @@
           </execution>
         </executions>
       </plugin>
+
       <!-- Build-Helper: Allows multiple test roots -->
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
@@ -446,9 +447,9 @@
             <phase>generate-test-sources</phase>
             <configuration>
               <sources>
-                <source>src/test/unit/java</source>
-                <source>src/test/component/java</source>
-                <source>src/test/dependency/java</source>
+                <source>${project.basedir}/src/test/unit</source>
+                <source>${project.basedir}/src/test/component</source>
+                <source>${project.basedir}/src/test/dependency</source>
               </sources>
             </configuration>
           </execution>

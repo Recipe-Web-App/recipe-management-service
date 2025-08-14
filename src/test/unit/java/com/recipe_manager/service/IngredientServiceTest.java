@@ -1,12 +1,14 @@
 package com.recipe_manager.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
 
+import com.recipe_manager.exception.BusinessException;
 import com.recipe_manager.model.dto.recipe.RecipeIngredientDto;
 import com.recipe_manager.model.dto.response.RecipeIngredientsResponse;
 import com.recipe_manager.model.entity.ingredient.Ingredient;
@@ -94,15 +96,35 @@ class IngredientServiceTest {
   @DisplayName("Should scale ingredients successfully")
   void shouldScaleIngredientsSuccessfully() {
     // Given
-    String recipeId = "recipe-123";
-    float quantity = 2.5f;
+    String recipeId = "123";
+    Long id = 123L;
+    float scaleFactor = 2.5f;
+
+    RecipeIngredient ingredient1 = createMockRecipeIngredient(id, 1L, "Salt", new BigDecimal("1.0"),
+        IngredientUnit.TSP);
+    RecipeIngredient ingredient2 = createMockRecipeIngredient(id, 2L, "Pepper", new BigDecimal("0.5"),
+        IngredientUnit.TSP);
+    List<RecipeIngredient> ingredients = Arrays.asList(ingredient1, ingredient2);
+
+    RecipeIngredientDto scaledDto1 = createMockRecipeIngredientDto(id, 1L, "Salt", new BigDecimal("2.5"), IngredientUnit.TSP);
+    RecipeIngredientDto scaledDto2 = createMockRecipeIngredientDto(id, 2L, "Pepper", new BigDecimal("1.25"),
+        IngredientUnit.TSP);
+    List<RecipeIngredientDto> scaledDtos = Arrays.asList(scaledDto1, scaledDto2);
+
+    when(recipeIngredientRepository.findByRecipeRecipeId(id)).thenReturn(ingredients);
+    when(recipeIngredientMapper.toDtoListWithScale(ingredients, scaleFactor)).thenReturn(scaledDtos);
 
     // When
-    ResponseEntity<String> response = ingredientService.scaleIngredients(recipeId, quantity);
+    ResponseEntity<RecipeIngredientsResponse> response = ingredientService.scaleIngredients(recipeId, scaleFactor);
 
     // Then
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-    assertThat(response.getBody()).isEqualTo("Scale Recipe Ingredients - placeholder");
+    assertThat(response.getBody()).isNotNull();
+    assertThat(response.getBody().getRecipeId()).isEqualTo(id);
+    assertThat(response.getBody().getIngredients()).hasSize(2);
+    assertThat(response.getBody().getTotalCount()).isEqualTo(2);
+    assertThat(response.getBody().getIngredients().get(0).getQuantity()).isEqualTo(new BigDecimal("2.5"));
+    assertThat(response.getBody().getIngredients().get(1).getQuantity()).isEqualTo(new BigDecimal("1.25"));
   }
 
   @Test
@@ -224,12 +246,11 @@ class IngredientServiceTest {
     String invalidRecipeId = "invalid";
 
     // When/Then
-    try {
+    BusinessException exception = assertThrows(BusinessException.class, () -> {
       ingredientService.getIngredients(invalidRecipeId);
-      // Should throw NumberFormatException for non-numeric ID
-    } catch (NumberFormatException e) {
-      assertThat(e).isInstanceOf(NumberFormatException.class);
-    }
+    });
+
+    assertThat(exception.getMessage()).isEqualTo("Invalid recipe ID: invalid");
   }
 
   private RecipeIngredient createMockRecipeIngredient(Long recipeId, Long ingredientId, String ingredientName,
@@ -279,11 +300,27 @@ class IngredientServiceTest {
   @Tag("standard-processing")
   @DisplayName("Should handle zero quantity scaling gracefully")
   void shouldHandleZeroQuantityScalingGracefully() {
+    // Given
+    String recipeId = "123";
+    Long id = 123L;
+    float scaleFactor = 0.0f;
+
+    RecipeIngredient ingredient1 = createMockRecipeIngredient(id, 1L, "Salt", new BigDecimal("1.0"),
+        IngredientUnit.TSP);
+    List<RecipeIngredient> ingredients = Arrays.asList(ingredient1);
+
+    RecipeIngredientDto scaledDto1 = createMockRecipeIngredientDto(id, 1L, "Salt", new BigDecimal("0.0"), IngredientUnit.TSP);
+    List<RecipeIngredientDto> scaledDtos = Arrays.asList(scaledDto1);
+
+    when(recipeIngredientRepository.findByRecipeRecipeId(id)).thenReturn(ingredients);
+    when(recipeIngredientMapper.toDtoListWithScale(ingredients, scaleFactor)).thenReturn(scaledDtos);
+
     // When
-    ResponseEntity<String> response = ingredientService.scaleIngredients("recipe-123", 0.0f);
+    ResponseEntity<RecipeIngredientsResponse> response = ingredientService.scaleIngredients(recipeId, scaleFactor);
 
     // Then
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-    assertThat(response.getBody()).isEqualTo("Scale Recipe Ingredients - placeholder");
+    assertThat(response.getBody()).isNotNull();
+    assertThat(response.getBody().getIngredients().get(0).getQuantity()).isEqualTo(new BigDecimal("0.0"));
   }
 }

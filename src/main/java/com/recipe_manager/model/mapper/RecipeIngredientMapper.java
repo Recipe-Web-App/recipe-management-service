@@ -49,4 +49,36 @@ public interface RecipeIngredientMapper {
    * @return the mapped list of RecipeIngredientDto
    */
   List<RecipeIngredientDto> toDtoList(List<RecipeIngredient> entities);
+
+  /**
+   * Maps a RecipeIngredient entity to a RecipeIngredientDto with scaled quantity.
+   *
+   * @param entity the RecipeIngredient entity
+   * @param scaleFactor the factor to scale the quantity by
+   * @return the mapped RecipeIngredientDto with scaled quantity
+   */
+  @Mapping(target = "ingredientId", expression = "java(entity.getIngredient().getIngredientId())")
+  @Mapping(target = "ingredientName", expression = "java(entity.getIngredient().getName())")
+  @Mapping(target = "recipeId", expression = "java(entity.getRecipe().getRecipeId())")
+  @Mapping(
+      target = "quantity",
+      expression = "java(entity.getQuantity().multiply(java.math.BigDecimal.valueOf(scaleFactor)))")
+  @Mapping(target = "unit", expression = "java(entity.getUnit())")
+  @Mapping(target = "isOptional", expression = "java(entity.getIsOptional())")
+  RecipeIngredientDto toDtoWithScale(RecipeIngredient entity, float scaleFactor);
+
+  /**
+   * Maps a list of RecipeIngredient entities to a list of RecipeIngredientDto with scaled
+   * quantities.
+   *
+   * @param entities the list of RecipeIngredient entities
+   * @param scaleFactor the factor to scale the quantities by
+   * @return the mapped list of RecipeIngredientDto with scaled quantities
+   */
+  default List<RecipeIngredientDto> toDtoListWithScale(
+      List<RecipeIngredient> entities, float scaleFactor) {
+    return entities.stream()
+        .map(entity -> toDtoWithScale(entity, scaleFactor))
+        .collect(java.util.stream.Collectors.toList());
+  }
 }

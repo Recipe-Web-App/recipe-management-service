@@ -1,12 +1,12 @@
 ---
 repos:
-  # YAML formatting and linting
+  # File formatting
   - repo: https://github.com/pre-commit/mirrors-prettier
     rev: v4.0.0-alpha.8
     hooks:
       - id: prettier
-        types: [yaml]
-        args: [--parser=yaml]
+        types: [yaml, json, xml]
+        additional_dependencies: [prettier-plugin-xml]
 
   - repo: https://github.com/adrienverge/yamllint
     rev: v1.37.1
@@ -14,13 +14,6 @@ repos:
       - id: yamllint
         args: [--strict]
 
-  # JSON formatting
-  - repo: https://github.com/pre-commit/mirrors-prettier
-    rev: v4.0.0-alpha.8
-    hooks:
-      - id: prettier
-        types: [json]
-        args: [--parser=json]
 
   # Shell script linting
   - repo: https://github.com/shellcheck-py/shellcheck-py
@@ -29,13 +22,6 @@ repos:
       - id: shellcheck
         args: [--severity=warning]
 
-  # XML formatting
-  - repo: https://github.com/pre-commit/mirrors-prettier
-    rev: v4.0.0-alpha.8
-    hooks:
-      - id: prettier
-        types: [xml]
-        additional_dependencies: [prettier-plugin-xml]
 
   # Conventional commits validation
   - repo: https://github.com/compilerla/conventional-pre-commit
@@ -114,14 +100,6 @@ repos:
         args: ['pmd:check']
         types: [java]
 
-      - id: maven-imports
-        name: Maven Import Sorter
-        entry: mvn
-        language: system
-        pass_filenames: false
-        always_run: true
-        args: ['sortpom:sort']
-        types: [java]
 
       - id: spotless-apply
         name: spotless-apply

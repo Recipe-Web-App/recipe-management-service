@@ -2,9 +2,11 @@ package com.recipe_manager;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.openfeign.EnableFeignClients;
 
 /** Entry point for the Recipe Manager Service Spring Boot application. */
 @SpringBootApplication
+@EnableFeignClients(basePackages = "com.recipe_manager.client.recipescraper")
 public final class RecipeManagerServiceApplication {
 
   /** Private constructor to prevent instantiation of utility class. */

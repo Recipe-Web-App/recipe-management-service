@@ -1,9 +1,12 @@
 package com.recipe_manager.config;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.recipe_manager.security.JwtAuthenticationFilter;
 
@@ -12,7 +15,11 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.DefaultSecurityFilterChain;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 
 /**
@@ -101,7 +108,63 @@ class SecurityConfigTest {
     SecurityConfig config = new SecurityConfig();
     HttpSecurity http = mock(HttpSecurity.class, RETURNS_DEEP_STUBS);
     JwtAuthenticationFilter jwtFilter = mock(JwtAuthenticationFilter.class);
-    // This test ensures the method executes and configures the chain
-    assertNotNull(config.filterChain(http, jwtFilter));
+    DefaultSecurityFilterChain filterChain = mock(DefaultSecurityFilterChain.class);
+
+    when(http.build()).thenReturn(filterChain);
+
+    SecurityFilterChain result = config.filterChain(http, jwtFilter);
+    assertNotNull(result);
+    verify(http).build();
+  }
+
+  @Test
+  @Tag("standard-processing")
+  @DisplayName("Should configure security filter chain with all components")
+  void shouldConfigureSecurityFilterChain() throws Exception {
+    SecurityConfig config = new SecurityConfig();
+    HttpSecurity http = mock(HttpSecurity.class, RETURNS_DEEP_STUBS);
+    JwtAuthenticationFilter jwtFilter = mock(JwtAuthenticationFilter.class);
+
+    when(http.build()).thenReturn(mock(DefaultSecurityFilterChain.class));
+
+    SecurityFilterChain result = config.filterChain(http, jwtFilter);
+    assertNotNull(result);
+
+    // Verify that build was called at the end
+    verify(http).build();
+  }
+
+  @Test
+  @Tag("standard-processing")
+  @DisplayName("Should create BCrypt password encoder")
+  void shouldCreateBCryptPasswordEncoder() {
+    SecurityConfig config = new SecurityConfig();
+    PasswordEncoder encoder = config.passwordEncoder();
+    assertNotNull(encoder);
+    assertTrue(encoder instanceof BCryptPasswordEncoder);
+  }
+
+  @Test
+  @Tag("standard-processing")
+  @DisplayName("Should configure CORS with correct max age")
+  void shouldConfigureCorsWithCorrectMaxAge() {
+    SecurityConfig config = new SecurityConfig();
+    CorsConfigurationSource source = config.corsConfigurationSource();
+    MockHttpServletRequest req = new MockHttpServletRequest();
+    CorsConfiguration cors = source.getCorsConfiguration(req);
+    assertNotNull(cors);
+    assertEquals(3600L, cors.getMaxAge());
+  }
+
+  @Test
+  @Tag("standard-processing")
+  @DisplayName("Should verify CORS allows credentials")
+  void shouldVerifyCorsAllowsCredentials() {
+    SecurityConfig config = new SecurityConfig();
+    CorsConfigurationSource source = config.corsConfigurationSource();
+    MockHttpServletRequest req = new MockHttpServletRequest();
+    CorsConfiguration cors = source.getCorsConfiguration(req);
+    assertNotNull(cors);
+    assertTrue(cors.getAllowCredentials());
   }
 }

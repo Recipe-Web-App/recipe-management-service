@@ -87,6 +87,43 @@ com.recipe_manager/
 - **Coverage Target**: 90% minimum (enforced by JaCoCo)
 - **Test Data**: Use Datafaker for realistic test data generation
 
+### Component Test Guidelines
+
+Component tests should test the actual service logic while only mocking
+repository/external dependencies:
+
+- **DO**: Mock repositories (`@Mock RecipeRepository`, `@Mock RecipeIngredientRepository`)
+- **DO**: Use real services (`useRealRecipeService()`, `useRealIngredientService()`)
+- **DO**: Use real mappers (`@SpringBootTest` with mapper implementations)
+- **DON'T**: Mock service layer in component tests - this defeats the purpose
+- **Pattern**: Follow existing tests in `src/test/component/java/com/recipe_manager/component_tests/recipe_service/`
+
+Example component test setup:
+
+```java
+@SpringBootTest(classes = {RecipeIngredientMapperImpl.class, ShoppingListMapperImpl.class})
+@TestPropertySource(properties = {
+    "spring.datasource.url=jdbc:h2:mem:testdb",
+    "spring.jpa.hibernate.ddl-auto=none",
+    "spring.flyway.enabled=false"
+})
+@Tag("component")
+class MyComponentTest extends AbstractComponentTest {
+    @BeforeEach
+    protected void setUp() {
+        super.setUp();
+        useRealIngredientService(); // Test real service logic
+    }
+
+    @Test
+    void shouldTestRealServiceLogic() {
+        // Mock repository data
+        when(recipeIngredientRepository.findByRecipeRecipeId(123L)).thenReturn(mockData);
+        // Test endpoint - exercises real service + mapper logic
+    }
+}
+```
+
 ## Security and Authentication
 
 ### JWT Integration
@@ -111,6 +148,20 @@ com.recipe_manager/
 - **Static Analysis**: SpotBugs, PMD, Checkstyle (all must pass)
 - **Code Coverage**: 90% minimum instruction coverage
 - **Documentation**: Javadoc required for public APIs
+
+### Unit Test Requirements
+
+- **MANDATORY**: Every new file created must have corresponding unit tests
+  before proceeding to the next file
+- **No Exceptions**: This applies to all classes including DTOs, services,
+  controllers, mappers, exceptions, and utilities
+- **Test Location**: Unit tests must be placed in
+  `src/test/unit/java/com/recipe_manager/unit_tests/` following the package
+  structure
+- **Test Naming**: Test classes must be named `{ClassName}Test.java`
+- **Test Tags**: All unit tests must include `@Tag("unit")` annotation
+- **Coverage**: Each new file must achieve minimum 85% test coverage before
+  moving to next file
 
 ### Annotation Processing
 

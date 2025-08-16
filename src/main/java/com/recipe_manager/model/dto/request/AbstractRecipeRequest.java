@@ -11,13 +11,9 @@ import com.recipe_manager.model.enums.DifficultyLevel;
 
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
-import lombok.Builder.Default;
+import lombok.Builder;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 
 /**
@@ -25,13 +21,9 @@ import lombok.experimental.SuperBuilder;
  * constructors, and logic.
  */
 @Data
-@Getter
-@Setter
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 @SuperBuilder
-@EqualsAndHashCode
-@ToString
 public abstract class AbstractRecipeRequest {
   /** The recipe title. */
   private String title;
@@ -55,11 +47,11 @@ public abstract class AbstractRecipeRequest {
   private DifficultyLevel difficulty;
 
   /** The list of ingredients. */
-  @Valid @Default private List<RecipeIngredientDto> ingredients = new ArrayList<>();
+  @Valid @Builder.Default private List<RecipeIngredientDto> ingredients = new ArrayList<>();
 
   /** The list of steps. */
-  @Valid @Default private List<RecipeStepDto> steps = new ArrayList<>();
+  @Valid @Builder.Default private List<RecipeStepDto> steps = new ArrayList<>();
 
   /** The list of tags. */
-  @Valid @Default private List<RecipeTagDto> tags = new ArrayList<>();
+  @Valid @Builder.Default private List<RecipeTagDto> tags = new ArrayList<>();
 }

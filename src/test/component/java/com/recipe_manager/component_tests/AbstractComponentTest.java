@@ -6,6 +6,7 @@ import com.recipe_manager.exception.GlobalExceptionHandler;
 import com.recipe_manager.model.mapper.RecipeIngredientMapper;
 import com.recipe_manager.model.mapper.RecipeMapper;
 import com.recipe_manager.model.mapper.RecipeStepMapper;
+import com.recipe_manager.model.mapper.ShoppingListMapper;
 import com.recipe_manager.repository.ingredient.IngredientRepository;
 import com.recipe_manager.repository.recipe.RecipeIngredientRepository;
 import com.recipe_manager.repository.recipe.RecipeRepository;
@@ -16,6 +17,7 @@ import com.recipe_manager.service.RecipeService;
 import com.recipe_manager.service.ReviewService;
 import com.recipe_manager.service.StepService;
 import com.recipe_manager.service.TagService;
+import com.recipe_manager.service.external.RecipeScraperService;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.mockito.InjectMocks;
@@ -48,6 +50,9 @@ public abstract class AbstractComponentTest {
   @Mock
   protected ReviewService reviewService;
 
+  @Mock
+  protected RecipeScraperService recipeScraperService;
+
   // Repository mocks for proper component testing
   @Mock
   protected RecipeRepository recipeRepository;
@@ -67,6 +72,9 @@ public abstract class AbstractComponentTest {
 
   @Autowired(required = false)
   protected RecipeIngredientMapper recipeIngredientMapper;
+
+  @Autowired(required = false)
+  protected ShoppingListMapper shoppingListMapper;
 
   @Mock
   protected RecipeStepMapper recipeStepMapper;
@@ -88,7 +96,8 @@ public abstract class AbstractComponentTest {
           recipeRepository, ingredientRepository, recipeTagRepository, recipeMapper, recipeStepMapper);
     }
     if (recipeIngredientMapper != null) {
-      realIngredientService = new IngredientService(recipeIngredientRepository, recipeIngredientMapper);
+      realIngredientService = new IngredientService(recipeIngredientRepository, recipeIngredientMapper,
+          shoppingListMapper, recipeScraperService);
     }
 
     mockMvc = MockMvcBuilders.standaloneSetup(controller)

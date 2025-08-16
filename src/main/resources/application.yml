@@ -132,3 +132,92 @@ app:
       enabled: true
     tracing:
       enabled: true
+
+# External services configuration
+external:
+  services:
+    recipe-scraper:
+      base-url: ${RECIPE_SCRAPER_BASE_URL:http://recipe.local}
+      shopping-info-path: /api/recipe-scraper/recipes/{recipeId}/shopping-info
+      enabled: ${RECIPE_SCRAPER_ENABLED:true}
+      timeout: ${RECIPE_SCRAPER_TIMEOUT:5s}
+      api-key: ${RECIPE_SCRAPER_API_KEY:}
+    common:
+      connect-timeout: ${EXTERNAL_SERVICES_CONNECT_TIMEOUT:3s}
+      read-timeout: ${EXTERNAL_SERVICES_READ_TIMEOUT:10s}
+      max-connections-per-route: ${EXTERNAL_SERVICES_MAX_CONN_PER_ROUTE:20}
+      max-total-connections: ${EXTERNAL_SERVICES_MAX_TOTAL_CONN:100}
+      log-requests: ${EXTERNAL_SERVICES_LOG_REQUESTS:false}
+      enable-tracing: ${EXTERNAL_SERVICES_ENABLE_TRACING:true}
+
+# Resilience configuration
+resilience:
+  circuit-breaker:
+    failure-rate-threshold: ${CIRCUIT_BREAKER_FAILURE_RATE:50.0}
+    wait-duration-in-open-state: ${CIRCUIT_BREAKER_WAIT_DURATION:30s}
+    sliding-window-size: ${CIRCUIT_BREAKER_SLIDING_WINDOW:10}
+    minimum-number-of-calls: ${CIRCUIT_BREAKER_MIN_CALLS:5}
+    permitted-number-of-calls-in-half-open-state: ${CIRCUIT_BREAKER_HALF_OPEN_CALLS:3}
+  retry:
+    max-retry-attempts: ${RETRY_MAX_ATTEMPTS:3}
+    wait-duration: ${RETRY_WAIT_DURATION:500ms}
+    exponential-backoff-multiplier: ${RETRY_BACKOFF_MULTIPLIER:2.0}
+    max-wait-duration: ${RETRY_MAX_WAIT_DURATION:5s}
+  rate-limiter:
+    limit-for-period: ${RATE_LIMITER_LIMIT:10}
+    limit-refresh-period: ${RATE_LIMITER_PERIOD:1s}
+    timeout-duration: ${RATE_LIMITER_TIMEOUT:100ms}
+  bulkhead:
+    max-concurrent-calls: ${BULKHEAD_MAX_CALLS:5}
+    max-wait-duration: ${BULKHEAD_MAX_WAIT:100ms}
+
+# Cache configuration
+cache:
+  external-services:
+    recipe-scraper-ttl: ${CACHE_RECIPE_SCRAPER_TTL:10m}
+    recipe-scraper-max-size: ${CACHE_RECIPE_SCRAPER_MAX_SIZE:1000}
+    enable-stats: ${CACHE_ENABLE_STATS:true}
+
+# Resilience4j configuration
+resilience4j:
+  circuitbreaker:
+    instances:
+      recipe-scraper:
+        failure-rate-threshold: ${CIRCUIT_BREAKER_FAILURE_RATE:50.0}
+        wait-duration-in-open-state: ${CIRCUIT_BREAKER_WAIT_DURATION:30s}
+        sliding-window-size: ${CIRCUIT_BREAKER_SLIDING_WINDOW:10}
+        minimum-number-of-calls: ${CIRCUIT_BREAKER_MIN_CALLS:5}
+        permitted-number-of-calls-in-half-open-state: ${CIRCUIT_BREAKER_HALF_OPEN_CALLS:3}
+        register-health-indicator: true
+        record-exceptions:
+          - com.recipe_manager.exception.ExternalServiceException
+          - com.recipe_manager.exception.RecipeScraperException
+          - feign.FeignException
+        ignore-exceptions:
+          - java.lang.IllegalArgumentException
+  retry:
+    instances:
+      recipe-scraper:
+        max-attempts: ${RETRY_MAX_ATTEMPTS:3}
+        wait-duration: ${RETRY_WAIT_DURATION:500ms}
+        exponential-backoff-multiplier: ${RETRY_BACKOFF_MULTIPLIER:2.0}
+        max-wait-duration: ${RETRY_MAX_WAIT_DURATION:5s}
+        retry-exceptions:
+          - com.recipe_manager.exception.ExternalServiceTimeoutException
+          - feign.FeignException$InternalServerError
+          - feign.FeignException$BadGateway
+          - feign.FeignException$ServiceUnavailable
+          - feign.FeignException$GatewayTimeout
+        ignore-exceptions:
+          - feign.FeignException$BadRequest
+          - feign.FeignException$NotFound
+  timelimiter:
+    instances:
+      recipe-scraper:
+        timeout-duration: ${RECIPE_SCRAPER_TIMEOUT:5s}
+        cancel-running-future: true
+  bulkhead:
+    instances:
+      recipe-scraper:
+        max-concurrent-calls: ${BULKHEAD_MAX_CALLS:5}
+        max-wait-duration: ${BULKHEAD_MAX_WAIT:100ms}

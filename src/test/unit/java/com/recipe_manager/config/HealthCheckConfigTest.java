@@ -2,6 +2,7 @@ package com.recipe_manager.config;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -62,10 +63,12 @@ class HealthCheckConfigTest {
   @DisplayName("Should create databaseHealthIndicator and return down on exception")
   void shouldCreateDatabaseHealthIndicatorDown() {
     JdbcTemplate jdbcTemplate = mock(JdbcTemplate.class);
-    when(jdbcTemplate.queryForObject(anyString(), eq(Integer.class))).thenThrow(new RuntimeException("fail"));
+    when(jdbcTemplate.queryForObject(anyString(), eq(Integer.class))).thenThrow(new RuntimeException("Connection failed"));
     HealthIndicator indicator = new HealthCheckConfig().databaseHealthIndicator(jdbcTemplate);
     Health health = indicator.health();
     assertEquals("disconnected", health.getDetails().get("status"));
+    assertEquals("PostgreSQL", health.getDetails().get("database"));
+    assertEquals("Connection failed", health.getDetails().get("error"));
     assertEquals("DOWN", health.getStatus().getCode());
   }
 
@@ -97,6 +100,8 @@ class HealthCheckConfigTest {
     Health health = indicator.health();
     assertEquals("UP", health.getStatus().getCode());
     assertEquals("Recipe Manager Service", health.getDetails().get("application"));
+    assertEquals("0.1.0", health.getDetails().get("version"));
+    assertEquals("running", health.getDetails().get("status"));
   }
 
   @Test
@@ -110,32 +115,42 @@ class HealthCheckConfigTest {
 
   @Test
   @Tag("error-processing")
-  @DisplayName("Should force diskSpaceHealthIndicator to WARNING and DOWN")
-  void shouldForceDiskSpaceHealthIndicatorWarningAndDown() throws Exception {
+  @DisplayName("Should test diskSpaceHealthIndicator with various scenarios")
+  void shouldTestDiskSpaceHealthIndicatorScenarios() throws Exception {
     HealthCheckConfig config = new HealthCheckConfig();
-    /*
-     * Can't mock File due to Java module restrictions, so just test the method
-     * executes
-     */
     HealthIndicator indicator = config.diskSpaceHealthIndicator();
     Health health = indicator.health();
     assertNotNull(health.getStatus());
     assertNotNull(health.getDetails());
+
+    // Verify that the health object contains expected details
+    assertTrue(health.getDetails().containsKey("disk.usage.percentage"));
+    assertTrue(health.getDetails().containsKey("disk.free.space"));
+    assertTrue(health.getDetails().containsKey("disk.total.space"));
+
+    // The status should be one of UP, WARNING, or DOWN
+    String status = health.getStatus().getCode();
+    assertTrue("UP".equals(status) || "WARNING".equals(status) || "DOWN".equals(status));
   }
 
   @Test
   @Tag("error-processing")
-  @DisplayName("Should force memoryHealthIndicator to WARNING and DOWN")
-  void shouldForceMemoryHealthIndicatorWarningAndDown() throws Exception {
+  @DisplayName("Should test memoryHealthIndicator with various scenarios")
+  void shouldTestMemoryHealthIndicatorScenarios() throws Exception {
     HealthCheckConfig config = new HealthCheckConfig();
-    /*
-     * Can't mock MemoryMXBean due to Java module restrictions, so just test the
-     * method executes
-     */
     HealthIndicator indicator = config.memoryHealthIndicator();
     Health health = indicator.health();
     assertNotNull(health.getStatus());
     assertNotNull(health.getDetails());
+
+    // Verify that the health object contains expected details
+    assertTrue(health.getDetails().containsKey("memory.heap.usage.percentage"));
+    assertTrue(health.getDetails().containsKey("memory.heap.used"));
+    assertTrue(health.getDetails().containsKey("memory.heap.max"));
+
+    // The status should be one of UP, WARNING, or DOWN
+    String status = health.getStatus().getCode();
+    assertTrue("UP".equals(status) || "WARNING".equals(status) || "DOWN".equals(status));
   }
 
   @Test
@@ -145,9 +160,25 @@ class HealthCheckConfigTest {
     HealthCheckConfig config = new HealthCheckConfig();
     java.lang.reflect.Method m = HealthCheckConfig.class.getDeclaredMethod("formatBytes", long.class);
     m.setAccessible(true);
+
+    // Test bytes
+    assertEquals("0 B", m.invoke(config, 0L));
+    assertEquals("1 B", m.invoke(config, 1L));
     assertEquals("512 B", m.invoke(config, 512L));
+    assertEquals("1023 B", m.invoke(config, 1023L));
+
+    // Test kilobytes
     assertEquals("1.00 KB", m.invoke(config, 1024L));
+    assertEquals("2.50 KB", m.invoke(config, 2560L));
+    assertEquals("1023.00 KB", m.invoke(config, 1024L * 1023L));
+
+    // Test megabytes
     assertEquals("1.00 MB", m.invoke(config, 1024L * 1024L));
+    assertEquals("2.50 MB", m.invoke(config, (long)(1024L * 1024L * 2.5)));
+    assertEquals("1023.00 MB", m.invoke(config, 1024L * 1024L * 1023L));
+
+    // Test gigabytes
     assertEquals("1.00 GB", m.invoke(config, 1024L * 1024L * 1024L));
+    assertEquals("2.50 GB", m.invoke(config, (long)(1024L * 1024L * 1024L * 2.5)));
   }
 }

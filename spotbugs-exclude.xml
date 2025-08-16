@@ -29,4 +29,25 @@
     <Class name="~.*Builder"/>
     <Bug pattern="EI_EXPOSE_REP,EI_EXPOSE_REP2"/>
   </Match>
+
+  <!-- Suppress SS_SHOULD_BE_STATIC for Spring Configuration Properties -->
+  <!-- These fields are used by Spring's configuration property binding and must be instance fields -->
+  <Match>
+    <Class name="~.*\.config\..*Config.*"/>
+    <Bug pattern="SS_SHOULD_BE_STATIC"/>
+  </Match>
+
+  <!-- Suppress UWF_NULL_FIELD for optional configuration fields -->
+  <!-- These fields are set to null as default values and may be overridden by properties -->
+  <Match>
+    <Class name="~.*\.config\..*Config.*"/>
+    <Bug pattern="UWF_NULL_FIELD"/>
+  </Match>
+
+  <!-- Suppress EI_EXPOSE_REP warnings for Spring Configuration Properties -->
+  <!-- Configuration classes need to expose their internal state for Spring binding -->
+  <Match>
+    <Class name="~.*\.config\..*Config.*"/>
+    <Bug pattern="EI_EXPOSE_REP,EI_EXPOSE_REP2"/>
+  </Match>
 </FindBugsFilter>

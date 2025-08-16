@@ -30,4 +30,13 @@ public final class SecurityUtils {
       throw new IllegalStateException("Authenticated user ID is not a valid UUID", e);
     }
   }
+
+  /**
+   * Generates a correlation ID for request tracing across services.
+   *
+   * @return a unique correlation ID
+   */
+  public static String generateCorrelationId() {
+    return UUID.randomUUID().toString();
+  }
 }

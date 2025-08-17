@@ -15,12 +15,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
-import lombok.experimental.SuperBuilder;
-
-@SuperBuilder
-class TestRecipeRequest extends AbstractRecipeRequest {
-}
-
 @Tag("unit")
 class AbstractRecipeRequestTest {
   @Test

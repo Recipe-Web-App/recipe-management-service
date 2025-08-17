@@ -20,6 +20,7 @@ import com.recipe_manager.model.dto.request.SearchRecipesRequest;
 import com.recipe_manager.model.dto.request.UpdateRecipeRequest;
 import com.recipe_manager.model.dto.response.RecipeIngredientsResponse;
 import com.recipe_manager.model.dto.response.SearchRecipesResponse;
+import com.recipe_manager.model.dto.response.ShoppingListResponse;
 import com.recipe_manager.service.IngredientService;
 import com.recipe_manager.service.MediaService;
 import com.recipe_manager.service.RecipeService;
@@ -212,10 +213,13 @@ public class RecipeManagementController {
    * Generate shopping list.
    *
    * @param recipeId the recipe ID
-   * @return placeholder response
+   * @return response with shopping list
    */
-  @GetMapping("/{recipeId}/ingredients/shopping-list")
-  public ResponseEntity<String> generateShoppingList(@PathVariable final String recipeId) {
+  @GetMapping(
+      value = "/{recipeId}/ingredients/shopping-list",
+      produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<ShoppingListResponse> generateShoppingList(
+      @PathVariable final String recipeId) {
     return ingredientService.generateShoppingList(recipeId);
   }
 

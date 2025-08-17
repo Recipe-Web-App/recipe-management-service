@@ -77,8 +77,6 @@ public interface RecipeIngredientMapper {
    */
   default List<RecipeIngredientDto> toDtoListWithScale(
       List<RecipeIngredient> entities, float scaleFactor) {
-    return entities.stream()
-        .map(entity -> toDtoWithScale(entity, scaleFactor))
-        .collect(java.util.stream.Collectors.toList());
+    return entities.stream().map(entity -> toDtoWithScale(entity, scaleFactor)).toList();
   }
 }

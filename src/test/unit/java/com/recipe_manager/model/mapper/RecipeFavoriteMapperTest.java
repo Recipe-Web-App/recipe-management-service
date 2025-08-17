@@ -128,4 +128,68 @@ class RecipeFavoriteMapperTest {
     assertThat(result.getUserId()).isEqualTo(userId);
     assertThat(result.getFavoritedAt()).isEqualTo(favoritedAt);
   }
+
+  @Test
+  @DisplayName("Should handle null RecipeFavorite entity")
+  void shouldHandleNullRecipeFavoriteEntity() {
+    RecipeFavoriteDto result = mapper.toDto(null);
+    assertThat(result).isNull();
+  }
+
+  @Test
+  @DisplayName("Should handle RecipeFavorite with null id")
+  void shouldHandleRecipeFavoriteWithNullId() {
+    LocalDateTime favoritedAt = LocalDateTime.now();
+    Recipe recipe = Recipe.builder()
+        .recipeId(123L)
+        .build();
+    RecipeFavorite favoriteWithNullId = RecipeFavorite.builder()
+        .id(null)
+        .recipe(recipe)
+        .favoritedAt(favoritedAt)
+        .build();
+    RecipeFavoriteDto result = mapper.toDto(favoriteWithNullId);
+    assertThat(result).isNotNull();
+    assertThat(result.getRecipeId()).isEqualTo(123L);
+    assertThat(result.getUserId()).isNull();
+    assertThat(result.getFavoritedAt()).isEqualTo(favoritedAt);
+  }
+
+  @Test
+  @DisplayName("Should handle null list")
+  void shouldHandleNullList() {
+    List<RecipeFavoriteDto> result = mapper.toDtoList(null);
+    assertThat(result).isNull();
+  }
+
+  @Test
+  @DisplayName("Should handle empty list")
+  void shouldHandleEmptyList() {
+    List<RecipeFavoriteDto> result = mapper.toDtoList(List.of());
+    assertThat(result).isNotNull();
+    assertThat(result).isEmpty();
+  }
+
+  @Test
+  @DisplayName("Should handle RecipeFavorite with null favoritedAt")
+  void shouldHandleRecipeFavoriteWithNullFavoritedAt() {
+    UUID userId = UUID.randomUUID();
+    Recipe recipe = Recipe.builder()
+        .recipeId(123L)
+        .build();
+    RecipeFavoriteId id = RecipeFavoriteId.builder()
+        .userId(userId)
+        .recipeId(123L)
+        .build();
+    RecipeFavorite favoriteWithNullDate = RecipeFavorite.builder()
+        .id(id)
+        .recipe(recipe)
+        .favoritedAt(null)
+        .build();
+    RecipeFavoriteDto result = mapper.toDto(favoriteWithNullDate);
+    assertThat(result).isNotNull();
+    assertThat(result.getRecipeId()).isEqualTo(123L);
+    assertThat(result.getUserId()).isEqualTo(userId);
+    assertThat(result.getFavoritedAt()).isNull();
+  }
 }

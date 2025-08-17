@@ -12,6 +12,8 @@ import lombok.experimental.SuperBuilder;
 
 @SuperBuilder
 public class TestMediaDto extends MediaDto {
+  // This class inherits builder and constructors from MediaDto
+  // Used for testing builder functionality
 }
 
 @Tag("unit")

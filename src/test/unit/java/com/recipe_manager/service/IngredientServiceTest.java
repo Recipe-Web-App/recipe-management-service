@@ -7,16 +7,22 @@ import static org.mockito.Mockito.when;
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 import com.recipe_manager.exception.BusinessException;
 import com.recipe_manager.model.dto.recipe.RecipeIngredientDto;
 import com.recipe_manager.model.dto.response.RecipeIngredientsResponse;
+import com.recipe_manager.model.dto.response.ShoppingListResponse;
+import com.recipe_manager.model.dto.shopping.ShoppingListItemDto;
 import com.recipe_manager.model.entity.ingredient.Ingredient;
 import com.recipe_manager.model.entity.recipe.Recipe;
 import com.recipe_manager.model.entity.recipe.RecipeIngredient;
 import com.recipe_manager.model.enums.IngredientUnit;
 import com.recipe_manager.model.mapper.RecipeIngredientMapper;
+import com.recipe_manager.model.mapper.ShoppingListMapper;
 import com.recipe_manager.repository.recipe.RecipeIngredientRepository;
+import com.recipe_manager.service.external.RecipeScraperService;
+import com.recipe_manager.model.dto.external.recipescraper.RecipeScraperShoppingDto;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -54,6 +60,12 @@ class IngredientServiceTest {
 
   @Mock
   private RecipeIngredientMapper recipeIngredientMapper;
+
+  @Mock
+  private ShoppingListMapper shoppingListMapper;
+
+  @Mock
+  private RecipeScraperService recipeScraperService;
 
   @InjectMocks
   private IngredientService ingredientService;
@@ -132,14 +144,42 @@ class IngredientServiceTest {
   @DisplayName("Should generate shopping list successfully")
   void shouldGenerateShoppingListSuccessfully() {
     // Given
-    String recipeId = "recipe-123";
+    String recipeId = "123";
+    Long id = 123L;
+
+    RecipeIngredient ingredient1 = createMockRecipeIngredient(id, 1L, "Salt", new BigDecimal("1.5"),
+        IngredientUnit.TSP);
+    RecipeIngredient ingredient2 = createMockRecipeIngredient(id, 2L, "Pepper", new BigDecimal("0.5"),
+        IngredientUnit.TSP);
+    List<RecipeIngredient> ingredients = Arrays.asList(ingredient1, ingredient2);
+
+    ShoppingListItemDto item1 = createMockShoppingListItem("Salt", new BigDecimal("1.5"), IngredientUnit.TSP, false);
+    ShoppingListItemDto item2 = createMockShoppingListItem("Pepper", new BigDecimal("0.5"), IngredientUnit.TSP, false);
+    List<ShoppingListItemDto> shoppingListItems = Arrays.asList(item1, item2);
+
+    // Mock external service to return empty pricing data for unit tests
+    RecipeScraperShoppingDto emptyPricingData = RecipeScraperShoppingDto.builder()
+        .recipeId(id)
+        .ingredients(java.util.Collections.emptyMap())
+        .totalEstimatedCost(BigDecimal.ZERO)
+        .build();
+
+    when(recipeIngredientRepository.findByRecipeRecipeId(id)).thenReturn(ingredients);
+    when(shoppingListMapper.toAggregatedShoppingListItems(ingredients)).thenReturn(shoppingListItems);
+    when(recipeScraperService.getShoppingInfo(id)).thenReturn(CompletableFuture.completedFuture(emptyPricingData));
+    when(shoppingListMapper.mergeWithPricingData(shoppingListItems, emptyPricingData)).thenReturn(shoppingListItems);
 
     // When
-    ResponseEntity<String> response = ingredientService.generateShoppingList(recipeId);
+    ResponseEntity<ShoppingListResponse> response = ingredientService.generateShoppingList(recipeId);
 
     // Then
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-    assertThat(response.getBody()).isEqualTo("Generate Shopping List - placeholder");
+    assertThat(response.getBody()).isNotNull();
+    assertThat(response.getBody().getRecipeId()).isEqualTo(id);
+    assertThat(response.getBody().getItems()).hasSize(2);
+    assertThat(response.getBody().getTotalCount()).isEqualTo(2);
+    assertThat(response.getBody().getItems().get(0).getIngredientName()).isEqualTo("Salt");
+    assertThat(response.getBody().getItems().get(1).getIngredientName()).isEqualTo("Pepper");
   }
 
   @Test
@@ -284,6 +324,16 @@ class IngredientServiceTest {
         .build();
   }
 
+  private ShoppingListItemDto createMockShoppingListItem(String ingredientName, BigDecimal totalQuantity,
+      IngredientUnit unit, Boolean isOptional) {
+    return ShoppingListItemDto.builder()
+        .ingredientName(ingredientName)
+        .totalQuantity(totalQuantity)
+        .unit(unit)
+        .isOptional(isOptional)
+        .build();
+  }
+
   @Test
   @Tag("standard-processing")
   @DisplayName("Should handle null ingredient ID gracefully")
@@ -322,5 +372,60 @@ class IngredientServiceTest {
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
     assertThat(response.getBody()).isNotNull();
     assertThat(response.getBody().getIngredients().get(0).getQuantity()).isEqualTo(new BigDecimal("0.0"));
+  }
+
+  @Test
+  @Tag("standard-processing")
+  @DisplayName("Should generate shopping list with duplicate ingredient aggregation")
+  void shouldGenerateShoppingListWithDuplicateIngredientAggregation() {
+    // Given
+    String recipeId = "123";
+    Long id = 123L;
+
+    RecipeIngredient ingredient1 = createMockRecipeIngredient(id, 1L, "Salt", new BigDecimal("1.0"),
+        IngredientUnit.TSP);
+    RecipeIngredient ingredient2 = createMockRecipeIngredient(id, 2L, "Salt", new BigDecimal("0.5"),
+        IngredientUnit.TSP);
+    List<RecipeIngredient> ingredients = Arrays.asList(ingredient1, ingredient2);
+
+    ShoppingListItemDto aggregatedItem = createMockShoppingListItem("Salt", new BigDecimal("1.5"), IngredientUnit.TSP, false);
+    List<ShoppingListItemDto> shoppingListItems = Arrays.asList(aggregatedItem);
+
+    // Mock external service to return empty pricing data for unit tests
+    RecipeScraperShoppingDto emptyPricingData = RecipeScraperShoppingDto.builder()
+        .recipeId(id)
+        .ingredients(java.util.Collections.emptyMap())
+        .totalEstimatedCost(BigDecimal.ZERO)
+        .build();
+
+    when(recipeIngredientRepository.findByRecipeRecipeId(id)).thenReturn(ingredients);
+    when(shoppingListMapper.toAggregatedShoppingListItems(ingredients)).thenReturn(shoppingListItems);
+    when(recipeScraperService.getShoppingInfo(id)).thenReturn(CompletableFuture.completedFuture(emptyPricingData));
+    when(shoppingListMapper.mergeWithPricingData(shoppingListItems, emptyPricingData)).thenReturn(shoppingListItems);
+
+    // When
+    ResponseEntity<ShoppingListResponse> response = ingredientService.generateShoppingList(recipeId);
+
+    // Then
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    assertThat(response.getBody()).isNotNull();
+    assertThat(response.getBody().getItems()).hasSize(1);
+    assertThat(response.getBody().getItems().get(0).getIngredientName()).isEqualTo("Salt");
+    assertThat(response.getBody().getItems().get(0).getTotalQuantity()).isEqualTo(new BigDecimal("1.5"));
+  }
+
+  @Test
+  @Tag("error-processing")
+  @DisplayName("Should handle invalid recipe ID for shopping list generation")
+  void shouldHandleInvalidRecipeIdForShoppingListGeneration() {
+    // Given
+    String invalidRecipeId = "invalid";
+
+    // When/Then
+    BusinessException exception = assertThrows(BusinessException.class, () -> {
+      ingredientService.generateShoppingList(invalidRecipeId);
+    });
+
+    assertThat(exception.getMessage()).isEqualTo("Invalid recipe ID: invalid");
   }
 }

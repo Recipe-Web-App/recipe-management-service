@@ -1,8 +1,6 @@
 ---
 # Test configuration for recipe manager service
 spring:
-  profiles:
-    active: test
   datasource:
     url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
     driver-class-name: org.h2.Driver
@@ -36,3 +34,48 @@ logging:
 # Server configuration for testing
 server:
   port: 0 # Random port for testing
+
+# External services configuration for testing
+external:
+  services:
+    recipe-scraper:
+      base-url: http://test-scraper:8080
+      shopping-info-path: /api/test/recipes/{recipeId}/shopping
+      enabled: true
+      timeout: PT5S
+      api-key: test-api-key
+    common:
+      connect-timeout: PT3S
+      read-timeout: PT10S
+      max-connections-per-route: 20
+      max-total-connections: 100
+      log-requests: false
+      enable-tracing: true
+
+# Resilience configuration for testing
+resilience:
+  circuit-breaker:
+    failure-rate-threshold: 50.0
+    wait-duration-in-open-state: PT10S
+    sliding-window-size: 10
+    minimum-number-of-calls: 5
+    permitted-number-of-calls-in-half-open-state: 3
+  retry:
+    max-retry-attempts: 3
+    wait-duration: PT1S
+    exponential-backoff-multiplier: 2.0
+    max-wait-duration: PT5S
+  rate-limiter:
+    limit-for-period: 10
+    limit-refresh-period: PT1S
+    timeout-duration: PT100MS
+  bulkhead:
+    max-concurrent-calls: 5
+    max-wait-duration: PT100MS
+
+# Cache configuration for testing
+cache:
+  external-services:
+    recipe-scraper-ttl: 30m
+    recipe-scraper-max-size: 1000
+    enable-stats: true

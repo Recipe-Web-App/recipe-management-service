@@ -16,15 +16,19 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.recipe_manager.model.dto.recipe.RecipeDto;
 import com.recipe_manager.model.dto.request.AddIngredientCommentRequest;
+import com.recipe_manager.model.dto.request.AddReviewRequest;
 import com.recipe_manager.model.dto.request.CreateRecipeRequest;
 import com.recipe_manager.model.dto.request.DeleteIngredientCommentRequest;
 import com.recipe_manager.model.dto.request.EditIngredientCommentRequest;
+import com.recipe_manager.model.dto.request.EditReviewRequest;
 import com.recipe_manager.model.dto.request.SearchRecipesRequest;
 import com.recipe_manager.model.dto.request.UpdateRecipeRequest;
 import com.recipe_manager.model.dto.response.IngredientCommentResponse;
 import com.recipe_manager.model.dto.response.RecipeIngredientsResponse;
+import com.recipe_manager.model.dto.response.ReviewResponse;
 import com.recipe_manager.model.dto.response.SearchRecipesResponse;
 import com.recipe_manager.model.dto.response.ShoppingListResponse;
+import com.recipe_manager.model.dto.review.ReviewDto;
 import com.recipe_manager.service.IngredientService;
 import com.recipe_manager.service.MediaService;
 import com.recipe_manager.service.RecipeService;
@@ -482,43 +486,56 @@ public class RecipeManagementController {
    * Get recipe reviews.
    *
    * @param recipeId the recipe ID
-   * @return placeholder response
+   * @return response with all reviews for the recipe
    */
-  @GetMapping("/{recipeId}/review")
-  public ResponseEntity<String> getRecipeReviews(@PathVariable final String recipeId) {
-    return reviewService.getReviews(recipeId);
+  @GetMapping(value = "/{recipeId}/review", produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<ReviewResponse> getRecipeReviews(@PathVariable final Long recipeId) {
+    ReviewResponse response = reviewService.getReviews(recipeId);
+    return ResponseEntity.ok(response);
   }
 
   /**
    * Add recipe review.
    *
    * @param recipeId the recipe ID
-   * @return placeholder response
+   * @param request the add review request
+   * @return response with the created review
    */
-  @PostMapping("/{recipeId}/review")
-  public ResponseEntity<String> addRecipeReview(@PathVariable final String recipeId) {
-    return reviewService.addReview(recipeId);
+  @PostMapping(value = "/{recipeId}/review", produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<ReviewDto> addRecipeReview(
+      @PathVariable final Long recipeId, @Valid @RequestBody final AddReviewRequest request) {
+    ReviewDto review = reviewService.addReview(recipeId, request);
+    return ResponseEntity.ok(review);
   }
 
   /**
    * Edit recipe review.
    *
    * @param recipeId the recipe ID
-   * @return placeholder response
+   * @param reviewId the review ID
+   * @param request the edit review request
+   * @return response with the updated review
    */
-  @PutMapping("/{recipeId}/review")
-  public ResponseEntity<String> editRecipeReview(@PathVariable final String recipeId) {
-    return reviewService.editReview(recipeId);
+  @PutMapping(value = "/{recipeId}/review/{reviewId}", produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<ReviewDto> editRecipeReview(
+      @PathVariable final Long recipeId,
+      @PathVariable final Long reviewId,
+      @Valid @RequestBody final EditReviewRequest request) {
+    ReviewDto review = reviewService.editReview(recipeId, reviewId, request);
+    return ResponseEntity.ok(review);
   }
 
   /**
    * Delete recipe review.
    *
    * @param recipeId the recipe ID
-   * @return placeholder response
+   * @param reviewId the review ID
+   * @return empty response
    */
-  @DeleteMapping("/{recipeId}/review")
-  public ResponseEntity<String> deleteRecipeReview(@PathVariable final String recipeId) {
-    return reviewService.deleteReview(recipeId);
+  @DeleteMapping("/{recipeId}/review/{reviewId}")
+  public ResponseEntity<Void> deleteRecipeReview(
+      @PathVariable final Long recipeId, @PathVariable final Long reviewId) {
+    reviewService.deleteReview(recipeId, reviewId);
+    return ResponseEntity.noContent().build();
   }
 }

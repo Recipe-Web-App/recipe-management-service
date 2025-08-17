@@ -16,13 +16,17 @@ import java.util.UUID;
 import com.recipe_manager.model.dto.ingredient.IngredientCommentDto;
 import com.recipe_manager.model.dto.recipe.RecipeDto;
 import com.recipe_manager.model.dto.request.AddIngredientCommentRequest;
+import com.recipe_manager.model.dto.request.AddReviewRequest;
 import com.recipe_manager.model.dto.request.CreateRecipeRequest;
 import com.recipe_manager.model.dto.request.DeleteIngredientCommentRequest;
 import com.recipe_manager.model.dto.request.EditIngredientCommentRequest;
+import com.recipe_manager.model.dto.request.EditReviewRequest;
 import com.recipe_manager.model.dto.request.SearchRecipesRequest;
 import com.recipe_manager.model.dto.request.UpdateRecipeRequest;
 import com.recipe_manager.model.dto.response.IngredientCommentResponse;
+import com.recipe_manager.model.dto.response.ReviewResponse;
 import com.recipe_manager.model.dto.response.SearchRecipesResponse;
+import com.recipe_manager.model.dto.review.ReviewDto;
 import com.recipe_manager.service.IngredientService;
 import com.recipe_manager.service.MediaService;
 import com.recipe_manager.service.RecipeService;
@@ -358,5 +362,81 @@ class RecipeManagementControllerTest {
     mockMvc.perform(delete("/recipe-management/recipes/1/steps/2/comment")
         .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk());
+  }
+
+  /**
+   * Test GET /recipe-management/recipes/{recipeId}/review endpoint.
+   */
+  @Test
+  @Tag("standard-processing")
+  @DisplayName("Should handle GET /recipe-management/recipes/{recipeId}/review")
+  void shouldHandleGetRecipeReviews() throws Exception {
+    ReviewResponse response = ReviewResponse.builder()
+        .recipeId(1L)
+        .reviews(List.of())
+        .build();
+    when(reviewService.getReviews(1L)).thenReturn(response);
+
+    mockMvc.perform(get("/recipe-management/recipes/1/review")
+        .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk());
+  }
+
+  /**
+   * Test POST /recipe-management/recipes/{recipeId}/review endpoint.
+   */
+  @Test
+  @Tag("standard-processing")
+  @DisplayName("Should handle POST /recipe-management/recipes/{recipeId}/review")
+  void shouldHandleAddRecipeReview() throws Exception {
+    ReviewDto reviewDto = ReviewDto.builder()
+        .reviewId(1L)
+        .recipeId(1L)
+        .userId(UUID.randomUUID())
+        .rating(java.math.BigDecimal.valueOf(4.5))
+        .comment("Great recipe!")
+        .createdAt(java.time.LocalDateTime.now())
+        .build();
+    when(reviewService.addReview(eq(1L), any(AddReviewRequest.class))).thenReturn(reviewDto);
+
+    mockMvc.perform(post("/recipe-management/recipes/1/review")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content("{\"rating\":4.5,\"comment\":\"Great recipe!\"}"))
+        .andExpect(status().isOk());
+  }
+
+  /**
+   * Test PUT /recipe-management/recipes/{recipeId}/review/{reviewId} endpoint.
+   */
+  @Test
+  @Tag("standard-processing")
+  @DisplayName("Should handle PUT /recipe-management/recipes/{recipeId}/review/{reviewId}")
+  void shouldHandleEditRecipeReview() throws Exception {
+    ReviewDto reviewDto = ReviewDto.builder()
+        .reviewId(1L)
+        .recipeId(1L)
+        .userId(UUID.randomUUID())
+        .rating(java.math.BigDecimal.valueOf(4.0))
+        .comment("Updated comment")
+        .createdAt(java.time.LocalDateTime.now())
+        .build();
+    when(reviewService.editReview(eq(1L), eq(1L), any(EditReviewRequest.class))).thenReturn(reviewDto);
+
+    mockMvc.perform(put("/recipe-management/recipes/1/review/1")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content("{\"rating\":4.0,\"comment\":\"Updated comment\"}"))
+        .andExpect(status().isOk());
+  }
+
+  /**
+   * Test DELETE /recipe-management/recipes/{recipeId}/review/{reviewId} endpoint.
+   */
+  @Test
+  @Tag("standard-processing")
+  @DisplayName("Should handle DELETE /recipe-management/recipes/{recipeId}/review/{reviewId}")
+  void shouldHandleDeleteRecipeReview() throws Exception {
+    mockMvc.perform(delete("/recipe-management/recipes/1/review/1")
+        .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isNoContent());
   }
 }

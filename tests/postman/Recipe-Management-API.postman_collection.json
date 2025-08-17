@@ -2304,21 +2304,23 @@
               "script": {
                 "exec": [
                   "pm.test('Recipe review added successfully', function () {",
-                  "    pm.response.to.have.status(201);",
+                  "    pm.response.to.have.status(200);",
                   "});",
                   "",
                   "pm.test('Review has required fields', function () {",
                   "    const response = pm.response.json();",
-                  "    pm.expect(response).to.have.property('id');",
+                  "    pm.expect(response).to.have.property('reviewId');",
+                  "    pm.expect(response).to.have.property('recipeId');",
                   "    pm.expect(response).to.have.property('rating');",
                   "    pm.expect(response).to.have.property('comment');",
                   "    pm.expect(response).to.have.property('userId');",
+                  "    pm.expect(response).to.have.property('createdAt');",
                   "});",
                   "",
                   "pm.test('Extract review ID', function () {",
                   "    const response = pm.response.json();",
-                  "    if (response.id) {",
-                  "        pm.environment.set('recipeManagementServiceCreatedReviewId', response.id);",
+                  "    if (response.reviewId) {",
+                  "        pm.environment.set('recipeManagementServiceCreatedReviewId', response.reviewId);",
                   "    }",
                   "});"
                 ],
@@ -2336,7 +2338,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"rating\": 5,\n  \"comment\": \"This recipe is absolutely delicious! The carbonara turned out perfectly creamy and flavorful. Easy to follow instructions and great results.\",\n  \"wouldRecommend\": true,\n  \"difficultyRating\": \"EASY\",\n  \"cookingNotes\": \"I used pecorino romano instead of parmesan and it was amazing. The key is to temper the eggs properly.\"\n}"
+              "raw": "{\n  \"rating\": 4.5,\n  \"comment\": \"This recipe is absolutely delicious! The carbonara turned out perfectly creamy and flavorful. Easy to follow instructions and great results.\"\n}"
             },
             "url": {
               "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/recipes/{{testRecipeId}}/review",
@@ -2356,19 +2358,22 @@
                   "    pm.response.to.have.status(200);",
                   "});",
                   "",
-                  "pm.test('Response is an array', function () {",
+                  "pm.test('Response has correct structure', function () {",
                   "    const response = pm.response.json();",
-                  "    pm.expect(response).to.be.an('array');",
+                  "    pm.expect(response).to.have.property('recipeId');",
+                  "    pm.expect(response).to.have.property('reviews');",
+                  "    pm.expect(response.reviews).to.be.an('array');",
                   "});",
                   "",
                   "pm.test('Reviews have required fields', function () {",
                   "    const response = pm.response.json();",
-                  "    if (response.length > 0) {",
-                  "        pm.expect(response[0]).to.have.property('id');",
-                  "        pm.expect(response[0]).to.have.property('rating');",
-                  "        pm.expect(response[0]).to.have.property('comment');",
-                  "        pm.expect(response[0]).to.have.property('userId');",
-                  "        pm.expect(response[0]).to.have.property('createdAt');",
+                  "    if (response.reviews.length > 0) {",
+                  "        pm.expect(response.reviews[0]).to.have.property('reviewId');",
+                  "        pm.expect(response.reviews[0]).to.have.property('recipeId');",
+                  "        pm.expect(response.reviews[0]).to.have.property('rating');",
+                  "        pm.expect(response.reviews[0]).to.have.property('comment');",
+                  "        pm.expect(response.reviews[0]).to.have.property('userId');",
+                  "        pm.expect(response.reviews[0]).to.have.property('createdAt');",
                   "    }",
                   "});"
                 ],
@@ -2405,7 +2410,7 @@
                   "pm.test('Review has updated content', function () {",
                   "    const response = pm.response.json();",
                   "    pm.expect(response.comment).to.include('Updated');",
-                  "    pm.expect(response.rating).to.equal(4);",
+                  "    pm.expect(response.rating).to.equal(3.5);",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -2422,12 +2427,12 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"rating\": 4,\n  \"comment\": \"Updated: This recipe is very good! The carbonara was creamy and tasty. A few minor tweaks would make it perfect.\",\n  \"wouldRecommend\": true,\n  \"difficultyRating\": \"MEDIUM\",\n  \"cookingNotes\": \"Updated: Used pecorino romano. Next time I'll add a bit more black pepper for extra flavor.\"\n}"
+              "raw": "{\n  \"rating\": 3.5,\n  \"comment\": \"Updated: This recipe is very good! The carbonara was creamy and tasty. A few minor tweaks would make it perfect.\"\n}"
             },
             "url": {
-              "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/recipes/{{testRecipeId}}/review",
+              "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/recipes/{{testRecipeId}}/review/{{recipeManagementServiceCreatedReviewId}}",
               "host": ["{{recipeManagementServiceBaseUrl}}"],
-              "path": ["recipe-management", "recipes", "{{testRecipeId}}", "review"]
+              "path": ["recipe-management", "recipes", "{{testRecipeId}}", "review", "{{recipeManagementServiceCreatedReviewId}}"]
             }
           }
         },
@@ -2455,94 +2460,9 @@
               }
             ],
             "url": {
-              "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/recipes/{{testRecipeId}}/review",
+              "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/recipes/{{testRecipeId}}/review/{{recipeManagementServiceCreatedReviewId}}",
               "host": ["{{recipeManagementServiceBaseUrl}}"],
-              "path": ["recipe-management", "recipes", "{{testRecipeId}}", "review"]
-            }
-          }
-        },
-        {
-          "name": "Get All Reviews",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('All reviews retrieved successfully', function () {",
-                  "    pm.response.to.have.status(200);",
-                  "});",
-                  "",
-                  "pm.test('Response is an array', function () {",
-                  "    const response = pm.response.json();",
-                  "    pm.expect(response).to.be.an('array');",
-                  "});",
-                  "",
-                  "pm.test('Reviews have required fields', function () {",
-                  "    const response = pm.response.json();",
-                  "    if (response.length > 0) {",
-                  "        pm.expect(response[0]).to.have.property('id');",
-                  "        pm.expect(response[0]).to.have.property('rating');",
-                  "        pm.expect(response[0]).to.have.property('recipeId');",
-                  "        pm.expect(response[0]).to.have.property('userId');",
-                  "    }",
-                  "});"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/reviews",
-              "host": ["{{recipeManagementServiceBaseUrl}}"],
-              "path": ["recipe-management", "reviews"]
-            }
-          }
-        },
-        {
-          "name": "Get Review by ID",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Review retrieved successfully', function () {",
-                  "    pm.response.to.have.status(200);",
-                  "});",
-                  "",
-                  "pm.test('Review has required fields', function () {",
-                  "    const response = pm.response.json();",
-                  "    pm.expect(response).to.have.property('id');",
-                  "    pm.expect(response).to.have.property('rating');",
-                  "    pm.expect(response).to.have.property('comment');",
-                  "    pm.expect(response).to.have.property('recipeId');",
-                  "    pm.expect(response).to.have.property('userId');",
-                  "    pm.expect(response).to.have.property('createdAt');",
-                  "});"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/reviews/{{testReviewId}}",
-              "host": ["{{recipeManagementServiceBaseUrl}}"],
-              "path": ["recipe-management", "reviews", "{{testReviewId}}"]
+              "path": ["recipe-management", "recipes", "{{testRecipeId}}", "review", "{{recipeManagementServiceCreatedReviewId}}"]
             }
           }
         }

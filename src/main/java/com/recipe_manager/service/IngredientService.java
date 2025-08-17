@@ -445,37 +445,4 @@ public final class IngredientService {
             .comments(ingredientCommentMapper.toDtoList(comments))
             .build());
   }
-
-  /**
-   * Add media to an ingredient.
-   *
-   * @param recipeId the recipe ID
-   * @param ingredientId the ingredient ID
-   * @return placeholder response
-   */
-  public ResponseEntity<String> addMedia(final String recipeId, final String ingredientId) {
-    return ResponseEntity.ok("Add Media Ref to Ingredient - placeholder");
-  }
-
-  /**
-   * Update media on an ingredient.
-   *
-   * @param recipeId the recipe ID
-   * @param ingredientId the ingredient ID
-   * @return placeholder response
-   */
-  public ResponseEntity<String> updateMedia(final String recipeId, final String ingredientId) {
-    return ResponseEntity.ok("Update Media Ref on Ingredient - placeholder");
-  }
-
-  /**
-   * Delete media from an ingredient.
-   *
-   * @param recipeId the recipe ID
-   * @param ingredientId the ingredient ID
-   * @return placeholder response
-   */
-  public ResponseEntity<String> deleteMedia(final String recipeId, final String ingredientId) {
-    return ResponseEntity.ok("Delete Media Ref from Ingredient - placeholder");
-  }
 }

@@ -15,9 +15,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.recipe_manager.model.dto.recipe.RecipeDto;
+import com.recipe_manager.model.dto.request.AddIngredientCommentRequest;
 import com.recipe_manager.model.dto.request.CreateRecipeRequest;
+import com.recipe_manager.model.dto.request.DeleteIngredientCommentRequest;
+import com.recipe_manager.model.dto.request.EditIngredientCommentRequest;
 import com.recipe_manager.model.dto.request.SearchRecipesRequest;
 import com.recipe_manager.model.dto.request.UpdateRecipeRequest;
+import com.recipe_manager.model.dto.response.IngredientCommentResponse;
 import com.recipe_manager.model.dto.response.RecipeIngredientsResponse;
 import com.recipe_manager.model.dto.response.SearchRecipesResponse;
 import com.recipe_manager.model.dto.response.ShoppingListResponse;
@@ -386,12 +390,17 @@ public class RecipeManagementController {
    *
    * @param recipeId the recipe ID
    * @param ingredientId the ingredient ID
-   * @return placeholder response
+   * @param request the add comment request
+   * @return response with updated comments
    */
-  @PostMapping("/{recipeId}/ingredients/{ingredientId}/comment")
-  public ResponseEntity<String> addCommentToIngredient(
-      @PathVariable final String recipeId, @PathVariable final String ingredientId) {
-    return ingredientService.addComment(recipeId, ingredientId);
+  @PostMapping(
+      value = "/{recipeId}/ingredients/{ingredientId}/comment",
+      produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<IngredientCommentResponse> addCommentToIngredient(
+      @PathVariable final String recipeId,
+      @PathVariable final String ingredientId,
+      @Valid @RequestBody final AddIngredientCommentRequest request) {
+    return ingredientService.addComment(recipeId, ingredientId, request);
   }
 
   /**
@@ -399,12 +408,17 @@ public class RecipeManagementController {
    *
    * @param recipeId the recipe ID
    * @param ingredientId the ingredient ID
-   * @return placeholder response
+   * @param request the edit comment request
+   * @return response with updated comments
    */
-  @PutMapping("/{recipeId}/ingredients/{ingredientId}/comment")
-  public ResponseEntity<String> editCommentOnIngredient(
-      @PathVariable final String recipeId, @PathVariable final String ingredientId) {
-    return ingredientService.editComment(recipeId, ingredientId);
+  @PutMapping(
+      value = "/{recipeId}/ingredients/{ingredientId}/comment",
+      produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<IngredientCommentResponse> editCommentOnIngredient(
+      @PathVariable final String recipeId,
+      @PathVariable final String ingredientId,
+      @Valid @RequestBody final EditIngredientCommentRequest request) {
+    return ingredientService.editComment(recipeId, ingredientId, request);
   }
 
   /**
@@ -412,12 +426,17 @@ public class RecipeManagementController {
    *
    * @param recipeId the recipe ID
    * @param ingredientId the ingredient ID
-   * @return placeholder response
+   * @param request the delete comment request
+   * @return response with updated comments
    */
-  @DeleteMapping("/{recipeId}/ingredients/{ingredientId}/comment")
-  public ResponseEntity<String> deleteCommentFromIngredient(
-      @PathVariable final String recipeId, @PathVariable final String ingredientId) {
-    return ingredientService.deleteComment(recipeId, ingredientId);
+  @DeleteMapping(
+      value = "/{recipeId}/ingredients/{ingredientId}/comment",
+      produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<IngredientCommentResponse> deleteCommentFromIngredient(
+      @PathVariable final String recipeId,
+      @PathVariable final String ingredientId,
+      @Valid @RequestBody final DeleteIngredientCommentRequest request) {
+    return ingredientService.deleteComment(recipeId, ingredientId, request);
   }
 
   /**

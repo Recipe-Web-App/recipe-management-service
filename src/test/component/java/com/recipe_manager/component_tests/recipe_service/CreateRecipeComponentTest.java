@@ -69,7 +69,6 @@ class CreateRecipeComponentTest extends AbstractComponentTest {
   void shouldCreateRecipe() throws Exception {
     // Setup repository mocks
     Ingredient flourIngredient = Ingredient.builder()
-        .ingredientId(1L)
         .name("Flour")
         .build();
 
@@ -129,7 +128,6 @@ class CreateRecipeComponentTest extends AbstractComponentTest {
   void shouldCreateRecipeWithNewIngredient() throws Exception {
     // Setup repository mocks - ingredient doesn't exist, so service will create it
     Ingredient newIngredient = Ingredient.builder()
-        .ingredientId(2L)
         .name("New Spice")
         .build();
 

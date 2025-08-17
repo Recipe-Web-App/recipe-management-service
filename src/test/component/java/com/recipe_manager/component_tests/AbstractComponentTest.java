@@ -3,10 +3,12 @@ package com.recipe_manager.component_tests;
 import com.recipe_manager.config.RequestIdFilter;
 import com.recipe_manager.controller.RecipeManagementController;
 import com.recipe_manager.exception.GlobalExceptionHandler;
+import com.recipe_manager.model.mapper.IngredientCommentMapper;
 import com.recipe_manager.model.mapper.RecipeIngredientMapper;
 import com.recipe_manager.model.mapper.RecipeMapper;
 import com.recipe_manager.model.mapper.RecipeStepMapper;
 import com.recipe_manager.model.mapper.ShoppingListMapper;
+import com.recipe_manager.repository.ingredient.IngredientCommentRepository;
 import com.recipe_manager.repository.ingredient.IngredientRepository;
 import com.recipe_manager.repository.recipe.RecipeIngredientRepository;
 import com.recipe_manager.repository.recipe.RecipeRepository;
@@ -66,12 +68,18 @@ public abstract class AbstractComponentTest {
   @Mock
   protected RecipeIngredientRepository recipeIngredientRepository;
 
+  @Mock
+  protected IngredientCommentRepository ingredientCommentRepository;
+
   // Real mappers for component testing
   @Autowired(required = false)
   protected RecipeMapper recipeMapper;
 
   @Autowired(required = false)
   protected RecipeIngredientMapper recipeIngredientMapper;
+
+  @Autowired(required = false)
+  protected IngredientCommentMapper ingredientCommentMapper;
 
   @Autowired(required = false)
   protected ShoppingListMapper shoppingListMapper;
@@ -96,8 +104,8 @@ public abstract class AbstractComponentTest {
           recipeRepository, ingredientRepository, recipeTagRepository, recipeMapper, recipeStepMapper);
     }
     if (recipeIngredientMapper != null) {
-      realIngredientService = new IngredientService(recipeIngredientRepository, recipeIngredientMapper,
-          shoppingListMapper, recipeScraperService);
+      realIngredientService = new IngredientService(recipeIngredientRepository, ingredientRepository, ingredientCommentRepository, recipeIngredientMapper,
+          ingredientCommentMapper, shoppingListMapper, recipeScraperService);
     }
 
     mockMvc = MockMvcBuilders.standaloneSetup(controller)

@@ -886,7 +886,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"comment\": \"This ingredient adds great flavor to the dish. Make sure to use fresh ingredients.\",\n  \"isPublic\": true\n}"
+              "raw": "{\n  \"comment\": \"This ingredient adds great flavor to the dish. Make sure to use fresh ingredients.\"\n}"
             },
             "url": {
               "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/recipes/{{testRecipeId}}/ingredients/{{testIngredientId}}/comment",
@@ -932,7 +932,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"comment\": \"Updated: This ingredient adds exceptional flavor to the dish. Always use the freshest ingredients available.\",\n  \"isPublic\": true\n}"
+              "raw": "{\n  \"commentId\": 1,\n  \"comment\": \"Updated: This ingredient adds exceptional flavor to the dish. Always use the freshest ingredients available.\"\n}"
             },
             "url": {
               "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/recipes/{{testRecipeId}}/ingredients/{{testIngredientId}}/comment",
@@ -956,7 +956,7 @@
               "script": {
                 "exec": [
                   "pm.test('Ingredient comment deleted successfully', function () {",
-                  "    pm.response.to.have.status(204);",
+                  "    pm.response.to.have.status(200);",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -971,6 +971,10 @@
                 "value": "application/json"
               }
             ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"commentId\": 1\n}"
+            },
             "url": {
               "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/recipes/{{testRecipeId}}/ingredients/{{testIngredientId}}/comment",
               "host": ["{{recipeManagementServiceBaseUrl}}"],

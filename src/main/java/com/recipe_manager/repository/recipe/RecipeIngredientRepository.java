@@ -1,6 +1,7 @@
 package com.recipe_manager.repository.recipe;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -23,4 +24,14 @@ public interface RecipeIngredientRepository
    * @return list of recipe ingredients
    */
   List<RecipeIngredient> findByRecipeRecipeId(Long recipeId);
+
+  /**
+   * Find a specific recipe ingredient by recipe ID and ingredient ID.
+   *
+   * @param recipeId the recipe ID
+   * @param ingredientId the ingredient ID
+   * @return optional containing the recipe ingredient if found
+   */
+  Optional<RecipeIngredient> findByRecipeRecipeIdAndIngredientIngredientId(
+      Long recipeId, Long ingredientId);
 }

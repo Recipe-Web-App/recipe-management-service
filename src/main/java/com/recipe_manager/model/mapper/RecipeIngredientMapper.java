@@ -40,6 +40,7 @@ public interface RecipeIngredientMapper {
   @Mapping(target = "ingredientId", source = "ingredient.ingredientId")
   @Mapping(target = "ingredientName", source = "ingredient.name")
   @Mapping(target = "recipeId", source = "recipe.recipeId")
+  @Mapping(target = "comments", ignore = true)
   RecipeIngredientDto toDto(RecipeIngredient entity);
 
   /**
@@ -65,6 +66,7 @@ public interface RecipeIngredientMapper {
       expression = "java(entity.getQuantity().multiply(java.math.BigDecimal.valueOf(scaleFactor)))")
   @Mapping(target = "unit", expression = "java(entity.getUnit())")
   @Mapping(target = "isOptional", expression = "java(entity.getIsOptional())")
+  @Mapping(target = "comments", ignore = true)
   RecipeIngredientDto toDtoWithScale(RecipeIngredient entity, float scaleFactor);
 
   /**

@@ -13,14 +13,24 @@ import org.springframework.stereotype.Service;
 import com.recipe_manager.exception.BusinessException;
 import com.recipe_manager.model.dto.external.recipescraper.RecipeScraperShoppingDto;
 import com.recipe_manager.model.dto.recipe.RecipeIngredientDto;
+import com.recipe_manager.model.dto.request.AddIngredientCommentRequest;
+import com.recipe_manager.model.dto.request.DeleteIngredientCommentRequest;
+import com.recipe_manager.model.dto.request.EditIngredientCommentRequest;
+import com.recipe_manager.model.dto.response.IngredientCommentResponse;
 import com.recipe_manager.model.dto.response.RecipeIngredientsResponse;
 import com.recipe_manager.model.dto.response.ShoppingListResponse;
 import com.recipe_manager.model.dto.shopping.ShoppingListItemDto;
+import com.recipe_manager.model.entity.ingredient.Ingredient;
+import com.recipe_manager.model.entity.ingredient.IngredientComment;
 import com.recipe_manager.model.entity.recipe.RecipeIngredient;
+import com.recipe_manager.model.mapper.IngredientCommentMapper;
 import com.recipe_manager.model.mapper.RecipeIngredientMapper;
 import com.recipe_manager.model.mapper.ShoppingListMapper;
+import com.recipe_manager.repository.ingredient.IngredientCommentRepository;
+import com.recipe_manager.repository.ingredient.IngredientRepository;
 import com.recipe_manager.repository.recipe.RecipeIngredientRepository;
 import com.recipe_manager.service.external.RecipeScraperService;
+import com.recipe_manager.util.SecurityUtils;
 
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -39,8 +49,17 @@ public final class IngredientService {
   /** Repository for recipe ingredient data access operations. */
   private final RecipeIngredientRepository recipeIngredientRepository;
 
+  /** Repository for ingredient data access operations. */
+  private final IngredientRepository ingredientRepository;
+
+  /** Repository for ingredient comment data access operations. */
+  private final IngredientCommentRepository ingredientCommentRepository;
+
   /** Mapper for converting between RecipeIngredient entities and DTOs. */
   private final RecipeIngredientMapper recipeIngredientMapper;
+
+  /** Mapper for converting between IngredientComment entities and DTOs. */
+  private final IngredientCommentMapper ingredientCommentMapper;
 
   /** Mapper for converting RecipeIngredient entities to shopping list items. */
   private final ShoppingListMapper shoppingListMapper;
@@ -59,11 +78,17 @@ public final class IngredientService {
 
   public IngredientService(
       final RecipeIngredientRepository recipeIngredientRepository,
+      final IngredientRepository ingredientRepository,
+      final IngredientCommentRepository ingredientCommentRepository,
       final RecipeIngredientMapper recipeIngredientMapper,
+      final IngredientCommentMapper ingredientCommentMapper,
       final ShoppingListMapper shoppingListMapper,
       final RecipeScraperService recipeScraperService) {
     this.recipeIngredientRepository = recipeIngredientRepository;
+    this.ingredientRepository = ingredientRepository;
+    this.ingredientCommentRepository = ingredientCommentRepository;
     this.recipeIngredientMapper = recipeIngredientMapper;
+    this.ingredientCommentMapper = ingredientCommentMapper;
     this.shoppingListMapper = shoppingListMapper;
     this.recipeScraperService = recipeScraperService;
   }
@@ -100,6 +125,15 @@ public final class IngredientService {
     final List<RecipeIngredient> ingredients = recipeIngredientRepository.findByRecipeRecipeId(id);
     final List<RecipeIngredientDto> ingredientDtos = recipeIngredientMapper.toDtoList(ingredients);
 
+    // Fetch and populate comments for each ingredient
+    ingredientDtos.forEach(
+        dto -> {
+          final List<IngredientComment> comments =
+              ingredientCommentRepository.findByIngredientIngredientIdOrderByCreatedAtAsc(
+                  dto.getIngredientId());
+          dto.setComments(ingredientCommentMapper.toDtoList(comments));
+        });
+
     final RecipeIngredientsResponse response =
         RecipeIngredientsResponse.builder()
             .recipeId(id)
@@ -128,6 +162,15 @@ public final class IngredientService {
     final List<RecipeIngredient> ingredients = recipeIngredientRepository.findByRecipeRecipeId(id);
     final List<RecipeIngredientDto> scaledIngredientDtos =
         recipeIngredientMapper.toDtoListWithScale(ingredients, quantity);
+
+    // Fetch and populate comments for each ingredient
+    scaledIngredientDtos.forEach(
+        dto -> {
+          final List<IngredientComment> comments =
+              ingredientCommentRepository.findByIngredientIngredientIdOrderByCreatedAtAsc(
+                  dto.getIngredientId());
+          dto.setComments(ingredientCommentMapper.toDtoList(comments));
+        });
 
     final RecipeIngredientsResponse response =
         RecipeIngredientsResponse.builder()
@@ -218,10 +261,87 @@ public final class IngredientService {
    *
    * @param recipeId the recipe ID
    * @param ingredientId the ingredient ID
-   * @return placeholder response
+   * @param request the add comment request
+   * @return response with updated comments
    */
-  public ResponseEntity<String> addComment(final String recipeId, final String ingredientId) {
-    return ResponseEntity.ok("Add Comment to Ingredient - placeholder");
+  public ResponseEntity<IngredientCommentResponse> addComment(
+      final String recipeId, final String ingredientId, final AddIngredientCommentRequest request) {
+    final Long recipeIdLong = validateAndParseId(recipeId, "recipe");
+    final Long ingredientIdLong = validateAndParseId(ingredientId, "ingredient");
+
+    // Verify the recipe ingredient exists
+    final RecipeIngredient recipeIngredient =
+        validateRecipeIngredient(recipeIdLong, ingredientIdLong, recipeId, ingredientId);
+    final Ingredient ingredient = recipeIngredient.getIngredient();
+
+    // Create and save the new comment
+    final IngredientComment comment =
+        IngredientComment.builder()
+            .ingredient(ingredient)
+            .recipeId(recipeIdLong)
+            .userId(SecurityUtils.getCurrentUserId())
+            .commentText(request.getComment())
+            .isPublic(true)
+            .build();
+
+    ingredientCommentRepository.save(comment);
+
+    // Get all comments for this ingredient
+    final List<IngredientComment> comments =
+        ingredientCommentRepository.findByIngredientIngredientIdOrderByCreatedAtAsc(
+            ingredientIdLong);
+
+    LOGGER.info(
+        "Added comment to ingredient {} in recipe {}: {}",
+        ingredientId,
+        recipeId,
+        request.getComment());
+
+    return ResponseEntity.ok(
+        IngredientCommentResponse.builder()
+            .recipeId(recipeIdLong)
+            .ingredientId(ingredientIdLong)
+            .comments(ingredientCommentMapper.toDtoList(comments))
+            .build());
+  }
+
+  /**
+   * Validates and parses an ID string.
+   *
+   * @param idString the ID string to parse
+   * @param idType the type of ID (for error messages)
+   * @return the parsed Long ID
+   */
+  private Long validateAndParseId(final String idString, final String idType) {
+    try {
+      return Long.parseLong(idString);
+    } catch (NumberFormatException e) {
+      throw new BusinessException("Invalid " + idType + " ID: " + idString);
+    }
+  }
+
+  /**
+   * Validates that a recipe ingredient exists.
+   *
+   * @param recipeId the recipe ID
+   * @param ingredientId the ingredient ID
+   * @param recipeIdString the original recipe ID string for error messages
+   * @param ingredientIdString the original ingredient ID string for error messages
+   * @return the RecipeIngredient entity
+   */
+  private RecipeIngredient validateRecipeIngredient(
+      final Long recipeId,
+      final Long ingredientId,
+      final String recipeIdString,
+      final String ingredientIdString) {
+    return recipeIngredientRepository
+        .findByRecipeRecipeIdAndIngredientIngredientId(recipeId, ingredientId)
+        .orElseThrow(
+            () ->
+                new BusinessException(
+                    String.format(
+                        "Recipe ingredient not found for recipe %s and ingredient %s",
+                        recipeIdString, ingredientIdString)));
   }
 
   /**
@@ -229,10 +349,51 @@ public final class IngredientService {
    *
    * @param recipeId the recipe ID
    * @param ingredientId the ingredient ID
-   * @return placeholder response
+   * @param request the edit comment request
+   * @return response with updated comments
    */
-  public ResponseEntity<String> editComment(final String recipeId, final String ingredientId) {
-    return ResponseEntity.ok("Edit Comment on Ingredient - placeholder");
+  public ResponseEntity<IngredientCommentResponse> editComment(
+      final String recipeId,
+      final String ingredientId,
+      final EditIngredientCommentRequest request) {
+
+    final Long recipeIdLong = validateAndParseId(recipeId, "recipe");
+    final Long ingredientIdLong = validateAndParseId(ingredientId, "ingredient");
+
+    // Verify the recipe ingredient exists
+    validateRecipeIngredient(recipeIdLong, ingredientIdLong, recipeId, ingredientId);
+
+    // Find and update the specific comment
+    final IngredientComment comment =
+        ingredientCommentRepository
+            .findByCommentIdAndIngredientIngredientId(request.getCommentId(), ingredientIdLong)
+            .orElseThrow(
+                () ->
+                    new BusinessException("Comment not found with ID: " + request.getCommentId()));
+
+    final String oldComment = comment.getCommentText();
+    comment.setCommentText(request.getComment());
+    ingredientCommentRepository.save(comment);
+
+    // Get all comments for this ingredient
+    final List<IngredientComment> comments =
+        ingredientCommentRepository.findByIngredientIngredientIdOrderByCreatedAtAsc(
+            ingredientIdLong);
+
+    LOGGER.info(
+        "Edited comment {} for ingredient {} in recipe {}: '{}' -> '{}'",
+        request.getCommentId(),
+        ingredientId,
+        recipeId,
+        oldComment,
+        request.getComment());
+
+    return ResponseEntity.ok(
+        IngredientCommentResponse.builder()
+            .recipeId(recipeIdLong)
+            .ingredientId(ingredientIdLong)
+            .comments(ingredientCommentMapper.toDtoList(comments))
+            .build());
   }
 
   /**
@@ -240,10 +401,49 @@ public final class IngredientService {
    *
    * @param recipeId the recipe ID
    * @param ingredientId the ingredient ID
-   * @return placeholder response
+   * @param request the delete comment request
+   * @return response with updated comments
    */
-  public ResponseEntity<String> deleteComment(final String recipeId, final String ingredientId) {
-    return ResponseEntity.ok("Delete Comment from Ingredient - placeholder");
+  public ResponseEntity<IngredientCommentResponse> deleteComment(
+      final String recipeId,
+      final String ingredientId,
+      final DeleteIngredientCommentRequest request) {
+
+    final Long recipeIdLong = validateAndParseId(recipeId, "recipe");
+    final Long ingredientIdLong = validateAndParseId(ingredientId, "ingredient");
+
+    // Verify the recipe ingredient exists
+    validateRecipeIngredient(recipeIdLong, ingredientIdLong, recipeId, ingredientId);
+
+    // Find and delete the specific comment
+    final IngredientComment comment =
+        ingredientCommentRepository
+            .findByCommentIdAndIngredientIngredientId(request.getCommentId(), ingredientIdLong)
+            .orElseThrow(
+                () ->
+                    new BusinessException("Comment not found with ID: " + request.getCommentId()));
+
+    final String deletedComment = comment.getCommentText();
+    ingredientCommentRepository.delete(comment);
+
+    // Get remaining comments for this ingredient
+    final List<IngredientComment> comments =
+        ingredientCommentRepository.findByIngredientIngredientIdOrderByCreatedAtAsc(
+            ingredientIdLong);
+
+    LOGGER.info(
+        "Deleted comment {} for ingredient {} in recipe {}: '{}'",
+        request.getCommentId(),
+        ingredientId,
+        recipeId,
+        deletedComment);
+
+    return ResponseEntity.ok(
+        IngredientCommentResponse.builder()
+            .recipeId(recipeIdLong)
+            .ingredientId(ingredientIdLong)
+            .comments(ingredientCommentMapper.toDtoList(comments))
+            .build());
   }
 
   /**

@@ -12,6 +12,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 public class QuantityDto {
+  /** The numeric amount of the ingredient. */
   private double amount;
+
+  /** The unit of measurement for the ingredient. */
   private IngredientUnit measurement;
 }

@@ -10,10 +10,18 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.util.List;
+import java.util.UUID;
+
+import com.recipe_manager.model.dto.ingredient.IngredientCommentDto;
 import com.recipe_manager.model.dto.recipe.RecipeDto;
+import com.recipe_manager.model.dto.request.AddIngredientCommentRequest;
 import com.recipe_manager.model.dto.request.CreateRecipeRequest;
+import com.recipe_manager.model.dto.request.DeleteIngredientCommentRequest;
+import com.recipe_manager.model.dto.request.EditIngredientCommentRequest;
 import com.recipe_manager.model.dto.request.SearchRecipesRequest;
 import com.recipe_manager.model.dto.request.UpdateRecipeRequest;
+import com.recipe_manager.model.dto.response.IngredientCommentResponse;
 import com.recipe_manager.model.dto.response.SearchRecipesResponse;
 import com.recipe_manager.service.IngredientService;
 import com.recipe_manager.service.MediaService;
@@ -121,12 +129,12 @@ class RecipeManagementControllerTest {
   @Tag("standard-processing")
   @DisplayName("Should handle GET /recipe-management/recipes/{recipeId}/ingredients")
   void shouldHandleGetIngredients() throws Exception {
-    com.recipe_manager.model.dto.response.RecipeIngredientsResponse mockResponse =
-        com.recipe_manager.model.dto.response.RecipeIngredientsResponse.builder()
-            .recipeId(1L)
-            .ingredients(java.util.Arrays.asList())
-            .totalCount(0)
-            .build();
+    com.recipe_manager.model.dto.response.RecipeIngredientsResponse mockResponse = com.recipe_manager.model.dto.response.RecipeIngredientsResponse
+        .builder()
+        .recipeId(1L)
+        .ingredients(java.util.Arrays.asList())
+        .totalCount(0)
+        .build();
     when(ingredientService.getIngredients("1")).thenReturn(ResponseEntity.ok(mockResponse));
 
     mockMvc.perform(get("/recipe-management/recipes/1/ingredients")
@@ -236,9 +244,24 @@ class RecipeManagementControllerTest {
   @Tag("standard-processing")
   @DisplayName("Should handle POST /recipe-management/recipes/{recipeId}/ingredients/{ingredientId}/comment")
   void shouldHandleAddCommentToIngredient() throws Exception {
-    when(ingredientService.addComment("1", "2")).thenReturn(ResponseEntity.ok("Add Comment - placeholder"));
+    IngredientCommentDto commentDto = IngredientCommentDto.builder()
+        .commentId(1L)
+        .userId(UUID.randomUUID())
+        .commentText("Test comment")
+        .isPublic(true)
+        .build();
+
+    IngredientCommentResponse response = IngredientCommentResponse.builder()
+        .recipeId(1L)
+        .ingredientId(2L)
+        .comments(List.of(commentDto))
+        .build();
+    when(ingredientService.addComment(eq("1"), eq("2"), any(AddIngredientCommentRequest.class)))
+        .thenReturn(ResponseEntity.ok(response));
+
     mockMvc.perform(post("/recipe-management/recipes/1/ingredients/2/comment")
-        .contentType(MediaType.APPLICATION_JSON))
+        .contentType(MediaType.APPLICATION_JSON)
+        .content("{\"comment\":\"Test comment\"}"))
         .andExpect(status().isOk());
   }
 
@@ -251,9 +274,24 @@ class RecipeManagementControllerTest {
   @Tag("standard-processing")
   @DisplayName("Should handle PUT /recipe-management/recipes/{recipeId}/ingredients/{ingredientId}/comment")
   void shouldHandleEditCommentOnIngredient() throws Exception {
-    when(ingredientService.editComment("1", "2")).thenReturn(ResponseEntity.ok("Edit Comment - placeholder"));
+    IngredientCommentDto commentDto = IngredientCommentDto.builder()
+        .commentId(1L)
+        .userId(UUID.randomUUID())
+        .commentText("Updated comment")
+        .isPublic(true)
+        .build();
+
+    IngredientCommentResponse response = IngredientCommentResponse.builder()
+        .recipeId(1L)
+        .ingredientId(2L)
+        .comments(List.of(commentDto))
+        .build();
+    when(ingredientService.editComment(eq("1"), eq("2"), any(EditIngredientCommentRequest.class)))
+        .thenReturn(ResponseEntity.ok(response));
+
     mockMvc.perform(put("/recipe-management/recipes/1/ingredients/2/comment")
-        .contentType(MediaType.APPLICATION_JSON))
+        .contentType(MediaType.APPLICATION_JSON)
+        .content("{\"commentId\":1,\"comment\":\"Updated comment\"}"))
         .andExpect(status().isOk());
   }
 
@@ -266,9 +304,17 @@ class RecipeManagementControllerTest {
   @Tag("standard-processing")
   @DisplayName("Should handle DELETE /recipe-management/recipes/{recipeId}/ingredients/{ingredientId}/comment")
   void shouldHandleDeleteCommentFromIngredient() throws Exception {
-    when(ingredientService.deleteComment("1", "2")).thenReturn(ResponseEntity.ok("Delete Comment - placeholder"));
+    IngredientCommentResponse response = IngredientCommentResponse.builder()
+        .recipeId(1L)
+        .ingredientId(2L)
+        .comments(List.of())
+        .build();
+    when(ingredientService.deleteComment(eq("1"), eq("2"), any(DeleteIngredientCommentRequest.class)))
+        .thenReturn(ResponseEntity.ok(response));
+
     mockMvc.perform(delete("/recipe-management/recipes/1/ingredients/2/comment")
-        .contentType(MediaType.APPLICATION_JSON))
+        .contentType(MediaType.APPLICATION_JSON)
+        .content("{\"commentId\":1}"))
         .andExpect(status().isOk());
   }
 

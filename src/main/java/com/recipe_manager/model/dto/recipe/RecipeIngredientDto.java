@@ -1,7 +1,9 @@
 package com.recipe_manager.model.dto.recipe;
 
 import java.math.BigDecimal;
+import java.util.List;
 
+import com.recipe_manager.model.dto.ingredient.IngredientCommentDto;
 import com.recipe_manager.model.enums.IngredientUnit;
 
 import lombok.AllArgsConstructor;
@@ -43,4 +45,7 @@ public final class RecipeIngredientDto {
 
   /** Whether the ingredient is optional. */
   private Boolean isOptional;
+
+  /** Comments associated with this ingredient. */
+  private List<IngredientCommentDto> comments;
 }

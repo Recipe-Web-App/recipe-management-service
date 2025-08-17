@@ -462,9 +462,9 @@
             <phase>generate-test-sources</phase>
             <configuration>
               <sources>
-                <source>${project.basedir}/src/test/unit</source>
-                <source>${project.basedir}/src/test/component</source>
-                <source>${project.basedir}/src/test/dependency</source>
+                <source>${project.basedir}/src/test/unit/java</source>
+                <source>${project.basedir}/src/test/component/java</source>
+                <source>${project.basedir}/src/test/dependency/java</source>
               </sources>
             </configuration>
           </execution>
@@ -476,6 +476,9 @@
             <phase>generate-test-resources</phase>
             <configuration>
               <resources>
+                <resource>
+                  <directory>src/test/resources</directory>
+                </resource>
                 <resource>
                   <directory>src/test/dependency/resources</directory>
                 </resource>

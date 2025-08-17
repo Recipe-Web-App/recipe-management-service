@@ -282,7 +282,6 @@ class RecipeServiceTest {
       createRecipeRequest.setIngredients(Arrays.asList(ingredientDto));
 
       Ingredient newIngredient = Ingredient.builder()
-          .ingredientId(3L)
           .name("New Spice")
           .build();
 
@@ -1602,7 +1601,6 @@ class RecipeServiceTest {
           .build();
 
       Ingredient newIngredient = Ingredient.builder()
-          .ingredientId(2L)
           .name("New Ingredient")
           .build();
 

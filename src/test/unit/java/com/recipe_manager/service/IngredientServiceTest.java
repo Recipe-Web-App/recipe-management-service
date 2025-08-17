@@ -2,27 +2,43 @@ package com.recipe_manager.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 import com.recipe_manager.exception.BusinessException;
+import com.recipe_manager.model.dto.external.recipescraper.RecipeScraperShoppingDto;
 import com.recipe_manager.model.dto.recipe.RecipeIngredientDto;
+import com.recipe_manager.model.dto.request.AddIngredientCommentRequest;
+import com.recipe_manager.model.dto.request.DeleteIngredientCommentRequest;
+import com.recipe_manager.model.dto.request.EditIngredientCommentRequest;
+import com.recipe_manager.model.dto.response.IngredientCommentResponse;
 import com.recipe_manager.model.dto.response.RecipeIngredientsResponse;
 import com.recipe_manager.model.dto.response.ShoppingListResponse;
 import com.recipe_manager.model.dto.shopping.ShoppingListItemDto;
 import com.recipe_manager.model.entity.ingredient.Ingredient;
+import com.recipe_manager.model.entity.ingredient.IngredientComment;
 import com.recipe_manager.model.entity.recipe.Recipe;
 import com.recipe_manager.model.entity.recipe.RecipeIngredient;
 import com.recipe_manager.model.enums.IngredientUnit;
+import com.recipe_manager.model.mapper.IngredientCommentMapper;
 import com.recipe_manager.model.mapper.RecipeIngredientMapper;
 import com.recipe_manager.model.mapper.ShoppingListMapper;
+import com.recipe_manager.repository.ingredient.IngredientCommentRepository;
+import com.recipe_manager.repository.ingredient.IngredientRepository;
 import com.recipe_manager.repository.recipe.RecipeIngredientRepository;
 import com.recipe_manager.service.external.RecipeScraperService;
-import com.recipe_manager.model.dto.external.recipescraper.RecipeScraperShoppingDto;
+import com.recipe_manager.util.SecurityUtils;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -30,6 +46,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -59,7 +76,16 @@ class IngredientServiceTest {
   private RecipeIngredientRepository recipeIngredientRepository;
 
   @Mock
+  private IngredientRepository ingredientRepository;
+
+  @Mock
+  private IngredientCommentRepository ingredientCommentRepository;
+
+  @Mock
   private RecipeIngredientMapper recipeIngredientMapper;
+
+  @Mock
+  private IngredientCommentMapper ingredientCommentMapper;
 
   @Mock
   private ShoppingListMapper shoppingListMapper;
@@ -92,6 +118,13 @@ class IngredientServiceTest {
     when(recipeIngredientRepository.findByRecipeRecipeId(id)).thenReturn(ingredients);
     when(recipeIngredientMapper.toDtoList(ingredients)).thenReturn(dtos);
 
+    // Mock comment repository calls for each ingredient
+    when(ingredientCommentRepository.findByIngredientIngredientIdOrderByCreatedAtAsc(1L))
+        .thenReturn(new ArrayList<>());
+    when(ingredientCommentRepository.findByIngredientIngredientIdOrderByCreatedAtAsc(2L))
+        .thenReturn(new ArrayList<>());
+    when(ingredientCommentMapper.toDtoList(anyList())).thenReturn(new ArrayList<>());
+
     // When
     ResponseEntity<RecipeIngredientsResponse> response = ingredientService.getIngredients(recipeId);
 
@@ -101,6 +134,10 @@ class IngredientServiceTest {
     assertThat(response.getBody().getRecipeId()).isEqualTo(id);
     assertThat(response.getBody().getIngredients()).hasSize(2);
     assertThat(response.getBody().getTotalCount()).isEqualTo(2);
+
+    // Verify comment repository was called for each ingredient
+    verify(ingredientCommentRepository).findByIngredientIngredientIdOrderByCreatedAtAsc(1L);
+    verify(ingredientCommentRepository).findByIngredientIngredientIdOrderByCreatedAtAsc(2L);
   }
 
   @Test
@@ -118,13 +155,21 @@ class IngredientServiceTest {
         IngredientUnit.TSP);
     List<RecipeIngredient> ingredients = Arrays.asList(ingredient1, ingredient2);
 
-    RecipeIngredientDto scaledDto1 = createMockRecipeIngredientDto(id, 1L, "Salt", new BigDecimal("2.5"), IngredientUnit.TSP);
+    RecipeIngredientDto scaledDto1 = createMockRecipeIngredientDto(id, 1L, "Salt", new BigDecimal("2.5"),
+        IngredientUnit.TSP);
     RecipeIngredientDto scaledDto2 = createMockRecipeIngredientDto(id, 2L, "Pepper", new BigDecimal("1.25"),
         IngredientUnit.TSP);
     List<RecipeIngredientDto> scaledDtos = Arrays.asList(scaledDto1, scaledDto2);
 
     when(recipeIngredientRepository.findByRecipeRecipeId(id)).thenReturn(ingredients);
     when(recipeIngredientMapper.toDtoListWithScale(ingredients, scaleFactor)).thenReturn(scaledDtos);
+
+    // Mock comment repository calls for each ingredient
+    when(ingredientCommentRepository.findByIngredientIngredientIdOrderByCreatedAtAsc(1L))
+        .thenReturn(new ArrayList<>());
+    when(ingredientCommentRepository.findByIngredientIngredientIdOrderByCreatedAtAsc(2L))
+        .thenReturn(new ArrayList<>());
+    when(ingredientCommentMapper.toDtoList(anyList())).thenReturn(new ArrayList<>());
 
     // When
     ResponseEntity<RecipeIngredientsResponse> response = ingredientService.scaleIngredients(recipeId, scaleFactor);
@@ -187,15 +232,49 @@ class IngredientServiceTest {
   @DisplayName("Should add comment to ingredient successfully")
   void shouldAddCommentToIngredientSuccessfully() {
     // Given
-    String recipeId = "recipe-123";
-    String ingredientId = "ingredient-456";
+    String recipeId = "123";
+    String ingredientId = "456";
+    Long recipeIdLong = 123L;
+    Long ingredientIdLong = 456L;
+    UUID userId = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
 
-    // When
-    ResponseEntity<String> response = ingredientService.addComment(recipeId, ingredientId);
+    AddIngredientCommentRequest request = AddIngredientCommentRequest.builder()
+        .comment("Test comment")
+        .build();
 
-    // Then
-    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-    assertThat(response.getBody()).isEqualTo("Add Comment to Ingredient - placeholder");
+    // Create mock entities
+    Recipe recipe = new Recipe();
+    recipe.setRecipeId(recipeIdLong);
+
+    Ingredient ingredient = new Ingredient();
+    ingredient.setIngredientId(ingredientIdLong);
+
+    RecipeIngredient recipeIngredient = new RecipeIngredient();
+    recipeIngredient.setRecipe(recipe);
+    recipeIngredient.setIngredient(ingredient);
+
+    // Mock repository calls
+    when(recipeIngredientRepository.findByRecipeRecipeIdAndIngredientIngredientId(recipeIdLong, ingredientIdLong))
+        .thenReturn(Optional.of(recipeIngredient));
+    when(ingredientCommentRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+    when(ingredientCommentRepository.findByIngredientIngredientIdOrderByCreatedAtAsc(ingredientIdLong))
+        .thenReturn(java.util.Collections.emptyList());
+    when(ingredientCommentMapper.toDtoList(anyList())).thenReturn(java.util.Collections.emptyList());
+
+    // Mock SecurityUtils
+    try (MockedStatic<SecurityUtils> securityMock = mockStatic(SecurityUtils.class)) {
+      securityMock.when(SecurityUtils::getCurrentUserId).thenReturn(userId);
+
+      // When
+      ResponseEntity<IngredientCommentResponse> response = ingredientService.addComment(recipeId, ingredientId,
+          request);
+
+      // Then
+      assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+      assertThat(response.getBody().getRecipeId()).isEqualTo(recipeIdLong);
+      assertThat(response.getBody().getIngredientId()).isEqualTo(ingredientIdLong);
+      assertThat(response.getBody().getComments()).hasSize(0); // Empty list for this test
+    }
   }
 
   @Test
@@ -203,15 +282,43 @@ class IngredientServiceTest {
   @DisplayName("Should edit comment on ingredient successfully")
   void shouldEditCommentOnIngredientSuccessfully() {
     // Given
-    String recipeId = "recipe-123";
-    String ingredientId = "ingredient-456";
+    String recipeId = "123";
+    String ingredientId = "456";
+    Long recipeIdLong = 123L;
+    Long ingredientIdLong = 456L;
+
+    EditIngredientCommentRequest request = EditIngredientCommentRequest.builder()
+        .commentId(1L)
+        .comment("Updated comment")
+        .build();
+
+    // Create mock entities
+    Recipe recipe = new Recipe();
+    recipe.setRecipeId(recipeIdLong);
+
+    Ingredient ingredient = new Ingredient();
+    ingredient.setIngredientId(ingredientIdLong);
+
+    RecipeIngredient recipeIngredient = new RecipeIngredient();
+    recipeIngredient.setRecipe(recipe);
+    recipeIngredient.setIngredient(ingredient);
+
+    // Mock repository calls
+    when(recipeIngredientRepository.findByRecipeRecipeIdAndIngredientIngredientId(recipeIdLong, ingredientIdLong))
+        .thenReturn(Optional.of(recipeIngredient));
+    when(ingredientCommentRepository.findByCommentIdAndIngredientIngredientId(1L, ingredientIdLong))
+        .thenReturn(Optional.of(new IngredientComment()));
+    when(ingredientCommentRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+    when(ingredientCommentRepository.findByIngredientIngredientIdOrderByCreatedAtAsc(ingredientIdLong))
+        .thenReturn(java.util.Collections.emptyList());
+    when(ingredientCommentMapper.toDtoList(anyList())).thenReturn(java.util.Collections.emptyList());
 
     // When
-    ResponseEntity<String> response = ingredientService.editComment(recipeId, ingredientId);
+    ResponseEntity<IngredientCommentResponse> response = ingredientService.editComment(recipeId, ingredientId, request);
 
     // Then
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-    assertThat(response.getBody()).isEqualTo("Edit Comment on Ingredient - placeholder");
+    assertThat(response.getBody().getComments()).hasSize(0); // Empty list for this test
   }
 
   @Test
@@ -219,15 +326,42 @@ class IngredientServiceTest {
   @DisplayName("Should delete comment from ingredient successfully")
   void shouldDeleteCommentFromIngredientSuccessfully() {
     // Given
-    String recipeId = "recipe-123";
-    String ingredientId = "ingredient-456";
+    String recipeId = "123";
+    String ingredientId = "456";
+    Long recipeIdLong = 123L;
+    Long ingredientIdLong = 456L;
+
+    DeleteIngredientCommentRequest request = DeleteIngredientCommentRequest.builder()
+        .commentId(1L)
+        .build();
+
+    // Create mock entities
+    Recipe recipe = new Recipe();
+    recipe.setRecipeId(recipeIdLong);
+
+    Ingredient ingredient = new Ingredient();
+    ingredient.setIngredientId(ingredientIdLong);
+
+    RecipeIngredient recipeIngredient = new RecipeIngredient();
+    recipeIngredient.setRecipe(recipe);
+    recipeIngredient.setIngredient(ingredient);
+
+    // Mock repository calls
+    when(recipeIngredientRepository.findByRecipeRecipeIdAndIngredientIngredientId(recipeIdLong, ingredientIdLong))
+        .thenReturn(Optional.of(recipeIngredient));
+    when(ingredientCommentRepository.findByCommentIdAndIngredientIngredientId(1L, ingredientIdLong))
+        .thenReturn(Optional.of(new IngredientComment()));
+    when(ingredientCommentRepository.findByIngredientIngredientIdOrderByCreatedAtAsc(ingredientIdLong))
+        .thenReturn(java.util.Collections.emptyList());
+    when(ingredientCommentMapper.toDtoList(anyList())).thenReturn(java.util.Collections.emptyList());
 
     // When
-    ResponseEntity<String> response = ingredientService.deleteComment(recipeId, ingredientId);
+    ResponseEntity<IngredientCommentResponse> response = ingredientService.deleteComment(recipeId, ingredientId,
+        request);
 
     // Then
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-    assertThat(response.getBody()).isEqualTo("Delete Comment from Ingredient - placeholder");
+    assertThat(response.getBody().getComments()).isEmpty();
   }
 
   @Test
@@ -293,6 +427,65 @@ class IngredientServiceTest {
     assertThat(exception.getMessage()).isEqualTo("Invalid recipe ID: invalid");
   }
 
+  @Test
+  @Tag("standard-processing")
+  @DisplayName("Should get ingredients with comments successfully")
+  void shouldGetIngredientsWithCommentsSuccessfully() {
+    // Given
+    String recipeId = "123";
+    Long id = 123L;
+
+    RecipeIngredient ingredient1 = createMockRecipeIngredient(id, 1L, "Salt", new BigDecimal("1.5"),
+        IngredientUnit.TSP);
+    List<RecipeIngredient> ingredients = Arrays.asList(ingredient1);
+
+    RecipeIngredientDto dto1 = createMockRecipeIngredientDto(id, 1L, "Salt", new BigDecimal("1.5"), IngredientUnit.TSP);
+    List<RecipeIngredientDto> dtos = Arrays.asList(dto1);
+
+    // Create mock comments
+    IngredientComment comment1 = IngredientComment.builder()
+        .commentId(1L)
+        .recipeId(id)
+        .userId(UUID.randomUUID())
+        .commentText("Great ingredient!")
+        .isPublic(true)
+        .build();
+
+    IngredientComment comment2 = IngredientComment.builder()
+        .commentId(2L)
+        .recipeId(id)
+        .userId(UUID.randomUUID())
+        .commentText("Very fresh")
+        .isPublic(false)
+        .build();
+
+    List<IngredientComment> comments = Arrays.asList(comment1, comment2);
+
+    when(recipeIngredientRepository.findByRecipeRecipeId(id)).thenReturn(ingredients);
+    when(recipeIngredientMapper.toDtoList(ingredients)).thenReturn(dtos);
+    when(ingredientCommentRepository.findByIngredientIngredientIdOrderByCreatedAtAsc(1L))
+        .thenReturn(comments);
+    when(ingredientCommentMapper.toDtoList(comments)).thenReturn(Arrays.asList(
+        com.recipe_manager.model.dto.ingredient.IngredientCommentDto.builder()
+            .commentId(1L).commentText("Great ingredient!").build(),
+        com.recipe_manager.model.dto.ingredient.IngredientCommentDto.builder()
+            .commentId(2L).commentText("Very fresh").build()));
+
+    // When
+    ResponseEntity<RecipeIngredientsResponse> response = ingredientService.getIngredients(recipeId);
+
+    // Then
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    assertThat(response.getBody()).isNotNull();
+    assertThat(response.getBody().getRecipeId()).isEqualTo(id);
+    assertThat(response.getBody().getIngredients()).hasSize(1);
+    assertThat(response.getBody().getIngredients().get(0).getComments()).hasSize(2);
+
+    // Verify comment repository was called
+    verify(ingredientCommentRepository).findByIngredientIngredientIdOrderByCreatedAtAsc(1L);
+    verify(ingredientCommentMapper).toDtoList(comments);
+  }
+
   private RecipeIngredient createMockRecipeIngredient(Long recipeId, Long ingredientId, String ingredientName,
       BigDecimal quantity, IngredientUnit unit) {
     Recipe recipe = new Recipe();
@@ -321,6 +514,7 @@ class IngredientServiceTest {
         .quantity(quantity)
         .unit(unit)
         .isOptional(false)
+        .comments(new ArrayList<>())
         .build();
   }
 
@@ -338,12 +532,16 @@ class IngredientServiceTest {
   @Tag("standard-processing")
   @DisplayName("Should handle null ingredient ID gracefully")
   void shouldHandleNullIngredientIdGracefully() {
-    // When
-    ResponseEntity<String> response = ingredientService.addComment("recipe-123", null);
+    AddIngredientCommentRequest request = AddIngredientCommentRequest.builder()
+        .comment("Test comment")
+        .build();
 
-    // Then
-    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-    assertThat(response.getBody()).isEqualTo("Add Comment to Ingredient - placeholder");
+    // When/Then
+    BusinessException exception = assertThrows(BusinessException.class, () -> {
+      ingredientService.addComment("recipe-123", null, request);
+    });
+
+    assertThat(exception.getMessage()).contains("Invalid recipe ID: recipe-123");
   }
 
   @Test
@@ -359,7 +557,8 @@ class IngredientServiceTest {
         IngredientUnit.TSP);
     List<RecipeIngredient> ingredients = Arrays.asList(ingredient1);
 
-    RecipeIngredientDto scaledDto1 = createMockRecipeIngredientDto(id, 1L, "Salt", new BigDecimal("0.0"), IngredientUnit.TSP);
+    RecipeIngredientDto scaledDto1 = createMockRecipeIngredientDto(id, 1L, "Salt", new BigDecimal("0.0"),
+        IngredientUnit.TSP);
     List<RecipeIngredientDto> scaledDtos = Arrays.asList(scaledDto1);
 
     when(recipeIngredientRepository.findByRecipeRecipeId(id)).thenReturn(ingredients);
@@ -388,7 +587,8 @@ class IngredientServiceTest {
         IngredientUnit.TSP);
     List<RecipeIngredient> ingredients = Arrays.asList(ingredient1, ingredient2);
 
-    ShoppingListItemDto aggregatedItem = createMockShoppingListItem("Salt", new BigDecimal("1.5"), IngredientUnit.TSP, false);
+    ShoppingListItemDto aggregatedItem = createMockShoppingListItem("Salt", new BigDecimal("1.5"), IngredientUnit.TSP,
+        false);
     List<ShoppingListItemDto> shoppingListItems = Arrays.asList(aggregatedItem);
 
     // Mock external service to return empty pricing data for unit tests

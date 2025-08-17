@@ -24,6 +24,7 @@ import com.recipe_manager.model.entity.ingredient.Ingredient;
 import com.recipe_manager.model.entity.recipe.Recipe;
 import com.recipe_manager.model.entity.recipe.RecipeIngredient;
 import com.recipe_manager.model.enums.IngredientUnit;
+import com.recipe_manager.model.mapper.IngredientCommentMapperImpl;
 import com.recipe_manager.model.mapper.RecipeIngredientMapperImpl;
 
 /**
@@ -32,7 +33,8 @@ import com.recipe_manager.model.mapper.RecipeIngredientMapperImpl;
  * Tests the actual IngredientService logic with mocked repository calls.
  */
 @SpringBootTest(classes = {
-    RecipeIngredientMapperImpl.class
+    RecipeIngredientMapperImpl.class,
+    IngredientCommentMapperImpl.class
 })
 @TestPropertySource(properties = {
     "spring.datasource.url=jdbc:h2:mem:testdb",
@@ -74,6 +76,10 @@ class GetIngredientsComponentTest extends AbstractComponentTest {
     when(recipeIngredientRepository.findByRecipeRecipeId(123L))
         .thenReturn(Arrays.asList(recipeIngredient));
 
+    // Mock comment repository for the ingredient
+    when(ingredientCommentRepository.findByIngredientIngredientIdOrderByCreatedAtAsc(1L))
+        .thenReturn(Collections.emptyList());
+
     // When & Then
     mockMvc.perform(get("/recipe-management/recipes/123/ingredients")
         .contentType(MediaType.APPLICATION_JSON))
@@ -85,6 +91,8 @@ class GetIngredientsComponentTest extends AbstractComponentTest {
         .andExpect(jsonPath("$.ingredients[0].quantity").value(1.5))
         .andExpect(jsonPath("$.ingredients[0].unit").value("TSP"))
         .andExpect(jsonPath("$.ingredients[0].isOptional").value(false))
+        .andExpect(jsonPath("$.ingredients[0].comments").isArray())
+        .andExpect(jsonPath("$.ingredients[0].comments").isEmpty())
         .andExpect(header().exists("X-Request-ID"));
   }
 

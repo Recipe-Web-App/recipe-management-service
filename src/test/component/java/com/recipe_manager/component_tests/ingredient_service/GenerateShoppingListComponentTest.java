@@ -27,7 +27,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
@@ -51,7 +50,6 @@ import org.springframework.test.context.TestPropertySource;
 @Tag("component")
 class GenerateShoppingListComponentTest extends AbstractComponentTest {
 
-
   @Override
   @BeforeEach
   protected void setUp() {
@@ -63,7 +61,8 @@ class GenerateShoppingListComponentTest extends AbstractComponentTest {
         .ingredients(java.util.Collections.emptyMap())
         .totalEstimatedCost(BigDecimal.ZERO)
         .build();
-    lenient().when(recipeScraperService.getShoppingInfo(any(Long.class))).thenReturn(CompletableFuture.completedFuture(emptyPricingData));
+    lenient().when(recipeScraperService.getShoppingInfo(any(Long.class)))
+        .thenReturn(CompletableFuture.completedFuture(emptyPricingData));
 
     useRealIngredientService(); // Use real service with mocked repositories
   }
@@ -75,8 +74,8 @@ class GenerateShoppingListComponentTest extends AbstractComponentTest {
     // Setup repository mock data
     Recipe recipe = Recipe.builder().recipeId(123L).build();
 
-    Ingredient salt = Ingredient.builder().ingredientId(1L).name("Salt").build();
-    Ingredient pepper = Ingredient.builder().ingredientId(2L).name("Pepper").build();
+    Ingredient salt = Ingredient.builder().name("Salt").build();
+    Ingredient pepper = Ingredient.builder().name("Pepper").build();
 
     RecipeIngredient ingredient1 = RecipeIngredient.builder()
         .recipe(recipe)
@@ -143,7 +142,7 @@ class GenerateShoppingListComponentTest extends AbstractComponentTest {
   void shouldAggregateDuplicateIngredientsInShoppingList() throws Exception {
     // Setup repository mock data with duplicate salt ingredients
     Recipe recipe = Recipe.builder().recipeId(789L).build();
-    Ingredient salt = Ingredient.builder().ingredientId(1L).name("Salt").build();
+    Ingredient salt = Ingredient.builder().name("Salt").build();
 
     RecipeIngredient ingredient1 = RecipeIngredient.builder()
         .recipe(recipe)

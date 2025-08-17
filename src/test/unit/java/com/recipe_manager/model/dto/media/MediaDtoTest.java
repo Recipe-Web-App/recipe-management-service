@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test;
 import lombok.experimental.SuperBuilder;
 
 @SuperBuilder
-public class TestMediaDto extends MediaDto {
+class TestMediaDto extends MediaDto {
   // This class inherits builder and constructors from MediaDto
   // Used for testing builder functionality
 }

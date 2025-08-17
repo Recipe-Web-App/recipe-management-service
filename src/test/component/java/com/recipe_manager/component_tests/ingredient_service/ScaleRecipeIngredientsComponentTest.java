@@ -16,6 +16,7 @@ import com.recipe_manager.model.entity.ingredient.Ingredient;
 import com.recipe_manager.model.entity.recipe.Recipe;
 import com.recipe_manager.model.entity.recipe.RecipeIngredient;
 import com.recipe_manager.model.enums.IngredientUnit;
+import com.recipe_manager.model.mapper.IngredientCommentMapperImpl;
 import com.recipe_manager.model.mapper.RecipeIngredientMapperImpl;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -32,7 +33,8 @@ import org.springframework.test.context.TestPropertySource;
  * Tests the actual IngredientService scaling logic with mocked repository calls.
  */
 @SpringBootTest(classes = {
-    RecipeIngredientMapperImpl.class
+    RecipeIngredientMapperImpl.class,
+    IngredientCommentMapperImpl.class
 })
 @TestPropertySource(properties = {
     "spring.datasource.url=jdbc:h2:mem:testdb",
@@ -86,6 +88,12 @@ class ScaleRecipeIngredientsComponentTest extends AbstractComponentTest {
     when(recipeIngredientRepository.findByRecipeRecipeId(123L))
         .thenReturn(Arrays.asList(recipeIngredient1, recipeIngredient2));
 
+    // Mock comment repository for both ingredients
+    when(ingredientCommentRepository.findByIngredientIngredientIdOrderByCreatedAtAsc(1L))
+        .thenReturn(Collections.emptyList());
+    when(ingredientCommentRepository.findByIngredientIngredientIdOrderByCreatedAtAsc(2L))
+        .thenReturn(Collections.emptyList());
+
     // When & Then
     mockMvc.perform(get("/recipe-management/recipes/123/ingredients/scale")
         .param("quantity", "2.5")
@@ -98,9 +106,13 @@ class ScaleRecipeIngredientsComponentTest extends AbstractComponentTest {
         .andExpect(jsonPath("$.ingredients[0].ingredientName").value("Flour"))
         .andExpect(jsonPath("$.ingredients[0].quantity").value(2.5)) // 1.0 * 2.5 = 2.5
         .andExpect(jsonPath("$.ingredients[0].isOptional").value(false))
+        .andExpect(jsonPath("$.ingredients[0].comments").isArray())
+        .andExpect(jsonPath("$.ingredients[0].comments").isEmpty())
         .andExpect(jsonPath("$.ingredients[1].ingredientName").value("Sugar"))
         .andExpect(jsonPath("$.ingredients[1].quantity").value(1.25)) // 0.5 * 2.5 = 1.25
         .andExpect(jsonPath("$.ingredients[1].isOptional").value(true))
+        .andExpect(jsonPath("$.ingredients[1].comments").isArray())
+        .andExpect(jsonPath("$.ingredients[1].comments").isEmpty())
         .andExpect(header().exists("X-Request-ID"));
   }
 
@@ -110,6 +122,8 @@ class ScaleRecipeIngredientsComponentTest extends AbstractComponentTest {
   void shouldScaleEmptyIngredientsList() throws Exception {
     when(recipeIngredientRepository.findByRecipeRecipeId(456L))
         .thenReturn(Collections.emptyList());
+
+    // No comment mocking needed since there are no ingredients
 
     mockMvc.perform(get("/recipe-management/recipes/456/ingredients/scale")
         .param("quantity", "3.0")

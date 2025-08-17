@@ -3,7 +3,12 @@ package com.recipe_manager.model.dto.recipe;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.List;
+import java.util.UUID;
 
+import com.recipe_manager.model.dto.ingredient.IngredientCommentDto;
 import com.recipe_manager.model.enums.IngredientUnit;
 
 import org.junit.jupiter.api.DisplayName;
@@ -17,19 +22,27 @@ class RecipeIngredientDtoTest {
   @DisplayName("All-args constructor assigns all fields")
   @Tag("standard-processing")
   void allArgsConstructorAssignsFields() {
+    IngredientCommentDto comment = IngredientCommentDto.builder()
+        .commentId(1L)
+        .commentText("Test comment")
+        .build();
+    List<IngredientCommentDto> comments = Arrays.asList(comment);
+
     RecipeIngredientDto dto = new RecipeIngredientDto(
         1L,
         2L,
         "name",
         BigDecimal.TEN,
         IngredientUnit.G,
-        true);
+        true,
+        comments);
     assertThat(dto.getRecipeId()).isEqualTo(1L);
     assertThat(dto.getIngredientId()).isEqualTo(2L);
     assertThat(dto.getIngredientName()).isEqualTo("name");
     assertThat(dto.getQuantity()).isEqualTo(BigDecimal.TEN);
     assertThat(dto.getUnit()).isEqualTo(IngredientUnit.G);
     assertThat(dto.getIsOptional()).isTrue();
+    assertThat(dto.getComments()).isEqualTo(comments);
   }
 
   @Test
@@ -40,6 +53,7 @@ class RecipeIngredientDtoTest {
     assertThat(dto.getIngredientName()).isNull();
     assertThat(dto.getRecipeId()).isNull();
     assertThat(dto.getIngredientId()).isNull();
+    assertThat(dto.getComments()).isNull();
   }
 
   @Test
@@ -96,5 +110,52 @@ class RecipeIngredientDtoTest {
     assertThat(dto.getQuantity()).isNull();
     assertThat(dto.getUnit()).isNull();
     assertThat(dto.getIsOptional()).isNull();
+    assertThat(dto.getComments()).isNull();
+  }
+
+  @Test
+  @DisplayName("Comments field works correctly")
+  @Tag("standard-processing")
+  void commentsFieldWorksCorrectly() {
+    IngredientCommentDto comment1 = IngredientCommentDto.builder()
+        .commentId(1L)
+        .recipeId(123L)
+        .userId(UUID.randomUUID())
+        .commentText("Great ingredient!")
+        .isPublic(true)
+        .createdAt(LocalDateTime.now())
+        .build();
+
+    IngredientCommentDto comment2 = IngredientCommentDto.builder()
+        .commentId(2L)
+        .recipeId(123L)
+        .userId(UUID.randomUUID())
+        .commentText("Very fresh")
+        .isPublic(false)
+        .createdAt(LocalDateTime.now())
+        .build();
+
+    List<IngredientCommentDto> comments = Arrays.asList(comment1, comment2);
+
+    RecipeIngredientDto dto = new RecipeIngredientDto();
+    dto.setComments(comments);
+
+    assertThat(dto.getComments()).hasSize(2);
+    assertThat(dto.getComments()).containsExactly(comment1, comment2);
+    assertThat(dto.getComments().get(0).getCommentText()).isEqualTo("Great ingredient!");
+    assertThat(dto.getComments().get(1).getCommentText()).isEqualTo("Very fresh");
+  }
+
+  @Test
+  @DisplayName("Empty comments list works correctly")
+  @Tag("standard-processing")
+  void emptyCommentsListWorksCorrectly() {
+    RecipeIngredientDto dto = RecipeIngredientDto.builder()
+        .ingredientName("Salt")
+        .comments(Arrays.asList())
+        .build();
+
+    assertThat(dto.getComments()).isEmpty();
+    assertThat(dto.getIngredientName()).isEqualTo("Salt");
   }
 }

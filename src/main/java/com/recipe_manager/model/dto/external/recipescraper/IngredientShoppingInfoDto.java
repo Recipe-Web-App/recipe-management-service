@@ -2,7 +2,7 @@ package com.recipe_manager.model.dto.external.recipescraper;
 
 import java.math.BigDecimal;
 
-import com.recipe_manager.model.enums.IngredientUnit;
+import com.recipe_manager.model.dto.ingredient.QuantityDto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -30,10 +30,7 @@ public final class IngredientShoppingInfoDto {
   private String ingredientName;
 
   /** The quantity of the ingredient. */
-  private BigDecimal quantity;
-
-  /** The unit of measurement. */
-  private IngredientUnit unit;
+  private QuantityDto quantity;
 
   /** The estimated price for this ingredient. */
   private BigDecimal estimatedPrice;

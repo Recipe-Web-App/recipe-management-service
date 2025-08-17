@@ -73,7 +73,8 @@ public interface ShoppingListMapper {
             .map(RecipeIngredient::getQuantity)
             .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-    // If any ingredient is required (not optional), the shopping list item is required
+    // If any ingredient is required (not optional), the shopping list item is
+    // required
     boolean isOptional = ingredients.stream().allMatch(RecipeIngredient::getIsOptional);
 
     return ShoppingListItemDto.builder()

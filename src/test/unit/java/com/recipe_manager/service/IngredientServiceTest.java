@@ -365,54 +365,6 @@ class IngredientServiceTest {
   }
 
   @Test
-  @Tag("standard-processing")
-  @DisplayName("Should add media to ingredient successfully")
-  void shouldAddMediaToIngredientSuccessfully() {
-    // Given
-    String recipeId = "recipe-123";
-    String ingredientId = "ingredient-456";
-
-    // When
-    ResponseEntity<String> response = ingredientService.addMedia(recipeId, ingredientId);
-
-    // Then
-    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-    assertThat(response.getBody()).isEqualTo("Add Media Ref to Ingredient - placeholder");
-  }
-
-  @Test
-  @Tag("standard-processing")
-  @DisplayName("Should update media on ingredient successfully")
-  void shouldUpdateMediaOnIngredientSuccessfully() {
-    // Given
-    String recipeId = "recipe-123";
-    String ingredientId = "ingredient-456";
-
-    // When
-    ResponseEntity<String> response = ingredientService.updateMedia(recipeId, ingredientId);
-
-    // Then
-    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-    assertThat(response.getBody()).isEqualTo("Update Media Ref on Ingredient - placeholder");
-  }
-
-  @Test
-  @Tag("standard-processing")
-  @DisplayName("Should delete media from ingredient successfully")
-  void shouldDeleteMediaFromIngredientSuccessfully() {
-    // Given
-    String recipeId = "recipe-123";
-    String ingredientId = "ingredient-456";
-
-    // When
-    ResponseEntity<String> response = ingredientService.deleteMedia(recipeId, ingredientId);
-
-    // Then
-    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-    assertThat(response.getBody()).isEqualTo("Delete Media Ref from Ingredient - placeholder");
-  }
-
-  @Test
   @Tag("error-processing")
   @DisplayName("Should handle invalid recipe ID gracefully")
   void shouldHandleInvalidRecipeIdGracefully() {

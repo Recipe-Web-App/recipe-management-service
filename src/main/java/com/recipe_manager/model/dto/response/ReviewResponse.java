@@ -23,7 +23,9 @@ import lombok.ToString;
 @ToString
 public final class ReviewResponse {
 
+  /** ID of the recipe these reviews belong to. */
   private Long recipeId;
 
+  /** List of reviews for the recipe. */
   private List<ReviewDto> reviews;
 }

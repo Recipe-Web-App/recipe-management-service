@@ -50,4 +50,11 @@
     <Class name="~.*\.config\..*Config.*"/>
     <Bug pattern="EI_EXPOSE_REP,EI_EXPOSE_REP2"/>
   </Match>
+
+  <!-- Suppress EI_EXPOSE_REP warnings for Spring Service classes -->
+  <!-- Service classes use constructor-based dependency injection with managed Spring beans -->
+  <Match>
+    <Class name="~.*\.service\..*"/>
+    <Bug pattern="EI_EXPOSE_REP,EI_EXPOSE_REP2"/>
+  </Match>
 </FindBugsFilter>

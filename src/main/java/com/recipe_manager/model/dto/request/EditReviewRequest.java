@@ -25,6 +25,7 @@ import lombok.ToString;
 @ToString
 public final class EditReviewRequest {
 
+  /** Updated rating for the recipe (0.0 to 5.0 scale with 1 decimal place). */
   @NotNull(message = "Rating cannot be null")
   @DecimalMin(value = "0.0", message = "Rating must be at least 0.0")
   @DecimalMax(value = "5.0", message = "Rating must be at most 5.0")
@@ -34,5 +35,6 @@ public final class EditReviewRequest {
       message = "Rating must have at most 1 integer digit and 1 fractional digit")
   private BigDecimal rating;
 
+  /** Updated comment for the review. */
   private String comment;
 }

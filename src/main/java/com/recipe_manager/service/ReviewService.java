@@ -4,7 +4,6 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,20 +21,19 @@ import com.recipe_manager.repository.ReviewRepository;
 import com.recipe_manager.repository.recipe.RecipeRepository;
 import com.recipe_manager.util.SecurityUtils;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-
 /** Service for review-related operations. */
 @Service
 public class ReviewService {
 
+  /** Repository for managing review data. */
   private final ReviewRepository reviewRepository;
+
+  /** Repository for managing recipe data. */
   private final RecipeRepository recipeRepository;
+
+  /** Mapper for converting between Review entities and DTOs. */
   private final ReviewMapper reviewMapper;
 
-  @Autowired
-  @SuppressFBWarnings(
-      value = "EI_EXPOSE_REP2",
-      justification = "Spring-managed beans are safe to inject and not exposed externally")
   public ReviewService(
       final ReviewRepository reviewRepository,
       final RecipeRepository recipeRepository,

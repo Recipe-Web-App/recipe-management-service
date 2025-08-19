@@ -20,12 +20,14 @@ import com.recipe_manager.model.dto.recipe.StepCommentDto;
 import com.recipe_manager.model.dto.request.AddIngredientCommentRequest;
 import com.recipe_manager.model.dto.request.AddReviewRequest;
 import com.recipe_manager.model.dto.request.AddStepCommentRequest;
+import com.recipe_manager.model.dto.request.AddTagRequest;
 import com.recipe_manager.model.dto.request.CreateRecipeRequest;
 import com.recipe_manager.model.dto.request.DeleteIngredientCommentRequest;
 import com.recipe_manager.model.dto.request.DeleteStepCommentRequest;
 import com.recipe_manager.model.dto.request.EditIngredientCommentRequest;
 import com.recipe_manager.model.dto.request.EditReviewRequest;
 import com.recipe_manager.model.dto.request.EditStepCommentRequest;
+import com.recipe_manager.model.dto.request.RemoveTagRequest;
 import com.recipe_manager.model.dto.request.SearchRecipesRequest;
 import com.recipe_manager.model.dto.request.UpdateRecipeRequest;
 import com.recipe_manager.model.dto.response.IngredientCommentResponse;
@@ -35,6 +37,7 @@ import com.recipe_manager.model.dto.response.SearchRecipesResponse;
 import com.recipe_manager.model.dto.response.ShoppingListResponse;
 import com.recipe_manager.model.dto.response.StepCommentResponse;
 import com.recipe_manager.model.dto.response.StepResponse;
+import com.recipe_manager.model.dto.response.TagResponse;
 import com.recipe_manager.model.dto.review.ReviewDto;
 import com.recipe_manager.service.IngredientService;
 import com.recipe_manager.service.MediaService;
@@ -243,33 +246,40 @@ public class RecipeManagementController {
    * Add a tag to a recipe.
    *
    * @param recipeId the recipe ID
-   * @return placeholder response
+   * @param request the add tag request
+   * @return response with updated tags
    */
-  @PostMapping("/{recipeId}/tags")
-  public ResponseEntity<String> addTag(@PathVariable final String recipeId) {
-    return tagService.addTag(recipeId);
+  @PostMapping(value = "/{recipeId}/tags", produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<TagResponse> addTag(
+      @PathVariable final Long recipeId, @Valid @RequestBody final AddTagRequest request) {
+    TagResponse response = tagService.addTag(recipeId, request);
+    return ResponseEntity.status(HttpStatus.CREATED).body(response);
   }
 
   /**
    * Remove a tag from a recipe.
    *
    * @param recipeId the recipe ID
-   * @return placeholder response
+   * @param request the remove tag request
+   * @return response with updated tags
    */
-  @DeleteMapping("/{recipeId}/tags")
-  public ResponseEntity<String> removeTag(@PathVariable final String recipeId) {
-    return tagService.removeTag(recipeId);
+  @DeleteMapping(value = "/{recipeId}/tags", produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<TagResponse> removeTag(
+      @PathVariable final Long recipeId, @Valid @RequestBody final RemoveTagRequest request) {
+    TagResponse response = tagService.removeTag(recipeId, request);
+    return ResponseEntity.ok(response);
   }
 
   /**
    * Get tags for a recipe.
    *
    * @param recipeId the recipe ID
-   * @return placeholder response
+   * @return response with all tags for the recipe
    */
-  @GetMapping("/{recipeId}/tags")
-  public ResponseEntity<String> getTags(@PathVariable final String recipeId) {
-    return tagService.getTags(recipeId);
+  @GetMapping(value = "/{recipeId}/tags", produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<TagResponse> getTags(@PathVariable final Long recipeId) {
+    TagResponse response = tagService.getTags(recipeId);
+    return ResponseEntity.ok(response);
   }
 
   /**

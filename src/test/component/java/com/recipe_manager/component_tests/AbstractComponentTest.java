@@ -7,6 +7,7 @@ import com.recipe_manager.model.mapper.IngredientCommentMapper;
 import com.recipe_manager.model.mapper.RecipeIngredientMapper;
 import com.recipe_manager.model.mapper.RecipeMapper;
 import com.recipe_manager.model.mapper.RecipeStepMapper;
+import com.recipe_manager.model.mapper.RecipeTagMapper;
 import com.recipe_manager.model.mapper.ShoppingListMapper;
 import com.recipe_manager.model.mapper.StepCommentMapper;
 import com.recipe_manager.repository.ingredient.IngredientCommentRepository;
@@ -99,6 +100,9 @@ public abstract class AbstractComponentTest {
   @Autowired(required = false)
   protected StepCommentMapper stepCommentMapper;
 
+  @Autowired(required = false)
+  protected RecipeTagMapper recipeTagMapper;
+
   @InjectMocks
   protected RecipeManagementController controller;
 
@@ -106,6 +110,7 @@ public abstract class AbstractComponentTest {
   protected RecipeService realRecipeService;
   protected IngredientService realIngredientService;
   protected StepService realStepService;
+  protected TagService realTagService;
 
   @BeforeEach
   protected void setUp() {
@@ -122,6 +127,9 @@ public abstract class AbstractComponentTest {
     }
     if (stepCommentMapper != null && recipeStepMapper != null) {
       realStepService = new StepService(recipeRepository, recipeStepRepository, stepCommentRepository, recipeStepMapper, stepCommentMapper);
+    }
+    if (recipeTagMapper != null) {
+      realTagService = new TagService(recipeRepository, recipeTagRepository, recipeTagMapper);
     }
 
     mockMvc = MockMvcBuilders.standaloneSetup(controller)
@@ -188,6 +196,26 @@ public abstract class AbstractComponentTest {
       field.set(controller, realStepService);
     } catch (Exception e) {
       throw new RuntimeException("Failed to inject real StepService", e);
+    }
+  }
+
+  /**
+   * Switch to using real TagService with mocked repositories for proper
+   * component testing.
+   * Call this in tests that want to exercise real service logic.
+   */
+  protected void useRealTagService() {
+    if (realTagService == null) {
+      throw new RuntimeException("RecipeTagMapper not available in this test context");
+    }
+    // Manually set the real service in the controller
+    // Note: This is a bit hacky but necessary for proper component testing
+    try {
+      var field = RecipeManagementController.class.getDeclaredField("tagService");
+      field.setAccessible(true);
+      field.set(controller, realTagService);
+    } catch (Exception e) {
+      throw new RuntimeException("Failed to inject real TagService", e);
     }
   }
 }

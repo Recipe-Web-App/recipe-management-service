@@ -22,7 +22,7 @@
     <flyway.version>10.10.0</flyway.version>
     <jacoco.version>0.8.13</jacoco.version>
     <java.version>21</java.version>
-    <jjwt.version>0.12.6</jjwt.version>
+    <jjwt.version>0.12.7</jjwt.version>
     <junit-jupiter.version>5.10.2</junit-jupiter.version>
     <lombok.version>1.18.38</lombok.version>
     <mapstruct.version>1.6.3</mapstruct.version>

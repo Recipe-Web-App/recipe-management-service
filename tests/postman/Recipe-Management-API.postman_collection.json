@@ -1295,6 +1295,51 @@
           }
         },
         {
+          "name": "Get Step Comments",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Step comments retrieved successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has required structure', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('recipeId');",
+                  "    pm.expect(response).to.have.property('stepId');",
+                  "    pm.expect(response).to.have.property('comments');",
+                  "    pm.expect(response.comments).to.be.an('array');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/recipes/{{testRecipeId}}/steps/{{testStepId}}/comment",
+              "host": ["{{recipeManagementServiceBaseUrl}}"],
+              "path": [
+                "recipe-management",
+                "recipes",
+                "{{testRecipeId}}",
+                "steps",
+                "{{testStepId}}",
+                "comment"
+              ]
+            }
+          }
+        },
+        {
           "name": "Add Step Comment",
           "event": [
             {
@@ -1307,15 +1352,18 @@
                   "",
                   "pm.test('Comment has required fields', function () {",
                   "    const response = pm.response.json();",
-                  "    pm.expect(response).to.have.property('id');",
-                  "    pm.expect(response).to.have.property('comment');",
+                  "    pm.expect(response).to.have.property('commentId');",
+                  "    pm.expect(response).to.have.property('commentText');",
                   "    pm.expect(response).to.have.property('userId');",
+                  "    pm.expect(response).to.have.property('recipeId');",
+                  "    pm.expect(response).to.have.property('stepId');",
+                  "    pm.expect(response).to.have.property('isPublic');",
                   "});",
                   "",
                   "pm.test('Extract comment ID', function () {",
                   "    const response = pm.response.json();",
-                  "    if (response.id) {",
-                  "        pm.environment.set('recipeManagementServiceCreatedStepCommentId', response.id);",
+                  "    if (response.commentId) {",
+                  "        pm.environment.set('recipeManagementServiceCreatedStepCommentId', response.commentId);",
                   "    }",
                   "});"
                 ],
@@ -1333,7 +1381,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"comment\": \"This step is crucial for the recipe's success. Make sure to follow the timing exactly to avoid overcooking.\",\n  \"isPublic\": true,\n  \"helpfulTip\": \"Pro tip: Use a timer to ensure perfect results every time!\"\n}"
+              "raw": "{\n  \"comment\": \"This step is crucial for the recipe's success. Make sure to follow the timing exactly to avoid overcooking.\",\n  \"isPublic\": true\n}"
             },
             "url": {
               "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/recipes/{{testRecipeId}}/steps/{{testStepId}}/comment",
@@ -1362,7 +1410,7 @@
                   "",
                   "pm.test('Comment has updated content', function () {",
                   "    const response = pm.response.json();",
-                  "    pm.expect(response.comment).to.include('Updated');",
+                  "    pm.expect(response.commentText).to.include('Updated');",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -1379,7 +1427,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"comment\": \"Updated: This step is absolutely essential for success. Follow the timing precisely and watch for visual cues.\",\n  \"isPublic\": true,\n  \"helpfulTip\": \"Updated tip: Use both a timer AND visual cues for the best results. Look for the golden color!\"\n}"
+              "raw": "{\n  \"commentId\": {{recipeManagementServiceCreatedStepCommentId}},\n  \"comment\": \"Updated: This step is absolutely essential for success. Follow the timing precisely and watch for visual cues.\",\n  \"isPublic\": false\n}"
             },
             "url": {
               "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/recipes/{{testRecipeId}}/steps/{{testStepId}}/comment",
@@ -1418,6 +1466,10 @@
                 "value": "application/json"
               }
             ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"commentId\": {{recipeManagementServiceCreatedStepCommentId}}\n}"
+            },
             "url": {
               "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/recipes/{{testRecipeId}}/steps/{{testStepId}}/comment",
               "host": ["{{recipeManagementServiceBaseUrl}}"],

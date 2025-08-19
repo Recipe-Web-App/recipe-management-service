@@ -9,6 +9,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.mapstruct.factory.Mappers;
+
 import com.recipe_manager.model.dto.external.recipescraper.IngredientShoppingInfoDto;
 import com.recipe_manager.model.dto.external.recipescraper.RecipeScraperShoppingDto;
 import com.recipe_manager.model.dto.ingredient.QuantityDto;
@@ -30,7 +32,7 @@ class ShoppingListMapperTest {
 
   @BeforeEach
   void setUp() {
-    mapper = new ShoppingListMapperImpl();
+    mapper = Mappers.getMapper(ShoppingListMapper.class);
   }
 
   @Test

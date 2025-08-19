@@ -17,15 +17,19 @@ import com.recipe_manager.model.dto.ingredient.IngredientCommentDto;
 import com.recipe_manager.model.dto.recipe.RecipeDto;
 import com.recipe_manager.model.dto.request.AddIngredientCommentRequest;
 import com.recipe_manager.model.dto.request.AddReviewRequest;
+import com.recipe_manager.model.dto.request.AddStepCommentRequest;
 import com.recipe_manager.model.dto.request.CreateRecipeRequest;
 import com.recipe_manager.model.dto.request.DeleteIngredientCommentRequest;
 import com.recipe_manager.model.dto.request.EditIngredientCommentRequest;
 import com.recipe_manager.model.dto.request.EditReviewRequest;
+import com.recipe_manager.model.dto.request.EditStepCommentRequest;
 import com.recipe_manager.model.dto.request.SearchRecipesRequest;
 import com.recipe_manager.model.dto.request.UpdateRecipeRequest;
+import com.recipe_manager.model.dto.recipe.StepCommentDto;
 import com.recipe_manager.model.dto.response.IngredientCommentResponse;
 import com.recipe_manager.model.dto.response.ReviewResponse;
 import com.recipe_manager.model.dto.response.SearchRecipesResponse;
+import com.recipe_manager.model.dto.response.StepResponse;
 import com.recipe_manager.model.dto.review.ReviewDto;
 import com.recipe_manager.service.IngredientService;
 import com.recipe_manager.service.MediaService;
@@ -153,7 +157,11 @@ class RecipeManagementControllerTest {
   @Tag("standard-processing")
   @DisplayName("Should handle GET /recipe-management/recipes/{recipeId}/steps")
   void shouldHandleGetSteps() throws Exception {
-    when(stepService.getSteps("1")).thenReturn(ResponseEntity.ok("Get Steps - placeholder"));
+    StepResponse mockResponse = StepResponse.builder()
+        .recipeId(1L)
+        .steps(List.of())
+        .build();
+    when(stepService.getSteps(1L)).thenReturn(mockResponse);
 
     mockMvc.perform(get("/recipe-management/recipes/1/steps")
         .contentType(MediaType.APPLICATION_JSON))
@@ -330,10 +338,20 @@ class RecipeManagementControllerTest {
   @Tag("standard-processing")
   @DisplayName("Should handle POST /recipe-management/recipes/{recipeId}/steps/{stepId}/comment")
   void shouldHandleAddCommentToStep() throws Exception {
-    when(stepService.addComment("1", "2")).thenReturn(ResponseEntity.ok("Add Comment - placeholder"));
+    StepCommentDto mockComment = StepCommentDto.builder()
+        .commentId(1L)
+        .recipeId(1L)
+        .stepId(2L)
+        .userId(UUID.randomUUID())
+        .commentText("Test comment")
+        .isPublic(true)
+        .build();
+    when(stepService.addComment(eq(1L), eq(2L), any(AddStepCommentRequest.class))).thenReturn(mockComment);
+
     mockMvc.perform(post("/recipe-management/recipes/1/steps/2/comment")
-        .contentType(MediaType.APPLICATION_JSON))
-        .andExpect(status().isOk());
+        .contentType(MediaType.APPLICATION_JSON)
+        .content("{\"comment\":\"Test comment\"}"))
+        .andExpect(status().isCreated());
   }
 
   /**
@@ -344,9 +362,19 @@ class RecipeManagementControllerTest {
   @Tag("standard-processing")
   @DisplayName("Should handle PUT /recipe-management/recipes/{recipeId}/steps/{stepId}/comment")
   void shouldHandleEditCommentOnStep() throws Exception {
-    when(stepService.editComment("1", "2")).thenReturn(ResponseEntity.ok("Edit Comment - placeholder"));
+    StepCommentDto mockComment = StepCommentDto.builder()
+        .commentId(1L)
+        .recipeId(1L)
+        .stepId(2L)
+        .userId(UUID.randomUUID())
+        .commentText("Updated comment")
+        .isPublic(true)
+        .build();
+    when(stepService.editComment(eq(1L), eq(2L), any(EditStepCommentRequest.class))).thenReturn(mockComment);
+
     mockMvc.perform(put("/recipe-management/recipes/1/steps/2/comment")
-        .contentType(MediaType.APPLICATION_JSON))
+        .contentType(MediaType.APPLICATION_JSON)
+        .content("{\"commentId\":1,\"comment\":\"Updated comment\"}"))
         .andExpect(status().isOk());
   }
 
@@ -358,10 +386,12 @@ class RecipeManagementControllerTest {
   @Tag("standard-processing")
   @DisplayName("Should handle DELETE /recipe-management/recipes/{recipeId}/steps/{stepId}/comment")
   void shouldHandleDeleteCommentFromStep() throws Exception {
-    when(stepService.deleteComment("1", "2")).thenReturn(ResponseEntity.ok("Delete Comment - placeholder"));
+    // deleteComment returns void, so we don't need to mock a return value
+
     mockMvc.perform(delete("/recipe-management/recipes/1/steps/2/comment")
-        .contentType(MediaType.APPLICATION_JSON))
-        .andExpect(status().isOk());
+        .contentType(MediaType.APPLICATION_JSON)
+        .content("{\"commentId\":1}"))
+        .andExpect(status().isNoContent());
   }
 
   /**

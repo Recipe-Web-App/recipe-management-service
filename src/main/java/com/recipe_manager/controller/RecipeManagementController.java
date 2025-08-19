@@ -2,6 +2,7 @@ package com.recipe_manager.controller;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -15,12 +16,16 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.recipe_manager.model.dto.recipe.RecipeDto;
+import com.recipe_manager.model.dto.recipe.StepCommentDto;
 import com.recipe_manager.model.dto.request.AddIngredientCommentRequest;
 import com.recipe_manager.model.dto.request.AddReviewRequest;
+import com.recipe_manager.model.dto.request.AddStepCommentRequest;
 import com.recipe_manager.model.dto.request.CreateRecipeRequest;
 import com.recipe_manager.model.dto.request.DeleteIngredientCommentRequest;
+import com.recipe_manager.model.dto.request.DeleteStepCommentRequest;
 import com.recipe_manager.model.dto.request.EditIngredientCommentRequest;
 import com.recipe_manager.model.dto.request.EditReviewRequest;
+import com.recipe_manager.model.dto.request.EditStepCommentRequest;
 import com.recipe_manager.model.dto.request.SearchRecipesRequest;
 import com.recipe_manager.model.dto.request.UpdateRecipeRequest;
 import com.recipe_manager.model.dto.response.IngredientCommentResponse;
@@ -28,6 +33,8 @@ import com.recipe_manager.model.dto.response.RecipeIngredientsResponse;
 import com.recipe_manager.model.dto.response.ReviewResponse;
 import com.recipe_manager.model.dto.response.SearchRecipesResponse;
 import com.recipe_manager.model.dto.response.ShoppingListResponse;
+import com.recipe_manager.model.dto.response.StepCommentResponse;
+import com.recipe_manager.model.dto.response.StepResponse;
 import com.recipe_manager.model.dto.review.ReviewDto;
 import com.recipe_manager.service.IngredientService;
 import com.recipe_manager.service.MediaService;
@@ -188,8 +195,9 @@ public class RecipeManagementController {
    * @return placeholder response
    */
   @GetMapping("/{recipeId}/steps")
-  public ResponseEntity<String> getRecipeSteps(@PathVariable final String recipeId) {
-    return stepService.getSteps(recipeId);
+  public ResponseEntity<StepResponse> getRecipeSteps(@PathVariable final Long recipeId) {
+    StepResponse response = stepService.getSteps(recipeId);
+    return ResponseEntity.ok(response);
   }
 
   /**
@@ -444,16 +452,36 @@ public class RecipeManagementController {
   }
 
   /**
+   * Get comments for step.
+   *
+   * @param recipeId the recipe ID
+   * @param stepId the step ID
+   * @return response with all comments for the step
+   */
+  @GetMapping(
+      value = "/{recipeId}/steps/{stepId}/comment",
+      produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<StepCommentResponse> getStepComments(
+      @PathVariable final Long recipeId, @PathVariable final Long stepId) {
+    StepCommentResponse response = stepService.getStepComments(recipeId, stepId);
+    return ResponseEntity.ok(response);
+  }
+
+  /**
    * Add comment to step.
    *
    * @param recipeId the recipe ID
    * @param stepId the step ID
+   * @param request the add step comment request
    * @return placeholder response
    */
   @PostMapping("/{recipeId}/steps/{stepId}/comment")
-  public ResponseEntity<String> addCommentToStep(
-      @PathVariable final String recipeId, @PathVariable final String stepId) {
-    return stepService.addComment(recipeId, stepId);
+  public ResponseEntity<StepCommentDto> addCommentToStep(
+      @PathVariable final Long recipeId,
+      @PathVariable final Long stepId,
+      @RequestBody @Valid final AddStepCommentRequest request) {
+    StepCommentDto comment = stepService.addComment(recipeId, stepId, request);
+    return ResponseEntity.status(HttpStatus.CREATED).body(comment);
   }
 
   /**
@@ -461,12 +489,16 @@ public class RecipeManagementController {
    *
    * @param recipeId the recipe ID
    * @param stepId the step ID
+   * @param request the edit step comment request
    * @return placeholder response
    */
   @PutMapping("/{recipeId}/steps/{stepId}/comment")
-  public ResponseEntity<String> editCommentOnStep(
-      @PathVariable final String recipeId, @PathVariable final String stepId) {
-    return stepService.editComment(recipeId, stepId);
+  public ResponseEntity<StepCommentDto> editCommentOnStep(
+      @PathVariable final Long recipeId,
+      @PathVariable final Long stepId,
+      @RequestBody @Valid final EditStepCommentRequest request) {
+    StepCommentDto comment = stepService.editComment(recipeId, stepId, request);
+    return ResponseEntity.ok(comment);
   }
 
   /**
@@ -474,12 +506,16 @@ public class RecipeManagementController {
    *
    * @param recipeId the recipe ID
    * @param stepId the step ID
+   * @param request the delete step comment request
    * @return placeholder response
    */
   @DeleteMapping("/{recipeId}/steps/{stepId}/comment")
-  public ResponseEntity<String> deleteCommentFromStep(
-      @PathVariable final String recipeId, @PathVariable final String stepId) {
-    return stepService.deleteComment(recipeId, stepId);
+  public ResponseEntity<Void> deleteCommentFromStep(
+      @PathVariable final Long recipeId,
+      @PathVariable final Long stepId,
+      @RequestBody @Valid final DeleteStepCommentRequest request) {
+    stepService.deleteComment(recipeId, stepId, request);
+    return ResponseEntity.noContent().build();
   }
 
   /**

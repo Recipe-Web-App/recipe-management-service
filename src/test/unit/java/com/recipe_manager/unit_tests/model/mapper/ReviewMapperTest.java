@@ -7,6 +7,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.mapstruct.factory.Mappers;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -15,7 +16,6 @@ import com.recipe_manager.model.dto.review.ReviewDto;
 import com.recipe_manager.model.entity.Review;
 import com.recipe_manager.model.entity.recipe.Recipe;
 import com.recipe_manager.model.mapper.ReviewMapper;
-import com.recipe_manager.model.mapper.ReviewMapperImpl;
 
 /**
  * Unit tests for {@link ReviewMapper}.
@@ -30,7 +30,7 @@ class ReviewMapperTest {
 
   @BeforeEach
   void setUp() {
-    reviewMapper = new ReviewMapperImpl();
+    reviewMapper = Mappers.getMapper(ReviewMapper.class);
     userId = UUID.randomUUID();
     now = LocalDateTime.now();
 

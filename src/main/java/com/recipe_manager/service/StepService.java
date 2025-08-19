@@ -1,89 +1,219 @@
 package com.recipe_manager.service;
 
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Service;
+import java.util.List;
+import java.util.UUID;
 
-/**
- * Service for step-related operations.
- *
- * <p>All methods are placeholders and should be implemented.
- */
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.recipe_manager.exception.ResourceNotFoundException;
+import com.recipe_manager.model.dto.recipe.RecipeStepDto;
+import com.recipe_manager.model.dto.recipe.StepCommentDto;
+import com.recipe_manager.model.dto.request.AddStepCommentRequest;
+import com.recipe_manager.model.dto.request.DeleteStepCommentRequest;
+import com.recipe_manager.model.dto.request.EditStepCommentRequest;
+import com.recipe_manager.model.dto.response.StepCommentResponse;
+import com.recipe_manager.model.dto.response.StepResponse;
+import com.recipe_manager.model.entity.recipe.RecipeStep;
+import com.recipe_manager.model.entity.recipe.StepComment;
+import com.recipe_manager.model.mapper.RecipeStepMapper;
+import com.recipe_manager.model.mapper.StepCommentMapper;
+import com.recipe_manager.repository.recipe.RecipeRepository;
+import com.recipe_manager.repository.recipe.RecipeStepRepository;
+import com.recipe_manager.repository.recipe.StepCommentRepository;
+import com.recipe_manager.util.SecurityUtils;
+
+/** Service for step-related operations. */
 @Service
 public class StepService {
 
-  /**
-   * Get steps for a recipe.
-   *
-   * @param recipeId the recipe ID
-   * @return placeholder response
-   */
-  public ResponseEntity<String> getSteps(final String recipeId) {
-    return ResponseEntity.ok("Get Recipe Steps - placeholder");
+  /** Repository for managing recipe data. */
+  private final RecipeRepository recipeRepository;
+
+  /** Repository for managing recipe step data. */
+  private final RecipeStepRepository recipeStepRepository;
+
+  /** Repository for managing step comment data. */
+  private final StepCommentRepository stepCommentRepository;
+
+  /** Mapper for converting between RecipeStep entities and DTOs. */
+  private final RecipeStepMapper recipeStepMapper;
+
+  /** Mapper for converting between StepComment entities and DTOs. */
+  private final StepCommentMapper stepCommentMapper;
+
+  public StepService(
+      final RecipeRepository recipeRepository,
+      final RecipeStepRepository recipeStepRepository,
+      final StepCommentRepository stepCommentRepository,
+      final RecipeStepMapper recipeStepMapper,
+      final StepCommentMapper stepCommentMapper) {
+    this.recipeRepository = recipeRepository;
+    this.recipeStepRepository = recipeStepRepository;
+    this.stepCommentRepository = stepCommentRepository;
+    this.recipeStepMapper = recipeStepMapper;
+    this.stepCommentMapper = stepCommentMapper;
   }
 
   /**
-   * Add a comment to a step.
+   * Get all steps for a recipe.
    *
    * @param recipeId the recipe ID
-   * @param stepId the step ID
-   * @return placeholder response
+   * @return response containing all steps for the recipe
+   * @throws ResourceNotFoundException if recipe not found
    */
-  public ResponseEntity<String> addComment(final String recipeId, final String stepId) {
-    return ResponseEntity.ok("Add Comment to Step - placeholder");
+  public StepResponse getSteps(final Long recipeId) {
+    validateRecipeExists(recipeId);
+
+    List<RecipeStep> steps =
+        recipeStepRepository.findByRecipeRecipeIdOrderByStepNumberAsc(recipeId);
+    List<RecipeStepDto> stepDtos = recipeStepMapper.toDtoList(steps);
+
+    return StepResponse.builder().recipeId(recipeId).steps(stepDtos).build();
   }
 
   /**
-   * Edit a comment on a step.
+   * Add a comment to a recipe step.
    *
    * @param recipeId the recipe ID
    * @param stepId the step ID
-   * @return placeholder response
+   * @param request the comment request
+   * @return the created comment
+   * @throws ResourceNotFoundException if recipe or step not found
    */
-  public ResponseEntity<String> editComment(final String recipeId, final String stepId) {
-    return ResponseEntity.ok("Edit Comment on Step - placeholder");
+  @Transactional
+  public StepCommentDto addComment(
+      final Long recipeId, final Long stepId, final AddStepCommentRequest request) {
+    RecipeStep step = validateStepExists(recipeId, stepId);
+    UUID currentUserId = SecurityUtils.getCurrentUserId();
+
+    StepComment comment =
+        StepComment.builder()
+            .recipeId(recipeId)
+            .step(step)
+            .userId(currentUserId)
+            .commentText(request.getComment())
+            .isPublic(request.getIsPublic())
+            .build();
+
+    StepComment savedComment = stepCommentRepository.save(comment);
+    return stepCommentMapper.toDto(savedComment);
   }
 
   /**
-   * Delete a comment from a step.
+   * Edit a comment on a recipe step.
    *
    * @param recipeId the recipe ID
    * @param stepId the step ID
-   * @return placeholder response
+   * @param request the edit comment request
+   * @return the updated comment
+   * @throws ResourceNotFoundException if recipe, step, or comment not found
+   * @throws AccessDeniedException if user doesn't own the comment
    */
-  public ResponseEntity<String> deleteComment(final String recipeId, final String stepId) {
-    return ResponseEntity.ok("Delete Comment from Step - placeholder");
+  @Transactional
+  public StepCommentDto editComment(
+      final Long recipeId, final Long stepId, final EditStepCommentRequest request) {
+    validateStepExists(recipeId, stepId);
+    UUID currentUserId = SecurityUtils.getCurrentUserId();
+
+    StepComment comment =
+        stepCommentRepository
+            .findByCommentIdAndStepStepId(request.getCommentId(), stepId)
+            .orElseThrow(
+                () ->
+                    new ResourceNotFoundException(
+                        "Comment not found with ID: " + request.getCommentId()));
+
+    if (!comment.getUserId().equals(currentUserId)) {
+      throw new AccessDeniedException("You can only edit your own comments");
+    }
+
+    comment.setCommentText(request.getComment());
+    StepComment savedComment = stepCommentRepository.save(comment);
+    return stepCommentMapper.toDto(savedComment);
   }
 
   /**
-   * Add media to a step.
+   * Delete a comment from a recipe step.
    *
    * @param recipeId the recipe ID
    * @param stepId the step ID
-   * @return placeholder response
+   * @param request the delete comment request
+   * @throws ResourceNotFoundException if recipe, step, or comment not found
+   * @throws AccessDeniedException if user doesn't own the comment
    */
-  public ResponseEntity<String> addMedia(final String recipeId, final String stepId) {
-    return ResponseEntity.ok("Add Media Ref to Step - placeholder");
+  @Transactional
+  public void deleteComment(
+      final Long recipeId, final Long stepId, final DeleteStepCommentRequest request) {
+    validateStepExists(recipeId, stepId);
+    UUID currentUserId = SecurityUtils.getCurrentUserId();
+
+    StepComment comment =
+        stepCommentRepository
+            .findByCommentIdAndStepStepId(request.getCommentId(), stepId)
+            .orElseThrow(
+                () ->
+                    new ResourceNotFoundException(
+                        "Comment not found with ID: " + request.getCommentId()));
+
+    if (!comment.getUserId().equals(currentUserId)) {
+      throw new AccessDeniedException("You can only delete your own comments");
+    }
+
+    stepCommentRepository.delete(comment);
   }
 
   /**
-   * Update media on a step.
+   * Get all comments for a recipe step.
    *
    * @param recipeId the recipe ID
    * @param stepId the step ID
-   * @return placeholder response
+   * @return response containing all comments for the step
+   * @throws ResourceNotFoundException if recipe or step not found
    */
-  public ResponseEntity<String> updateMedia(final String recipeId, final String stepId) {
-    return ResponseEntity.ok("Update Media Ref on Step - placeholder");
+  public StepCommentResponse getStepComments(final Long recipeId, final Long stepId) {
+    validateStepExists(recipeId, stepId);
+
+    List<StepComment> comments =
+        stepCommentRepository.findByRecipeIdAndStepStepIdOrderByCreatedAtAsc(recipeId, stepId);
+    List<StepCommentDto> commentDtos = stepCommentMapper.toDtoList(comments);
+
+    return StepCommentResponse.builder()
+        .recipeId(recipeId)
+        .stepId(stepId)
+        .comments(commentDtos)
+        .build();
   }
 
   /**
-   * Delete media from a step.
+   * Validates that a recipe exists.
+   *
+   * @param recipeId the recipe ID
+   * @throws ResourceNotFoundException if recipe not found
+   */
+  private void validateRecipeExists(final Long recipeId) {
+    if (!recipeRepository.existsById(recipeId)) {
+      throw new ResourceNotFoundException("Recipe not found with ID: " + recipeId);
+    }
+  }
+
+  /**
+   * Validates that a step exists for a given recipe.
    *
    * @param recipeId the recipe ID
    * @param stepId the step ID
-   * @return placeholder response
+   * @return the recipe step if found
+   * @throws ResourceNotFoundException if recipe or step not found
    */
-  public ResponseEntity<String> deleteMedia(final String recipeId, final String stepId) {
-    return ResponseEntity.ok("Delete Media Ref from Step - placeholder");
+  private RecipeStep validateStepExists(final Long recipeId, final Long stepId) {
+    validateRecipeExists(recipeId);
+
+    return recipeStepRepository
+        .findByStepIdAndRecipeRecipeId(stepId, recipeId)
+        .orElseThrow(
+            () ->
+                new ResourceNotFoundException(
+                    "Step not found with ID: " + stepId + " for recipe: " + recipeId));
   }
 }

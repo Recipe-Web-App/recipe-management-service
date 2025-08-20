@@ -1,7 +1,6 @@
 package com.recipe_manager.model.dto.request;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.List;
 
 import com.recipe_manager.model.dto.recipe.RecipeIngredientDto;
@@ -11,7 +10,6 @@ import com.recipe_manager.model.enums.DifficultyLevel;
 
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
@@ -47,11 +45,11 @@ public abstract class AbstractRecipeRequest {
   private DifficultyLevel difficulty;
 
   /** The list of ingredients. */
-  @Valid @Builder.Default private List<RecipeIngredientDto> ingredients = new ArrayList<>();
+  @Valid private List<RecipeIngredientDto> ingredients;
 
   /** The list of steps. */
-  @Valid @Builder.Default private List<RecipeStepDto> steps = new ArrayList<>();
+  @Valid private List<RecipeStepDto> steps;
 
   /** The list of tags. */
-  @Valid @Builder.Default private List<RecipeTagDto> tags = new ArrayList<>();
+  @Valid private List<RecipeTagDto> tags;
 }

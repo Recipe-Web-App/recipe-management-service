@@ -1,5 +1,6 @@
 package com.recipe_manager.service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -15,19 +16,33 @@ import com.recipe_manager.exception.BusinessException;
 import com.recipe_manager.exception.ResourceNotFoundException;
 import com.recipe_manager.model.dto.recipe.RecipeDto;
 import com.recipe_manager.model.dto.recipe.RecipeIngredientDto;
+import com.recipe_manager.model.dto.recipe.RecipeStepDto;
 import com.recipe_manager.model.dto.request.CreateRecipeRequest;
 import com.recipe_manager.model.dto.request.SearchRecipesRequest;
 import com.recipe_manager.model.dto.request.UpdateRecipeRequest;
 import com.recipe_manager.model.dto.response.SearchRecipesResponse;
+import com.recipe_manager.model.dto.revision.IngredientAddRevision;
+import com.recipe_manager.model.dto.revision.IngredientDeleteRevision;
+import com.recipe_manager.model.dto.revision.IngredientUpdateRevision;
+import com.recipe_manager.model.dto.revision.StepAddRevision;
+import com.recipe_manager.model.dto.revision.StepDeleteRevision;
+import com.recipe_manager.model.dto.revision.StepUpdateRevision;
 import com.recipe_manager.model.entity.ingredient.Ingredient;
 import com.recipe_manager.model.entity.recipe.Recipe;
 import com.recipe_manager.model.entity.recipe.RecipeIngredient;
 import com.recipe_manager.model.entity.recipe.RecipeIngredientId;
+import com.recipe_manager.model.entity.recipe.RecipeRevision;
+import com.recipe_manager.model.entity.recipe.RecipeStep;
 import com.recipe_manager.model.entity.recipe.RecipeTag;
+import com.recipe_manager.model.enums.IngredientField;
+import com.recipe_manager.model.enums.RevisionCategory;
+import com.recipe_manager.model.enums.RevisionType;
+import com.recipe_manager.model.enums.StepField;
 import com.recipe_manager.model.mapper.RecipeMapper;
 import com.recipe_manager.model.mapper.RecipeStepMapper;
 import com.recipe_manager.repository.ingredient.IngredientRepository;
 import com.recipe_manager.repository.recipe.RecipeRepository;
+import com.recipe_manager.repository.recipe.RecipeRevisionRepository;
 import com.recipe_manager.repository.recipe.RecipeTagRepository;
 import com.recipe_manager.util.SecurityUtils;
 
@@ -48,6 +63,9 @@ public class RecipeService {
   /** Repository used for accessing recipe tag data. */
   private final RecipeTagRepository recipeTagRepository;
 
+  /** Repository used for accessing recipe revision data. */
+  private final RecipeRevisionRepository recipeRevisionRepository;
+
   /** Mapper used for converting between recipe entities and DTOs. */
   private final RecipeMapper recipeMapper;
 
@@ -60,6 +78,7 @@ public class RecipeService {
    * @param recipeRepository the repository used for accessing recipe data
    * @param ingredientRepository the repository used for accessing ingredient data
    * @param recipeTagRepository the repository used for accessing recipe tag data
+   * @param recipeRevisionRepository the repository used for accessing recipe revision data
    * @param recipeMapper the mapper used for converting between recipe entities and DTOs
    * @param recipeStepMapper the mapper used for converting between recipe step entities and DTOs
    */
@@ -67,11 +86,13 @@ public class RecipeService {
       final RecipeRepository recipeRepository,
       final IngredientRepository ingredientRepository,
       final RecipeTagRepository recipeTagRepository,
+      final RecipeRevisionRepository recipeRevisionRepository,
       final RecipeMapper recipeMapper,
       final RecipeStepMapper recipeStepMapper) {
     this.recipeRepository = recipeRepository;
     this.ingredientRepository = ingredientRepository;
     this.recipeTagRepository = recipeTagRepository;
+    this.recipeRevisionRepository = recipeRevisionRepository;
     this.recipeMapper = recipeMapper;
     this.recipeStepMapper = recipeStepMapper;
   }
@@ -213,8 +234,11 @@ public class RecipeService {
       recipe.setDifficulty(request.getDifficulty());
     }
 
-    // Update ingredients if provided
+    // Create ingredient revisions before making changes
+    List<RecipeRevision> ingredientRevisions = new ArrayList<>();
     if (request.getIngredients() != null) {
+      ingredientRevisions = createIngredientRevisions(recipe, request.getIngredients());
+
       // Clear existing ingredients
       recipe.getRecipeIngredients().clear();
 
@@ -245,8 +269,11 @@ public class RecipeService {
       }
     }
 
-    // Update steps if provided
+    // Create step revisions before making changes
+    List<RecipeRevision> stepRevisions = new ArrayList<>();
     if (request.getSteps() != null) {
+      stepRevisions = createStepRevisions(recipe, request.getSteps());
+
       // Clear existing steps
       recipe.getRecipeSteps().clear();
 
@@ -283,6 +310,16 @@ public class RecipeService {
     }
 
     Recipe saved = recipeRepository.save(recipe);
+
+    // Save all revisions after successful recipe update
+    List<RecipeRevision> allRevisions = new ArrayList<>();
+    allRevisions.addAll(ingredientRevisions);
+    allRevisions.addAll(stepRevisions);
+
+    if (!allRevisions.isEmpty()) {
+      recipeRevisionRepository.saveAll(allRevisions);
+    }
+
     RecipeDto response = recipeMapper.toDto(saved);
 
     return ResponseEntity.ok(response);
@@ -488,5 +525,341 @@ public class RecipeService {
     }
 
     return ingredient;
+  }
+
+  /**
+   * Creates revision entities for ingredient changes.
+   *
+   * @param recipe the recipe being updated
+   * @param newIngredients the new ingredients from the update request
+   * @return list of revision entities to be saved
+   */
+  private List<RecipeRevision> createIngredientRevisions(
+      final Recipe recipe, final List<RecipeIngredientDto> newIngredients) {
+    List<RecipeRevision> revisions = new ArrayList<>();
+
+    if (newIngredients == null) {
+      return revisions; // No changes to track
+    }
+
+    var currentIngredients = recipe.getRecipeIngredients();
+    var currentUserId = SecurityUtils.getCurrentUserId();
+
+    // Track deleted ingredients (existing ingredients not in new list)
+    for (var currentIngredient : currentIngredients) {
+      boolean foundInNew =
+          newIngredients.stream()
+              .anyMatch(
+                  newIng ->
+                      (newIng.getIngredientId() != null
+                              && newIng
+                                  .getIngredientId()
+                                  .equals(currentIngredient.getIngredient().getIngredientId()))
+                          || (newIng.getIngredientName() != null
+                              && newIng
+                                  .getIngredientName()
+                                  .equalsIgnoreCase(currentIngredient.getIngredient().getName())));
+
+      if (!foundInNew) {
+        // Create delete revision
+        var deleteRevision =
+            IngredientDeleteRevision.builder()
+                .category(RevisionCategory.INGREDIENT)
+                .type(RevisionType.DELETE)
+                .ingredientId(currentIngredient.getIngredient().getIngredientId())
+                .ingredientName(currentIngredient.getIngredient().getName())
+                .quantity(currentIngredient.getQuantity())
+                .unit(currentIngredient.getUnit())
+                .isOptional(currentIngredient.getIsOptional())
+                .changeComment("Ingredient removed from recipe")
+                .build();
+
+        revisions.add(
+            createRevisionEntity(
+                recipe,
+                currentUserId,
+                RevisionCategory.INGREDIENT,
+                RevisionType.DELETE,
+                deleteRevision,
+                deleteRevision));
+      }
+    }
+
+    // Track added and updated ingredients
+    for (var newIngredient : newIngredients) {
+      var existingIngredient = findExistingIngredient(currentIngredients, newIngredient);
+
+      if (existingIngredient == null) {
+        // New ingredient - create add revision
+        var resolvedIngredient = resolveIngredient(newIngredient);
+        var addRevision =
+            IngredientAddRevision.builder()
+                .category(RevisionCategory.INGREDIENT)
+                .type(RevisionType.ADD)
+                .ingredientId(resolvedIngredient.getIngredientId())
+                .ingredientName(resolvedIngredient.getName())
+                .quantity(newIngredient.getQuantity())
+                .unit(newIngredient.getUnit())
+                .isOptional(Boolean.TRUE.equals(newIngredient.getIsOptional()))
+                .changeComment("New ingredient added to recipe")
+                .build();
+
+        revisions.add(
+            createRevisionEntity(
+                recipe,
+                currentUserId,
+                RevisionCategory.INGREDIENT,
+                RevisionType.ADD,
+                addRevision,
+                addRevision));
+      } else {
+        // Check for updates to existing ingredient
+        revisions.addAll(
+            createIngredientUpdateRevisions(
+                recipe, currentUserId, existingIngredient, newIngredient));
+      }
+    }
+
+    return revisions;
+  }
+
+  /**
+   * Creates revision entities for step changes.
+   *
+   * @param recipe the recipe being updated
+   * @param newSteps the new steps from the update request
+   * @return list of revision entities to be saved
+   */
+  private List<RecipeRevision> createStepRevisions(
+      final Recipe recipe, final List<RecipeStepDto> newSteps) {
+    List<RecipeRevision> revisions = new ArrayList<>();
+
+    if (newSteps == null) {
+      return revisions; // No changes to track
+    }
+
+    var currentSteps = recipe.getRecipeSteps();
+    var currentUserId = SecurityUtils.getCurrentUserId();
+
+    // Track deleted steps (existing steps not in new list)
+    for (var currentStep : currentSteps) {
+      boolean foundInNew =
+          newSteps.stream()
+              .anyMatch(newStep -> newStep.getStepNumber().equals(currentStep.getStepNumber()));
+
+      if (!foundInNew) {
+        // Create delete revision
+        var deleteRevision =
+            StepDeleteRevision.builder()
+                .category(RevisionCategory.STEP)
+                .type(RevisionType.DELETE)
+                .stepId(currentStep.getStepId())
+                .stepNumber(currentStep.getStepNumber())
+                .instruction(currentStep.getInstruction())
+                .changeComment("Step removed from recipe")
+                .build();
+
+        revisions.add(
+            createRevisionEntity(
+                recipe,
+                currentUserId,
+                RevisionCategory.STEP,
+                RevisionType.DELETE,
+                deleteRevision,
+                deleteRevision));
+      }
+    }
+
+    // Track added and updated steps
+    for (var newStep : newSteps) {
+      var existingStep = findExistingStep(currentSteps, newStep.getStepNumber());
+
+      if (existingStep == null) {
+        // New step - create add revision
+        var addRevision =
+            StepAddRevision.builder()
+                .category(RevisionCategory.STEP)
+                .type(RevisionType.ADD)
+                .stepNumber(newStep.getStepNumber())
+                .instruction(newStep.getInstruction())
+                .changeComment("New step added to recipe")
+                .build();
+
+        revisions.add(
+            createRevisionEntity(
+                recipe,
+                currentUserId,
+                RevisionCategory.STEP,
+                RevisionType.ADD,
+                addRevision,
+                addRevision));
+      } else {
+        // Check for updates to existing step
+        revisions.addAll(createStepUpdateRevisions(recipe, currentUserId, existingStep, newStep));
+      }
+    }
+
+    return revisions;
+  }
+
+  /** Finds an existing ingredient matching the new ingredient request. */
+  private RecipeIngredient findExistingIngredient(
+      List<RecipeIngredient> currentIngredients, RecipeIngredientDto newIngredient) {
+    return currentIngredients.stream()
+        .filter(
+            current ->
+                (newIngredient.getIngredientId() != null
+                        && newIngredient
+                            .getIngredientId()
+                            .equals(current.getIngredient().getIngredientId()))
+                    || (newIngredient.getIngredientName() != null
+                        && newIngredient
+                            .getIngredientName()
+                            .equalsIgnoreCase(current.getIngredient().getName())))
+        .findFirst()
+        .orElse(null);
+  }
+
+  /** Finds an existing step by step number. */
+  private RecipeStep findExistingStep(List<RecipeStep> currentSteps, Integer stepNumber) {
+    return currentSteps.stream()
+        .filter(step -> step.getStepNumber().equals(stepNumber))
+        .findFirst()
+        .orElse(null);
+  }
+
+  /** Creates update revisions for ingredient field changes. */
+  private List<RecipeRevision> createIngredientUpdateRevisions(
+      Recipe recipe,
+      java.util.UUID currentUserId,
+      RecipeIngredient existingIngredient,
+      RecipeIngredientDto newIngredient) {
+    List<RecipeRevision> revisions = new ArrayList<>();
+
+    // Check quantity changes
+    if (!existingIngredient.getQuantity().equals(newIngredient.getQuantity())) {
+      var updateRevision =
+          IngredientUpdateRevision.builder()
+              .category(RevisionCategory.INGREDIENT)
+              .type(RevisionType.UPDATE)
+              .ingredientId(existingIngredient.getIngredient().getIngredientId())
+              .ingredientName(existingIngredient.getIngredient().getName())
+              .changedField(IngredientField.QUANTITY)
+              .previousValue(existingIngredient.getQuantity())
+              .newValue(newIngredient.getQuantity())
+              .changeComment("Ingredient quantity updated")
+              .build();
+
+      revisions.add(
+          createRevisionEntity(
+              recipe,
+              currentUserId,
+              RevisionCategory.INGREDIENT,
+              RevisionType.UPDATE,
+              updateRevision,
+              updateRevision));
+    }
+
+    // Check unit changes
+    if (!existingIngredient.getUnit().equals(newIngredient.getUnit())) {
+      var updateRevision =
+          IngredientUpdateRevision.builder()
+              .category(RevisionCategory.INGREDIENT)
+              .type(RevisionType.UPDATE)
+              .ingredientId(existingIngredient.getIngredient().getIngredientId())
+              .ingredientName(existingIngredient.getIngredient().getName())
+              .changedField(IngredientField.UNIT)
+              .previousValue(existingIngredient.getUnit())
+              .newValue(newIngredient.getUnit())
+              .changeComment("Ingredient unit updated")
+              .build();
+
+      revisions.add(
+          createRevisionEntity(
+              recipe,
+              currentUserId,
+              RevisionCategory.INGREDIENT,
+              RevisionType.UPDATE,
+              updateRevision,
+              updateRevision));
+    }
+
+    // Check optional flag changes
+    boolean newOptional = Boolean.TRUE.equals(newIngredient.getIsOptional());
+    if (!existingIngredient.getIsOptional().equals(newOptional)) {
+      var updateRevision =
+          IngredientUpdateRevision.builder()
+              .category(RevisionCategory.INGREDIENT)
+              .type(RevisionType.UPDATE)
+              .ingredientId(existingIngredient.getIngredient().getIngredientId())
+              .ingredientName(existingIngredient.getIngredient().getName())
+              .changedField(IngredientField.OPTIONAL_STATUS)
+              .previousValue(existingIngredient.getIsOptional())
+              .newValue(newOptional)
+              .changeComment("Ingredient optional flag updated")
+              .build();
+
+      revisions.add(
+          createRevisionEntity(
+              recipe,
+              currentUserId,
+              RevisionCategory.INGREDIENT,
+              RevisionType.UPDATE,
+              updateRevision,
+              updateRevision));
+    }
+
+    return revisions;
+  }
+
+  /** Creates update revisions for step field changes. */
+  private List<RecipeRevision> createStepUpdateRevisions(
+      Recipe recipe, java.util.UUID currentUserId, RecipeStep existingStep, RecipeStepDto newStep) {
+    List<RecipeRevision> revisions = new ArrayList<>();
+
+    // Check instruction changes
+    if (!existingStep.getInstruction().equals(newStep.getInstruction())) {
+      var updateRevision =
+          StepUpdateRevision.builder()
+              .category(RevisionCategory.STEP)
+              .type(RevisionType.UPDATE)
+              .stepId(existingStep.getStepId())
+              .stepNumber(newStep.getStepNumber())
+              .changedField(StepField.INSTRUCTION)
+              .previousValue(existingStep.getInstruction())
+              .newValue(newStep.getInstruction())
+              .changeComment("Step instruction updated")
+              .build();
+
+      revisions.add(
+          createRevisionEntity(
+              recipe,
+              currentUserId,
+              RevisionCategory.STEP,
+              RevisionType.UPDATE,
+              updateRevision,
+              updateRevision));
+    }
+
+    return revisions;
+  }
+
+  /** Creates a RecipeRevision entity from revision data. */
+  private RecipeRevision createRevisionEntity(
+      Recipe recipe,
+      java.util.UUID userId,
+      RevisionCategory category,
+      RevisionType type,
+      com.recipe_manager.model.dto.revision.AbstractRevision previousData,
+      com.recipe_manager.model.dto.revision.AbstractRevision newData) {
+    return RecipeRevision.builder()
+        .recipe(recipe)
+        .userId(userId)
+        .revisionCategory(category)
+        .revisionType(type)
+        .previousData(previousData)
+        .newData(newData)
+        .changeComment(newData.getChangeComment())
+        .build();
   }
 }

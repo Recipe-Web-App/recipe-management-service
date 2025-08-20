@@ -14,6 +14,7 @@ import com.recipe_manager.repository.ingredient.IngredientCommentRepository;
 import com.recipe_manager.repository.ingredient.IngredientRepository;
 import com.recipe_manager.repository.recipe.RecipeIngredientRepository;
 import com.recipe_manager.repository.recipe.RecipeRepository;
+import com.recipe_manager.repository.recipe.RecipeRevisionRepository;
 import com.recipe_manager.repository.recipe.RecipeStepRepository;
 import com.recipe_manager.repository.recipe.RecipeTagRepository;
 import com.recipe_manager.repository.recipe.StepCommentRepository;
@@ -70,6 +71,9 @@ public abstract class AbstractComponentTest {
   protected RecipeTagRepository recipeTagRepository;
 
   @Mock
+  protected RecipeRevisionRepository recipeRevisionRepository;
+
+  @Mock
   protected RecipeIngredientRepository recipeIngredientRepository;
 
   @Mock
@@ -119,7 +123,7 @@ public abstract class AbstractComponentTest {
     // Create real service instances for repository-level component testing
     if (recipeMapper != null) {
       realRecipeService = new RecipeService(
-          recipeRepository, ingredientRepository, recipeTagRepository, recipeMapper, recipeStepMapper);
+          recipeRepository, ingredientRepository, recipeTagRepository, recipeRevisionRepository, recipeMapper, recipeStepMapper);
     }
     if (recipeIngredientMapper != null) {
       realIngredientService = new IngredientService(recipeIngredientRepository, ingredientRepository, ingredientCommentRepository, recipeIngredientMapper,

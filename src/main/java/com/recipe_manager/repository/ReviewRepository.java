@@ -7,7 +7,7 @@ import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import com.recipe_manager.model.entity.Review;
+import com.recipe_manager.model.entity.review.Review;
 
 /** Repository interface for Review entity. Provides data access methods for review operations. */
 @Repository

@@ -4,7 +4,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
 import com.recipe_manager.model.dto.review.ReviewDto;
-import com.recipe_manager.model.entity.Review;
+import com.recipe_manager.model.entity.review.Review;
 
 /** MapStruct mapper for Review entity and ReviewDto conversions. */
 @Mapper(componentModel = "spring")

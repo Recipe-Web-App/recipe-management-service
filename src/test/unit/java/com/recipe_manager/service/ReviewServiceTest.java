@@ -15,6 +15,19 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import com.recipe_manager.exception.BusinessException;
+import com.recipe_manager.exception.ResourceNotFoundException;
+import com.recipe_manager.model.dto.request.AddReviewRequest;
+import com.recipe_manager.model.dto.request.EditReviewRequest;
+import com.recipe_manager.model.dto.response.ReviewResponse;
+import com.recipe_manager.model.dto.review.ReviewDto;
+import com.recipe_manager.model.entity.recipe.Recipe;
+import com.recipe_manager.model.entity.review.Review;
+import com.recipe_manager.model.mapper.ReviewMapper;
+import com.recipe_manager.repository.ReviewRepository;
+import com.recipe_manager.repository.recipe.RecipeRepository;
+import com.recipe_manager.util.SecurityUtils;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -27,19 +40,6 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.access.AccessDeniedException;
 
-import com.recipe_manager.exception.BusinessException;
-import com.recipe_manager.exception.ResourceNotFoundException;
-import com.recipe_manager.model.dto.request.AddReviewRequest;
-import com.recipe_manager.model.dto.request.EditReviewRequest;
-import com.recipe_manager.model.dto.response.ReviewResponse;
-import com.recipe_manager.model.dto.review.ReviewDto;
-import com.recipe_manager.model.entity.Review;
-import com.recipe_manager.model.entity.recipe.Recipe;
-import com.recipe_manager.model.mapper.ReviewMapper;
-import com.recipe_manager.repository.ReviewRepository;
-import com.recipe_manager.repository.recipe.RecipeRepository;
-import com.recipe_manager.util.SecurityUtils;
-
 /**
  * Unit tests for {@link ReviewService}.
  */
@@ -47,9 +47,12 @@ import com.recipe_manager.util.SecurityUtils;
 @Tag("unit")
 class ReviewServiceTest {
 
-  @Mock private ReviewRepository reviewRepository;
-  @Mock private RecipeRepository recipeRepository;
-  @Mock private ReviewMapper reviewMapper;
+  @Mock
+  private ReviewRepository reviewRepository;
+  @Mock
+  private RecipeRepository recipeRepository;
+  @Mock
+  private ReviewMapper reviewMapper;
 
   private ReviewService reviewService;
 
@@ -437,8 +440,7 @@ class ReviewServiceTest {
           new BigDecimal("3.5"),
           new BigDecimal("4.0"),
           new BigDecimal("4.5"),
-          new BigDecimal("5.0")
-      );
+          new BigDecimal("5.0"));
 
       for (BigDecimal rating : validRatings) {
         AddReviewRequest request = AddReviewRequest.builder()
@@ -476,8 +478,7 @@ class ReviewServiceTest {
           new BigDecimal("4.1"),
           new BigDecimal("4.3"),
           new BigDecimal("4.7"),
-          new BigDecimal("4.9")
-      );
+          new BigDecimal("4.9"));
 
       for (BigDecimal rating : invalidRatings) {
         AddReviewRequest request = AddReviewRequest.builder()

@@ -5,12 +5,13 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.recipe_manager.model.enums.RevisionCategory;
+import com.recipe_manager.model.enums.RevisionType;
+import com.recipe_manager.model.revision.AbstractRevision;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-
-import com.recipe_manager.model.enums.RevisionCategory;
-import com.recipe_manager.model.revision.AbstractRevision;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -39,6 +40,11 @@ class AbstractRevisionTest {
   @Test
   void shouldReturnNonNullCategory() {
     assertNotNull(testRevision.getCategory());
+  }
+
+  @Test
+  void shouldReturnCorrectRevisionType() {
+    assertEquals(RevisionType.ADD, testRevision.getType());
   }
 
   @Test
@@ -97,6 +103,11 @@ class AbstractRevisionTest {
     @Override
     public boolean isValid() {
       return valid;
+    }
+
+    @Override
+    public RevisionType getType() {
+      return RevisionType.ADD;
     }
   }
 }

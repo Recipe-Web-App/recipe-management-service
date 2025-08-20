@@ -46,4 +46,9 @@ public abstract class AbstractIngredientRevision extends AbstractRevision {
   protected boolean hasValidIngredientData() {
     return ingredientId != null && ingredientName != null && !ingredientName.trim().isEmpty();
   }
+
+  @Override
+  public final RevisionType getType() {
+    return type;
+  }
 }

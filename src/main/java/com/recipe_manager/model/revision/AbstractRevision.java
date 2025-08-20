@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.recipe_manager.model.enums.RevisionCategory;
+import com.recipe_manager.model.enums.RevisionType;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -41,4 +42,11 @@ public abstract class AbstractRevision {
    * @return true if the revision is valid, false otherwise
    */
   public abstract boolean isValid();
+
+  /**
+   * Gets the type of this revision.
+   *
+   * @return the revision type
+   */
+  public abstract RevisionType getType();
 }

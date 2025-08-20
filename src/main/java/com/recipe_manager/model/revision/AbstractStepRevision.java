@@ -46,4 +46,9 @@ public abstract class AbstractStepRevision extends AbstractRevision {
   protected boolean hasValidStepData() {
     return stepId != null && stepNumber != null && stepNumber > 0;
   }
+
+  @Override
+  public final RevisionType getType() {
+    return type;
+  }
 }

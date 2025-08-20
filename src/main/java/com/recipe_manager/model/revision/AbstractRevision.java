@@ -1,5 +1,7 @@
 package com.recipe_manager.model.revision;
 
+import java.time.LocalDateTime;
+
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.recipe_manager.model.enums.RevisionCategory;
@@ -26,6 +28,12 @@ public abstract class AbstractRevision {
 
   /** The category of this revision (INGREDIENT or STEP). */
   private RevisionCategory category;
+
+  /** Comment associated with the revision. */
+  private String changeComment;
+
+  /** Timestamp indicating when this revision was created. */
+  private LocalDateTime createdAt;
 
   /**
    * Validates that this revision contains all required data.

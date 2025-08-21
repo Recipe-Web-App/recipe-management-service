@@ -15,11 +15,16 @@ import com.recipe_manager.model.dto.request.DeleteStepCommentRequest;
 import com.recipe_manager.model.dto.request.EditStepCommentRequest;
 import com.recipe_manager.model.dto.response.StepCommentResponse;
 import com.recipe_manager.model.dto.response.StepResponse;
+import com.recipe_manager.model.dto.response.StepRevisionsResponse;
+import com.recipe_manager.model.entity.recipe.Recipe;
+import com.recipe_manager.model.entity.recipe.RecipeRevision;
 import com.recipe_manager.model.entity.recipe.RecipeStep;
 import com.recipe_manager.model.entity.recipe.StepComment;
+import com.recipe_manager.model.mapper.RecipeRevisionMapper;
 import com.recipe_manager.model.mapper.RecipeStepMapper;
 import com.recipe_manager.model.mapper.StepCommentMapper;
 import com.recipe_manager.repository.recipe.RecipeRepository;
+import com.recipe_manager.repository.recipe.RecipeRevisionRepository;
 import com.recipe_manager.repository.recipe.RecipeStepRepository;
 import com.recipe_manager.repository.recipe.StepCommentRepository;
 import com.recipe_manager.util.SecurityUtils;
@@ -37,23 +42,33 @@ public class StepService {
   /** Repository for managing step comment data. */
   private final StepCommentRepository stepCommentRepository;
 
+  /** Repository for managing recipe revision data. */
+  private final RecipeRevisionRepository recipeRevisionRepository;
+
   /** Mapper for converting between RecipeStep entities and DTOs. */
   private final RecipeStepMapper recipeStepMapper;
 
   /** Mapper for converting between StepComment entities and DTOs. */
   private final StepCommentMapper stepCommentMapper;
 
+  /** Mapper for converting between RecipeRevision entities and DTOs. */
+  private final RecipeRevisionMapper recipeRevisionMapper;
+
   public StepService(
       final RecipeRepository recipeRepository,
       final RecipeStepRepository recipeStepRepository,
       final StepCommentRepository stepCommentRepository,
+      final RecipeRevisionRepository recipeRevisionRepository,
       final RecipeStepMapper recipeStepMapper,
-      final StepCommentMapper stepCommentMapper) {
+      final StepCommentMapper stepCommentMapper,
+      final RecipeRevisionMapper recipeRevisionMapper) {
     this.recipeRepository = recipeRepository;
     this.recipeStepRepository = recipeStepRepository;
     this.stepCommentRepository = stepCommentRepository;
+    this.recipeRevisionRepository = recipeRevisionRepository;
     this.recipeStepMapper = recipeStepMapper;
     this.stepCommentMapper = stepCommentMapper;
+    this.recipeRevisionMapper = recipeRevisionMapper;
   }
 
   /**
@@ -215,5 +230,48 @@ public class StepService {
             () ->
                 new ResourceNotFoundException(
                     "Step not found with ID: " + stepId + " for recipe: " + recipeId));
+  }
+
+  /**
+   * Get all revisions for a specific recipe step.
+   *
+   * @param recipeId the recipe ID
+   * @param stepId the step ID
+   * @return StepRevisionsResponse containing all revisions for the step
+   * @throws ResourceNotFoundException if the recipe or step is not found
+   * @throws AccessDeniedException if the user doesn't have permission to view the recipe
+   */
+  public StepRevisionsResponse getStepRevisions(final Long recipeId, final Long stepId) {
+    // Check user has access to the recipe
+    Recipe recipe =
+        recipeRepository
+            .findById(recipeId)
+            .orElseThrow(
+                () -> new ResourceNotFoundException("Recipe not found with id: " + recipeId));
+
+    if (!recipe.getUserId().equals(SecurityUtils.getCurrentUserId())) {
+      throw new AccessDeniedException(
+          "You don't have permission to view revisions for this recipe");
+    }
+
+    // Verify step exists and user has access to recipe
+    RecipeStep step = validateStepExists(recipeId, stepId);
+    if (step == null) {
+      throw new ResourceNotFoundException("Step not found with ID: " + stepId);
+    }
+
+    // Get all step revisions for the recipe and step
+    List<RecipeRevision> revisions =
+        recipeRevisionRepository.findStepRevisionsByRecipeIdAndStepId(recipeId, stepId);
+
+    // Convert to DTOs
+    var revisionDtos = recipeRevisionMapper.toDtoList(revisions);
+
+    return StepRevisionsResponse.builder()
+        .recipeId(recipeId)
+        .stepId(stepId)
+        .revisions(revisionDtos)
+        .totalCount(revisionDtos.size())
+        .build();
   }
 }

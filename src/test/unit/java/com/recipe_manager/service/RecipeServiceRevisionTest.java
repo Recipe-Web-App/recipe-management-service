@@ -34,6 +34,7 @@ import com.recipe_manager.model.enums.RevisionCategory;
 import com.recipe_manager.model.enums.RevisionType;
 import com.recipe_manager.model.enums.IngredientUnit;
 import com.recipe_manager.model.mapper.RecipeMapper;
+import com.recipe_manager.model.mapper.RecipeRevisionMapper;
 import com.recipe_manager.model.mapper.RecipeStepMapper;
 import com.recipe_manager.repository.ingredient.IngredientRepository;
 import com.recipe_manager.repository.recipe.RecipeRepository;
@@ -53,6 +54,7 @@ class RecipeServiceRevisionTest {
   @Mock private RecipeTagRepository recipeTagRepository;
   @Mock private RecipeRevisionRepository recipeRevisionRepository;
   @Mock private RecipeMapper recipeMapper;
+  @Mock private RecipeRevisionMapper recipeRevisionMapper;
   @Mock private RecipeStepMapper recipeStepMapper;
 
   private RecipeService recipeService;
@@ -67,6 +69,7 @@ class RecipeServiceRevisionTest {
         recipeTagRepository,
         recipeRevisionRepository,
         recipeMapper,
+        recipeRevisionMapper,
         recipeStepMapper);
 
     currentUserId = UUID.randomUUID();

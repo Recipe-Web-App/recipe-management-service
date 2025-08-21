@@ -40,7 +40,8 @@ import org.springframework.test.context.TestPropertySource;
 @ExtendWith(MockitoExtension.class)
 @SpringBootTest(classes = {
     RecipeIngredientMapperImpl.class,
-    ShoppingListMapperImpl.class
+    ShoppingListMapperImpl.class,
+    com.recipe_manager.model.mapper.RecipeRevisionMapperImpl.class
 })
 @TestPropertySource(properties = {
     "spring.datasource.url=jdbc:h2:mem:testdb",

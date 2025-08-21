@@ -31,12 +31,15 @@ import com.recipe_manager.model.dto.request.RemoveTagRequest;
 import com.recipe_manager.model.dto.request.SearchRecipesRequest;
 import com.recipe_manager.model.dto.request.UpdateRecipeRequest;
 import com.recipe_manager.model.dto.response.IngredientCommentResponse;
+import com.recipe_manager.model.dto.response.IngredientRevisionsResponse;
 import com.recipe_manager.model.dto.response.RecipeIngredientsResponse;
+import com.recipe_manager.model.dto.response.RecipeRevisionsResponse;
 import com.recipe_manager.model.dto.response.ReviewResponse;
 import com.recipe_manager.model.dto.response.SearchRecipesResponse;
 import com.recipe_manager.model.dto.response.ShoppingListResponse;
 import com.recipe_manager.model.dto.response.StepCommentResponse;
 import com.recipe_manager.model.dto.response.StepResponse;
+import com.recipe_manager.model.dto.response.StepRevisionsResponse;
 import com.recipe_manager.model.dto.response.TagResponse;
 import com.recipe_manager.model.dto.review.ReviewDto;
 import com.recipe_manager.service.IngredientService;
@@ -583,5 +586,47 @@ public class RecipeManagementController {
       @PathVariable final Long recipeId, @PathVariable final Long reviewId) {
     reviewService.deleteReview(recipeId, reviewId);
     return ResponseEntity.noContent().build();
+  }
+
+  /**
+   * Get all revisions for a recipe.
+   *
+   * @param recipeId the recipe ID
+   * @return response with all revisions for the recipe
+   */
+  @GetMapping("/{recipeId}/revisions")
+  public ResponseEntity<RecipeRevisionsResponse> getRecipeRevisions(
+      @PathVariable final Long recipeId) {
+    RecipeRevisionsResponse response = recipeService.getRevisions(recipeId);
+    return ResponseEntity.ok(response);
+  }
+
+  /**
+   * Get all revisions for a specific recipe step.
+   *
+   * @param recipeId the recipe ID
+   * @param stepId the step ID
+   * @return response with all revisions for the step
+   */
+  @GetMapping("/{recipeId}/steps/{stepId}/revisions")
+  public ResponseEntity<StepRevisionsResponse> getStepRevisions(
+      @PathVariable final Long recipeId, @PathVariable final Long stepId) {
+    StepRevisionsResponse response = stepService.getStepRevisions(recipeId, stepId);
+    return ResponseEntity.ok(response);
+  }
+
+  /**
+   * Get all revisions for a specific recipe ingredient.
+   *
+   * @param recipeId the recipe ID
+   * @param ingredientId the ingredient ID
+   * @return response with all revisions for the ingredient
+   */
+  @GetMapping("/{recipeId}/ingredients/{ingredientId}/revisions")
+  public ResponseEntity<IngredientRevisionsResponse> getIngredientRevisions(
+      @PathVariable final Long recipeId, @PathVariable final Long ingredientId) {
+    IngredientRevisionsResponse response =
+        ingredientService.getIngredientRevisions(recipeId, ingredientId);
+    return ResponseEntity.ok(response);
   }
 }

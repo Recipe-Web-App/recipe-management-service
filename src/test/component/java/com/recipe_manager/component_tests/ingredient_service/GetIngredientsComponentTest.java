@@ -26,6 +26,7 @@ import com.recipe_manager.model.entity.recipe.RecipeIngredient;
 import com.recipe_manager.model.enums.IngredientUnit;
 import com.recipe_manager.model.mapper.IngredientCommentMapperImpl;
 import com.recipe_manager.model.mapper.RecipeIngredientMapperImpl;
+import com.recipe_manager.model.mapper.RecipeRevisionMapperImpl;
 
 /**
  * Component tests for GET /recipe-management/recipes/{recipeId}/ingredients
@@ -34,7 +35,8 @@ import com.recipe_manager.model.mapper.RecipeIngredientMapperImpl;
  */
 @SpringBootTest(classes = {
     RecipeIngredientMapperImpl.class,
-    IngredientCommentMapperImpl.class
+    IngredientCommentMapperImpl.class,
+    RecipeRevisionMapperImpl.class,
 })
 @TestPropertySource(properties = {
     "spring.datasource.url=jdbc:h2:mem:testdb",

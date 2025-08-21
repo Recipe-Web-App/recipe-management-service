@@ -18,6 +18,7 @@ import com.recipe_manager.model.entity.recipe.RecipeIngredient;
 import com.recipe_manager.model.enums.IngredientUnit;
 import com.recipe_manager.model.mapper.IngredientCommentMapperImpl;
 import com.recipe_manager.model.mapper.RecipeIngredientMapperImpl;
+import com.recipe_manager.model.mapper.RecipeRevisionMapperImpl;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -34,7 +35,8 @@ import org.springframework.test.context.TestPropertySource;
  */
 @SpringBootTest(classes = {
     RecipeIngredientMapperImpl.class,
-    IngredientCommentMapperImpl.class
+    IngredientCommentMapperImpl.class,
+    RecipeRevisionMapperImpl.class,
 })
 @TestPropertySource(properties = {
     "spring.datasource.url=jdbc:h2:mem:testdb",

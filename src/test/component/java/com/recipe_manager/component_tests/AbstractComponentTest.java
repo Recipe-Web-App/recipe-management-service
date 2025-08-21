@@ -6,6 +6,7 @@ import com.recipe_manager.exception.GlobalExceptionHandler;
 import com.recipe_manager.model.mapper.IngredientCommentMapper;
 import com.recipe_manager.model.mapper.RecipeIngredientMapper;
 import com.recipe_manager.model.mapper.RecipeMapper;
+import com.recipe_manager.model.mapper.RecipeRevisionMapper;
 import com.recipe_manager.model.mapper.RecipeStepMapper;
 import com.recipe_manager.model.mapper.RecipeTagMapper;
 import com.recipe_manager.model.mapper.ShoppingListMapper;
@@ -107,6 +108,9 @@ public abstract class AbstractComponentTest {
   @Autowired(required = false)
   protected RecipeTagMapper recipeTagMapper;
 
+  @Autowired(required = false)
+  protected RecipeRevisionMapper recipeRevisionMapper;
+
   @InjectMocks
   protected RecipeManagementController controller;
 
@@ -121,16 +125,16 @@ public abstract class AbstractComponentTest {
     MockitoAnnotations.openMocks(this);
 
     // Create real service instances for repository-level component testing
-    if (recipeMapper != null) {
+    if (recipeMapper != null && recipeRevisionMapper != null) {
       realRecipeService = new RecipeService(
-          recipeRepository, ingredientRepository, recipeTagRepository, recipeRevisionRepository, recipeMapper, recipeStepMapper);
+          recipeRepository, ingredientRepository, recipeTagRepository, recipeRevisionRepository, recipeMapper, recipeRevisionMapper, recipeStepMapper);
     }
-    if (recipeIngredientMapper != null) {
-      realIngredientService = new IngredientService(recipeIngredientRepository, ingredientRepository, ingredientCommentRepository, recipeIngredientMapper,
-          ingredientCommentMapper, shoppingListMapper, recipeScraperService);
+    if (recipeIngredientMapper != null && recipeRevisionMapper != null) {
+      realIngredientService = new IngredientService(recipeIngredientRepository, ingredientRepository, ingredientCommentRepository, recipeRepository, recipeRevisionRepository, recipeIngredientMapper,
+          ingredientCommentMapper, recipeRevisionMapper, shoppingListMapper, recipeScraperService);
     }
-    if (stepCommentMapper != null && recipeStepMapper != null) {
-      realStepService = new StepService(recipeRepository, recipeStepRepository, stepCommentRepository, recipeStepMapper, stepCommentMapper);
+    if (stepCommentMapper != null && recipeStepMapper != null && recipeRevisionMapper != null) {
+      realStepService = new StepService(recipeRepository, recipeStepRepository, stepCommentRepository, recipeRevisionRepository, recipeStepMapper, stepCommentMapper, recipeRevisionMapper);
     }
     if (recipeTagMapper != null) {
       realTagService = new TagService(recipeRepository, recipeTagRepository, recipeTagMapper);

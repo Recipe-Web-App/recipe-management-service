@@ -20,6 +20,7 @@ import com.recipe_manager.model.dto.recipe.RecipeStepDto;
 import com.recipe_manager.model.dto.request.CreateRecipeRequest;
 import com.recipe_manager.model.dto.request.SearchRecipesRequest;
 import com.recipe_manager.model.dto.request.UpdateRecipeRequest;
+import com.recipe_manager.model.dto.response.RecipeRevisionsResponse;
 import com.recipe_manager.model.dto.response.SearchRecipesResponse;
 import com.recipe_manager.model.dto.revision.IngredientAddRevision;
 import com.recipe_manager.model.dto.revision.IngredientDeleteRevision;
@@ -39,6 +40,7 @@ import com.recipe_manager.model.enums.RevisionCategory;
 import com.recipe_manager.model.enums.RevisionType;
 import com.recipe_manager.model.enums.StepField;
 import com.recipe_manager.model.mapper.RecipeMapper;
+import com.recipe_manager.model.mapper.RecipeRevisionMapper;
 import com.recipe_manager.model.mapper.RecipeStepMapper;
 import com.recipe_manager.repository.ingredient.IngredientRepository;
 import com.recipe_manager.repository.recipe.RecipeRepository;
@@ -69,6 +71,9 @@ public class RecipeService {
   /** Mapper used for converting between recipe entities and DTOs. */
   private final RecipeMapper recipeMapper;
 
+  /** Mapper used for converting between recipe revision entities and DTOs. */
+  private final RecipeRevisionMapper recipeRevisionMapper;
+
   /** Mapper used for converting between recipe step entities and DTOs. */
   private final RecipeStepMapper recipeStepMapper;
 
@@ -80,6 +85,8 @@ public class RecipeService {
    * @param recipeTagRepository the repository used for accessing recipe tag data
    * @param recipeRevisionRepository the repository used for accessing recipe revision data
    * @param recipeMapper the mapper used for converting between recipe entities and DTOs
+   * @param recipeRevisionMapper the mapper used for converting between recipe revision entities and
+   *     DTOs
    * @param recipeStepMapper the mapper used for converting between recipe step entities and DTOs
    */
   public RecipeService(
@@ -88,12 +95,14 @@ public class RecipeService {
       final RecipeTagRepository recipeTagRepository,
       final RecipeRevisionRepository recipeRevisionRepository,
       final RecipeMapper recipeMapper,
+      final RecipeRevisionMapper recipeRevisionMapper,
       final RecipeStepMapper recipeStepMapper) {
     this.recipeRepository = recipeRepository;
     this.ingredientRepository = ingredientRepository;
     this.recipeTagRepository = recipeTagRepository;
     this.recipeRevisionRepository = recipeRevisionRepository;
     this.recipeMapper = recipeMapper;
+    this.recipeRevisionMapper = recipeRevisionMapper;
     this.recipeStepMapper = recipeStepMapper;
   }
 
@@ -860,6 +869,40 @@ public class RecipeService {
         .previousData(previousData)
         .newData(newData)
         .changeComment(newData.getChangeComment())
+        .build();
+  }
+
+  /**
+   * Get all revisions for a specific recipe.
+   *
+   * @param recipeId the recipe ID
+   * @return RecipeRevisionsResponse containing all revisions for the recipe
+   * @throws ResourceNotFoundException if the recipe is not found
+   * @throws AccessDeniedException if the user doesn't have permission to view the recipe
+   */
+  public RecipeRevisionsResponse getRevisions(final Long recipeId) {
+    // Verify recipe exists and user has access
+    Recipe recipe =
+        recipeRepository
+            .findById(recipeId)
+            .orElseThrow(
+                () -> new ResourceNotFoundException("Recipe not found with id: " + recipeId));
+
+    if (!recipe.getUserId().equals(SecurityUtils.getCurrentUserId())) {
+      throw new AccessDeniedException(
+          "You don't have permission to view revisions for this recipe");
+    }
+
+    // Get all revisions for the recipe
+    List<RecipeRevision> revisions = recipeRevisionRepository.findByRecipeId(recipeId);
+
+    // Convert to DTOs
+    var revisionDtos = recipeRevisionMapper.toDtoList(revisions);
+
+    return RecipeRevisionsResponse.builder()
+        .recipeId(recipeId)
+        .revisions(revisionDtos)
+        .totalCount(revisionDtos.size())
         .build();
   }
 }

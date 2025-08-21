@@ -2344,6 +2344,181 @@
       ]
     },
     {
+      "name": "Revisions",
+      "description": "Recipe revision history tracking endpoints for recipes, steps, and ingredients",
+      "item": [
+        {
+          "name": "Get Recipe Revisions",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Recipe revisions retrieved successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has correct structure', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('recipeId');",
+                  "    pm.expect(response).to.have.property('revisions');",
+                  "    pm.expect(response).to.have.property('totalCount');",
+                  "    pm.expect(response.revisions).to.be.an('array');",
+                  "    pm.expect(response.totalCount).to.be.a('number');",
+                  "});",
+                  "",
+                  "pm.test('Recipe ID matches request', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.recipeId).to.equal(parseInt(pm.variables.get('testRecipeId')));",
+                  "});",
+                  "",
+                  "pm.test('Revisions have required fields', function () {",
+                  "    const response = pm.response.json();",
+                  "    if (response.revisions.length > 0) {",
+                  "        const revision = response.revisions[0];",
+                  "        pm.expect(revision).to.have.property('revisionId');",
+                  "        pm.expect(revision).to.have.property('recipeId');",
+                  "        pm.expect(revision).to.have.property('userId');",
+                  "        pm.expect(revision).to.have.property('revisionCategory');",
+                  "        pm.expect(revision).to.have.property('revisionType');",
+                  "        pm.expect(revision).to.have.property('previousData');",
+                  "        pm.expect(revision).to.have.property('newData');",
+                  "        pm.expect(revision).to.have.property('createdAt');",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/recipes/{{testRecipeId}}/revisions",
+              "host": ["{{recipeManagementServiceBaseUrl}}"],
+              "path": ["recipe-management", "recipes", "{{testRecipeId}}", "revisions"]
+            }
+          }
+        },
+        {
+          "name": "Get Step Revisions",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Step revisions retrieved successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has correct structure', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('recipeId');",
+                  "    pm.expect(response).to.have.property('stepId');",
+                  "    pm.expect(response).to.have.property('revisions');",
+                  "    pm.expect(response).to.have.property('totalCount');",
+                  "    pm.expect(response.revisions).to.be.an('array');",
+                  "    pm.expect(response.totalCount).to.be.a('number');",
+                  "});",
+                  "",
+                  "pm.test('IDs match request', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.recipeId).to.equal(parseInt(pm.variables.get('testRecipeId')));",
+                  "    pm.expect(response.stepId).to.equal(parseInt(pm.variables.get('testStepId')));",
+                  "});",
+                  "",
+                  "pm.test('Step revisions are filtered correctly', function () {",
+                  "    const response = pm.response.json();",
+                  "    if (response.revisions.length > 0) {",
+                  "        const revision = response.revisions[0];",
+                  "        pm.expect(revision).to.have.property('revisionCategory');",
+                  "        pm.expect(revision.revisionCategory).to.equal('STEP');",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/recipes/{{testRecipeId}}/steps/{{testStepId}}/revisions",
+              "host": ["{{recipeManagementServiceBaseUrl}}"],
+              "path": ["recipe-management", "recipes", "{{testRecipeId}}", "steps", "{{testStepId}}", "revisions"]
+            }
+          }
+        },
+        {
+          "name": "Get Ingredient Revisions",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Ingredient revisions retrieved successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has correct structure', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('recipeId');",
+                  "    pm.expect(response).to.have.property('ingredientId');",
+                  "    pm.expect(response).to.have.property('revisions');",
+                  "    pm.expect(response).to.have.property('totalCount');",
+                  "    pm.expect(response.revisions).to.be.an('array');",
+                  "    pm.expect(response.totalCount).to.be.a('number');",
+                  "});",
+                  "",
+                  "pm.test('IDs match request', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.recipeId).to.equal(parseInt(pm.variables.get('testRecipeId')));",
+                  "    pm.expect(response.ingredientId).to.equal(parseInt(pm.variables.get('testIngredientId')));",
+                  "});",
+                  "",
+                  "pm.test('Ingredient revisions are filtered correctly', function () {",
+                  "    const response = pm.response.json();",
+                  "    if (response.revisions.length > 0) {",
+                  "        const revision = response.revisions[0];",
+                  "        pm.expect(revision).to.have.property('revisionCategory');",
+                  "        pm.expect(revision.revisionCategory).to.equal('INGREDIENT');",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/recipes/{{testRecipeId}}/ingredients/{{testIngredientId}}/revisions",
+              "host": ["{{recipeManagementServiceBaseUrl}}"],
+              "path": ["recipe-management", "recipes", "{{testRecipeId}}", "ingredients", "{{testIngredientId}}", "revisions"]
+            }
+          }
+        }
+      ]
+    },
+    {
       "name": "Actuator",
       "description": "Health checks, metrics, and operational endpoints for Recipe Manager Service",
       "item": [

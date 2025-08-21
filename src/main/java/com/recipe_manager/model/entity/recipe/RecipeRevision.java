@@ -7,10 +7,13 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.JdbcType;
 import org.hibernate.dialect.PostgreSQLEnumJdbcType;
 
+import com.recipe_manager.model.converter.RevisionDataConverter;
+import com.recipe_manager.model.dto.revision.AbstractRevision;
 import com.recipe_manager.model.enums.RevisionCategory;
 import com.recipe_manager.model.enums.RevisionType;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
@@ -74,15 +77,17 @@ public class RecipeRevision {
   @Column(name = "revision_type", nullable = false)
   private RevisionType revisionType;
 
-  /** The previous data in JSON. */
+  /** The previous data as a typed revision object. */
   @NotNull
   @Column(name = "previous_data", columnDefinition = "jsonb", nullable = false)
-  private String previousData;
+  @Convert(converter = RevisionDataConverter.class)
+  private AbstractRevision previousData;
 
-  /** The new data in JSON. */
+  /** The new data as a typed revision object. */
   @NotNull
   @Column(name = "new_data", columnDefinition = "jsonb", nullable = false)
-  private String newData;
+  @Convert(converter = RevisionDataConverter.class)
+  private AbstractRevision newData;
 
   /** The change comment. */
   @Column(name = "change_comment", columnDefinition = "text")

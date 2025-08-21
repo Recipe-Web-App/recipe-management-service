@@ -2,14 +2,20 @@ package com.recipe_manager.model.mapper;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
 import com.recipe_manager.model.dto.recipe.RecipeRevisionDto;
+import com.recipe_manager.model.dto.revision.IngredientAddRevision;
+import com.recipe_manager.model.dto.revision.IngredientDeleteRevision;
+import com.recipe_manager.model.dto.revision.StepAddRevision;
+import com.recipe_manager.model.dto.revision.StepDeleteRevision;
 import com.recipe_manager.model.entity.recipe.Recipe;
 import com.recipe_manager.model.entity.recipe.RecipeRevision;
+import com.recipe_manager.model.enums.IngredientUnit;
 import com.recipe_manager.model.enums.RevisionCategory;
 import com.recipe_manager.model.enums.RevisionType;
 
@@ -34,14 +40,34 @@ class RecipeRevisionMapperTest {
         .recipeId(recipeId)
         .build();
 
+    IngredientAddRevision previousRevision = IngredientAddRevision.builder()
+        .category(RevisionCategory.INGREDIENT)
+        .type(RevisionType.ADD)
+        .ingredientId(1L)
+        .ingredientName("Old Ingredient")
+        .quantity(new BigDecimal("1.0"))
+        .unit(IngredientUnit.CUP)
+        .isOptional(false)
+        .build();
+
+    IngredientAddRevision newRevision = IngredientAddRevision.builder()
+        .category(RevisionCategory.INGREDIENT)
+        .type(RevisionType.ADD)
+        .ingredientId(1L)
+        .ingredientName("New Ingredient")
+        .quantity(new BigDecimal("2.0"))
+        .unit(IngredientUnit.CUP)
+        .isOptional(false)
+        .build();
+
     RecipeRevision recipeRevision = RecipeRevision.builder()
         .revisionId(1L)
         .recipe(recipe)
         .userId(userId)
         .revisionCategory(RevisionCategory.INGREDIENT)
         .revisionType(RevisionType.ADD)
-        .previousData("{\"name\":\"old ingredient\"}")
-        .newData("{\"name\":\"new ingredient\"}")
+        .previousData(previousRevision)
+        .newData(newRevision)
         .changeComment("Added new ingredient")
         .createdAt(createdAt)
         .build();
@@ -54,8 +80,8 @@ class RecipeRevisionMapperTest {
     assertThat(result.getUserId()).isEqualTo(userId);
     assertThat(result.getRevisionCategory()).isEqualTo(RevisionCategory.INGREDIENT);
     assertThat(result.getRevisionType()).isEqualTo(RevisionType.ADD);
-    assertThat(result.getPreviousData()).isEqualTo("{\"name\":\"old ingredient\"}");
-    assertThat(result.getNewData()).isEqualTo("{\"name\":\"new ingredient\"}");
+    assertThat(result.getPreviousData()).contains("Old Ingredient");
+    assertThat(result.getNewData()).contains("New Ingredient");
     assertThat(result.getChangeComment()).isEqualTo("Added new ingredient");
     assertThat(result.getCreatedAt()).isEqualTo(createdAt);
   }
@@ -73,14 +99,24 @@ class RecipeRevisionMapperTest {
     UUID userId = UUID.randomUUID();
     LocalDateTime createdAt = LocalDateTime.now();
 
+    StepAddRevision stepRevision = StepAddRevision.builder()
+        .category(RevisionCategory.STEP)
+        .type(RevisionType.ADD)
+        .stepId(1L)
+        .stepNumber(1)
+        .instruction("updated step")
+        .optional(false)
+        .timerSeconds(30)
+        .build();
+
     RecipeRevision revisionWithNullRecipe = RecipeRevision.builder()
         .revisionId(2L)
         .recipe(null)
         .userId(userId)
         .revisionCategory(RevisionCategory.STEP)
         .revisionType(RevisionType.UPDATE)
-        .previousData("{\"step\":\"old step\"}")
-        .newData("{\"step\":\"updated step\"}")
+        .previousData(stepRevision)
+        .newData(stepRevision)
         .changeComment("Updated step")
         .createdAt(createdAt)
         .build();
@@ -93,8 +129,8 @@ class RecipeRevisionMapperTest {
     assertThat(result.getUserId()).isEqualTo(userId);
     assertThat(result.getRevisionCategory()).isEqualTo(RevisionCategory.STEP);
     assertThat(result.getRevisionType()).isEqualTo(RevisionType.UPDATE);
-    assertThat(result.getPreviousData()).isEqualTo("{\"step\":\"old step\"}");
-    assertThat(result.getNewData()).isEqualTo("{\"step\":\"updated step\"}");
+    assertThat(result.getPreviousData()).contains("updated step");
+    assertThat(result.getNewData()).contains("updated step");
     assertThat(result.getChangeComment()).isEqualTo("Updated step");
     assertThat(result.getCreatedAt()).isEqualTo(createdAt);
   }
@@ -109,14 +145,21 @@ class RecipeRevisionMapperTest {
         .recipeId(recipeId)
         .build();
 
+    IngredientDeleteRevision deleteRevision = IngredientDeleteRevision.builder()
+        .category(RevisionCategory.INGREDIENT)
+        .type(RevisionType.DELETE)
+        .ingredientId(1L)
+        .ingredientName("deleted ingredient")
+        .build();
+
     RecipeRevision revisionWithNullComment = RecipeRevision.builder()
         .revisionId(3L)
         .recipe(recipe)
         .userId(userId)
         .revisionCategory(RevisionCategory.INGREDIENT)
         .revisionType(RevisionType.DELETE)
-        .previousData("{\"name\":\"deleted ingredient\"}")
-        .newData("{}")
+        .previousData(deleteRevision)
+        .newData(deleteRevision)
         .changeComment(null)
         .createdAt(createdAt)
         .build();
@@ -129,8 +172,8 @@ class RecipeRevisionMapperTest {
     assertThat(result.getUserId()).isEqualTo(userId);
     assertThat(result.getRevisionCategory()).isEqualTo(RevisionCategory.INGREDIENT);
     assertThat(result.getRevisionType()).isEqualTo(RevisionType.DELETE);
-    assertThat(result.getPreviousData()).isEqualTo("{\"name\":\"deleted ingredient\"}");
-    assertThat(result.getNewData()).isEqualTo("{}");
+    assertThat(result.getPreviousData()).contains("deleted ingredient");
+    assertThat(result.getNewData()).contains("deleted ingredient");
     assertThat(result.getChangeComment()).isNull();
     assertThat(result.getCreatedAt()).isEqualTo(createdAt);
   }
@@ -153,14 +196,33 @@ class RecipeRevisionMapperTest {
         .recipeId(recipeId2)
         .build();
 
+    IngredientAddRevision ingredientRevision = IngredientAddRevision.builder()
+        .category(RevisionCategory.INGREDIENT)
+        .type(RevisionType.ADD)
+        .ingredientId(1L)
+        .ingredientName("new ingredient")
+        .quantity(new BigDecimal("1.0"))
+        .unit(IngredientUnit.CUP)
+        .isOptional(false)
+        .build();
+
+    StepAddRevision stepRevision = StepAddRevision.builder()
+        .category(RevisionCategory.STEP)
+        .type(RevisionType.ADD)
+        .stepId(1L)
+        .stepNumber(1)
+        .instruction("updated step")
+        .timerSeconds(5)
+        .build();
+
     RecipeRevision recipeRevision = RecipeRevision.builder()
         .revisionId(1L)
         .recipe(recipe)
         .userId(userId)
         .revisionCategory(RevisionCategory.INGREDIENT)
         .revisionType(RevisionType.ADD)
-        .previousData("{\"name\":\"old ingredient\"}")
-        .newData("{\"name\":\"new ingredient\"}")
+        .previousData(ingredientRevision)
+        .newData(ingredientRevision)
         .changeComment("Added new ingredient")
         .createdAt(createdAt)
         .build();
@@ -170,8 +232,8 @@ class RecipeRevisionMapperTest {
         .userId(userId2)
         .revisionCategory(RevisionCategory.STEP)
         .revisionType(RevisionType.UPDATE)
-        .previousData("{\"instruction\":\"old step\"}")
-        .newData("{\"instruction\":\"updated step\"}")
+        .previousData(stepRevision)
+        .newData(stepRevision)
         .changeComment("Updated cooking step")
         .createdAt(createdAt2)
         .build();
@@ -226,14 +288,24 @@ class RecipeRevisionMapperTest {
         .recipeId(recipeId)
         .build();
 
+    IngredientAddRevision testRevision = IngredientAddRevision.builder()
+        .category(RevisionCategory.INGREDIENT)
+        .type(RevisionType.ADD)
+        .ingredientId(1L)
+        .ingredientName("test ingredient")
+        .quantity(new BigDecimal("1.0"))
+        .unit(IngredientUnit.CUP)
+        .isOptional(false)
+        .build();
+
     RecipeRevision recipeRevision = RecipeRevision.builder()
         .revisionId(1L)
         .recipe(recipe)
         .userId(userId)
         .revisionCategory(RevisionCategory.INGREDIENT)
         .revisionType(RevisionType.ADD)
-        .previousData("{\"name\":\"old ingredient\"}")
-        .newData("{\"name\":\"new ingredient\"}")
+        .previousData(testRevision)
+        .newData(testRevision)
         .changeComment("Added new ingredient")
         .createdAt(createdAt)
         .build();
@@ -260,14 +332,21 @@ class RecipeRevisionMapperTest {
         .build();
 
     // Test STEP category with DELETE type
+    StepDeleteRevision stepData = StepDeleteRevision.builder()
+        .category(RevisionCategory.STEP)
+        .type(RevisionType.DELETE)
+        .stepId(1L)
+        .stepNumber(1)
+        .build();
+
     RecipeRevision stepDeleteRevision = RecipeRevision.builder()
         .revisionId(4L)
         .recipe(recipe)
         .userId(userId)
         .revisionCategory(RevisionCategory.STEP)
         .revisionType(RevisionType.DELETE)
-        .previousData("{\"step\":\"removed step\"}")
-        .newData("{}")
+        .previousData(stepData)
+        .newData(stepData)
         .changeComment("Removed unnecessary step")
         .createdAt(createdAt)
         .build();
@@ -314,6 +393,57 @@ class RecipeRevisionMapperTest {
     assertThat(result.getCreatedAt()).isNull();
   }
 
+  @Test
+  @DisplayName("Should map RecipeRevision with StepRevision types")
+  void shouldMapStepRevisionTypes() {
+    UUID userId = UUID.randomUUID();
+    Long recipeId = 456L;
+    LocalDateTime createdAt = LocalDateTime.now();
+
+    Recipe recipe = Recipe.builder()
+        .recipeId(recipeId)
+        .build();
+
+    StepDeleteRevision previousRevision = StepDeleteRevision.builder()
+        .category(RevisionCategory.STEP)
+        .type(RevisionType.DELETE)
+        .stepId(1L)
+        .stepNumber(1)
+        .build();
+
+    StepAddRevision newRevision = StepAddRevision.builder()
+        .category(RevisionCategory.STEP)
+        .type(RevisionType.ADD)
+        .stepId(2L)
+        .stepNumber(1)
+        .instruction("New step instruction")
+        .timerSeconds(10)
+        .build();
+
+    RecipeRevision recipeRevision = RecipeRevision.builder()
+        .revisionId(6L)
+        .recipe(recipe)
+        .userId(userId)
+        .revisionCategory(RevisionCategory.STEP)
+        .revisionType(RevisionType.UPDATE)
+        .previousData(previousRevision)
+        .newData(newRevision)
+        .changeComment("Replaced step")
+        .createdAt(createdAt)
+        .build();
+
+    RecipeRevisionDto result = mapper.toDto(recipeRevision);
+
+    assertThat(result).isNotNull();
+    assertThat(result.getRevisionId()).isEqualTo(6L);
+    assertThat(result.getRecipeId()).isEqualTo(recipeId);
+    assertThat(result.getRevisionCategory()).isEqualTo(RevisionCategory.STEP);
+    assertThat(result.getRevisionType()).isEqualTo(RevisionType.UPDATE);
+    assertThat(result.getPreviousData()).contains("DELETE");
+    assertThat(result.getNewData()).contains("New step instruction");
+    assertThat(result.getChangeComment()).isEqualTo("Replaced step");
+  }
+
   private final RecipeRevisionMapper mapper = Mappers.getMapper(RecipeRevisionMapper.class);
 
   @Test
@@ -327,14 +457,24 @@ class RecipeRevisionMapperTest {
         .recipeId(500L)
         .build();
 
+    IngredientAddRevision sugarRevision = IngredientAddRevision.builder()
+        .category(RevisionCategory.INGREDIENT)
+        .type(RevisionType.ADD)
+        .ingredientId(1L)
+        .ingredientName("Sugar")
+        .quantity(new BigDecimal("2.0"))
+        .unit(IngredientUnit.CUP)
+        .isOptional(false)
+        .build();
+
     RecipeRevision entity = RecipeRevision.builder()
         .revisionId(10L)
         .recipe(recipe)
         .userId(userId)
         .revisionCategory(RevisionCategory.INGREDIENT)
         .revisionType(RevisionType.UPDATE)
-        .previousData("{\"name\":\"Sugar\",\"quantity\":\"1 cup\"}")
-        .newData("{\"name\":\"Sugar\",\"quantity\":\"2 cups\"}")
+        .previousData(sugarRevision)
+        .newData(sugarRevision)
         .changeComment("Increased sugar quantity")
         .createdAt(createdAt)
         .build();
@@ -347,8 +487,8 @@ class RecipeRevisionMapperTest {
     assertThat(result.getUserId()).isEqualTo(userId);
     assertThat(result.getRevisionCategory()).isEqualTo(RevisionCategory.INGREDIENT);
     assertThat(result.getRevisionType()).isEqualTo(RevisionType.UPDATE);
-    assertThat(result.getPreviousData()).isEqualTo("{\"name\":\"Sugar\",\"quantity\":\"1 cup\"}");
-    assertThat(result.getNewData()).isEqualTo("{\"name\":\"Sugar\",\"quantity\":\"2 cups\"}");
+    assertThat(result.getPreviousData()).contains("Sugar");
+    assertThat(result.getNewData()).contains("Sugar");
     assertThat(result.getChangeComment()).isEqualTo("Increased sugar quantity");
     assertThat(result.getCreatedAt()).isEqualTo(createdAt);
   }
@@ -369,16 +509,33 @@ class RecipeRevisionMapperTest {
         .recipeId(700L)
         .build();
 
+    StepAddRevision stepRevision1 = StepAddRevision.builder()
+        .category(RevisionCategory.STEP)
+        .type(RevisionType.ADD)
+        .stepId(1L)
+        .stepNumber(1)
+        .instruction("Mix well")
+        .optional(false)
+        .timerSeconds(30)
+        .build();
+
     RecipeRevision entity1 = RecipeRevision.builder()
         .revisionId(20L)
         .recipe(recipe1)
         .userId(userId1)
         .revisionCategory(RevisionCategory.STEP)
         .revisionType(RevisionType.ADD)
-        .previousData("{}")
-        .newData("{\"instruction\":\"Mix well\"}")
+        .previousData(stepRevision1)
+        .newData(stepRevision1)
         .changeComment("Added mixing step")
         .createdAt(now)
+        .build();
+
+    IngredientDeleteRevision deleteRevision2 = IngredientDeleteRevision.builder()
+        .category(RevisionCategory.INGREDIENT)
+        .type(RevisionType.DELETE)
+        .ingredientId(1L)
+        .ingredientName("Old Recipe")
         .build();
 
     RecipeRevision entity2 = RecipeRevision.builder()
@@ -387,8 +544,8 @@ class RecipeRevisionMapperTest {
         .userId(userId2)
         .revisionCategory(RevisionCategory.INGREDIENT)
         .revisionType(RevisionType.DELETE)
-        .previousData("{\"title\":\"Old Recipe\"}")
-        .newData("{}")
+        .previousData(deleteRevision2)
+        .newData(deleteRevision2)
         .changeComment("Deleted old recipe")
         .createdAt(now.plusMinutes(30))
         .build();
@@ -415,14 +572,24 @@ class RecipeRevisionMapperTest {
     UUID userId = UUID.randomUUID();
     LocalDateTime createdAt = LocalDateTime.now();
 
+    IngredientAddRevision testRevision = IngredientAddRevision.builder()
+        .category(RevisionCategory.INGREDIENT)
+        .type(RevisionType.ADD)
+        .ingredientId(1L)
+        .ingredientName("Test")
+        .quantity(new BigDecimal("1.0"))
+        .unit(IngredientUnit.CUP)
+        .isOptional(false)
+        .build();
+
     RecipeRevision entity = RecipeRevision.builder()
         .revisionId(40L)
         .recipe(null)
         .userId(userId)
         .revisionCategory(RevisionCategory.INGREDIENT)
         .revisionType(RevisionType.UPDATE)
-        .previousData("{}")
-        .newData("{}")
+        .previousData(testRevision)
+        .newData(testRevision)
         .changeComment("Test revision")
         .createdAt(createdAt)
         .build();
@@ -449,14 +616,24 @@ class RecipeRevisionMapperTest {
         .recipeId(800L)
         .build();
 
+    StepAddRevision titleRevision = StepAddRevision.builder()
+        .category(RevisionCategory.STEP)
+        .type(RevisionType.ADD)
+        .stepId(1L)
+        .stepNumber(1)
+        .instruction("New Title")
+        .optional(false)
+        .timerSeconds(30)
+        .build();
+
     RecipeRevision entity = RecipeRevision.builder()
         .revisionId(50L)
         .recipe(recipe)
         .userId(userId)
         .revisionCategory(RevisionCategory.STEP)
         .revisionType(RevisionType.UPDATE)
-        .previousData("{\"title\":\"Old Title\"}")
-        .newData("{\"title\":\"New Title\"}")
+        .previousData(titleRevision)
+        .newData(titleRevision)
         .changeComment(null)
         .createdAt(createdAt)
         .build();

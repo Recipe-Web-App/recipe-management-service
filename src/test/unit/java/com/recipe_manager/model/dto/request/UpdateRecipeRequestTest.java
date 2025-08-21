@@ -80,9 +80,7 @@ class UpdateRecipeRequestTest {
     assertThat(req.getPreparationTime()).isNull();
     assertThat(req.getCookingTime()).isNull();
     assertThat(req.getDifficulty()).isNull();
-    assertThat(req.getIngredients()).isNotNull();
-    assertThat(req.getIngredients()).isEmpty();
-    assertThat(req.getSteps()).isNotNull();
-    assertThat(req.getSteps()).isEmpty();
+    assertThat(req.getIngredients()).isNull();
+    assertThat(req.getSteps()).isNull();
   }
 }

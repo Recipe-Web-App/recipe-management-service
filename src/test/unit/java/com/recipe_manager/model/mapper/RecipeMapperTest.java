@@ -11,6 +11,7 @@ import com.recipe_manager.model.dto.recipe.RecipeDto;
 import com.recipe_manager.model.dto.recipe.RecipeIngredientDto;
 import com.recipe_manager.model.dto.recipe.RecipeStepDto;
 import com.recipe_manager.model.dto.request.UpdateRecipeRequest;
+import com.recipe_manager.model.dto.revision.IngredientAddRevision;
 import com.recipe_manager.model.entity.ingredient.Ingredient;
 import com.recipe_manager.model.entity.recipe.Recipe;
 import com.recipe_manager.model.entity.recipe.RecipeFavorite;
@@ -408,13 +409,23 @@ class RecipeMapperTest {
         .build();
 
     // Create recipe revisions
+    IngredientAddRevision revisionData = IngredientAddRevision.builder()
+        .category(RevisionCategory.INGREDIENT)
+        .type(RevisionType.ADD)
+        .ingredientId(1L)
+        .ingredientName("Flour")
+        .quantity(new BigDecimal("2.0"))
+        .unit(IngredientUnit.CUP)
+        .isOptional(false)
+        .build();
+
     RecipeRevision recipeRevision = RecipeRevision.builder()
         .revisionId(1L)
         .userId(userId)
         .revisionCategory(RevisionCategory.INGREDIENT)
         .revisionType(RevisionType.ADD)
-        .previousData("{}")
-        .newData("{\"name\":\"Flour\"}")
+        .previousData(revisionData)
+        .newData(revisionData)
         .changeComment("Added flour")
         .createdAt(now)
         .build();

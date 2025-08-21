@@ -8,27 +8,35 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import com.recipe_manager.exception.BusinessException;
+import com.recipe_manager.exception.ResourceNotFoundException;
 import com.recipe_manager.model.dto.external.recipescraper.RecipeScraperShoppingDto;
 import com.recipe_manager.model.dto.recipe.RecipeIngredientDto;
 import com.recipe_manager.model.dto.request.AddIngredientCommentRequest;
 import com.recipe_manager.model.dto.request.DeleteIngredientCommentRequest;
 import com.recipe_manager.model.dto.request.EditIngredientCommentRequest;
 import com.recipe_manager.model.dto.response.IngredientCommentResponse;
+import com.recipe_manager.model.dto.response.IngredientRevisionsResponse;
 import com.recipe_manager.model.dto.response.RecipeIngredientsResponse;
 import com.recipe_manager.model.dto.response.ShoppingListResponse;
 import com.recipe_manager.model.dto.shopping.ShoppingListItemDto;
 import com.recipe_manager.model.entity.ingredient.Ingredient;
 import com.recipe_manager.model.entity.ingredient.IngredientComment;
+import com.recipe_manager.model.entity.recipe.Recipe;
 import com.recipe_manager.model.entity.recipe.RecipeIngredient;
+import com.recipe_manager.model.entity.recipe.RecipeRevision;
 import com.recipe_manager.model.mapper.IngredientCommentMapper;
 import com.recipe_manager.model.mapper.RecipeIngredientMapper;
+import com.recipe_manager.model.mapper.RecipeRevisionMapper;
 import com.recipe_manager.model.mapper.ShoppingListMapper;
 import com.recipe_manager.repository.ingredient.IngredientCommentRepository;
 import com.recipe_manager.repository.ingredient.IngredientRepository;
 import com.recipe_manager.repository.recipe.RecipeIngredientRepository;
+import com.recipe_manager.repository.recipe.RecipeRepository;
+import com.recipe_manager.repository.recipe.RecipeRevisionRepository;
 import com.recipe_manager.service.external.RecipeScraperService;
 import com.recipe_manager.util.SecurityUtils;
 
@@ -55,11 +63,20 @@ public final class IngredientService {
   /** Repository for ingredient comment data access operations. */
   private final IngredientCommentRepository ingredientCommentRepository;
 
+  /** Repository for recipe data access operations. */
+  private final RecipeRepository recipeRepository;
+
+  /** Repository for recipe revision data access operations. */
+  private final RecipeRevisionRepository recipeRevisionRepository;
+
   /** Mapper for converting between RecipeIngredient entities and DTOs. */
   private final RecipeIngredientMapper recipeIngredientMapper;
 
   /** Mapper for converting between IngredientComment entities and DTOs. */
   private final IngredientCommentMapper ingredientCommentMapper;
+
+  /** Mapper for converting between RecipeRevision entities and DTOs. */
+  private final RecipeRevisionMapper recipeRevisionMapper;
 
   /** Mapper for converting RecipeIngredient entities to shopping list items. */
   private final ShoppingListMapper shoppingListMapper;
@@ -80,15 +97,21 @@ public final class IngredientService {
       final RecipeIngredientRepository recipeIngredientRepository,
       final IngredientRepository ingredientRepository,
       final IngredientCommentRepository ingredientCommentRepository,
+      final RecipeRepository recipeRepository,
+      final RecipeRevisionRepository recipeRevisionRepository,
       final RecipeIngredientMapper recipeIngredientMapper,
       final IngredientCommentMapper ingredientCommentMapper,
+      final RecipeRevisionMapper recipeRevisionMapper,
       final ShoppingListMapper shoppingListMapper,
       final RecipeScraperService recipeScraperService) {
     this.recipeIngredientRepository = recipeIngredientRepository;
     this.ingredientRepository = ingredientRepository;
     this.ingredientCommentRepository = ingredientCommentRepository;
+    this.recipeRepository = recipeRepository;
+    this.recipeRevisionRepository = recipeRevisionRepository;
     this.recipeIngredientMapper = recipeIngredientMapper;
     this.ingredientCommentMapper = ingredientCommentMapper;
+    this.recipeRevisionMapper = recipeRevisionMapper;
     this.shoppingListMapper = shoppingListMapper;
     this.recipeScraperService = recipeScraperService;
   }
@@ -444,5 +467,61 @@ public final class IngredientService {
             .ingredientId(ingredientIdLong)
             .comments(ingredientCommentMapper.toDtoList(comments))
             .build());
+  }
+
+  /**
+   * Get all revisions for a specific recipe ingredient.
+   *
+   * @param recipeId the recipe ID
+   * @param ingredientId the ingredient ID
+   * @return IngredientRevisionsResponse containing all revisions for the ingredient
+   * @throws ResourceNotFoundException if the recipe or ingredient is not found
+   * @throws AccessDeniedException if the user doesn't have permission to view the recipe
+   */
+  public IngredientRevisionsResponse getIngredientRevisions(
+      final Long recipeId, final Long ingredientId) {
+    // Check user has access to the recipe
+    Recipe recipe =
+        recipeRepository
+            .findById(recipeId)
+            .orElseThrow(
+                () -> new ResourceNotFoundException("Recipe not found with id: " + recipeId));
+
+    if (!recipe.getUserId().equals(SecurityUtils.getCurrentUserId())) {
+      throw new AccessDeniedException(
+          "You don't have permission to view revisions for this recipe");
+    }
+
+    // Verify ingredient exists for the recipe and user has access
+    RecipeIngredient recipeIngredient =
+        recipeIngredientRepository
+            .findByRecipeRecipeIdAndIngredientIngredientId(recipeId, ingredientId)
+            .orElseThrow(
+                () ->
+                    new ResourceNotFoundException(
+                        String.format(
+                            "Recipe ingredient not found for recipe %d and ingredient %d",
+                            recipeId, ingredientId)));
+    if (recipeIngredient == null) {
+      throw new ResourceNotFoundException(
+          String.format(
+              "Recipe ingredient not found for recipe %d and ingredient %d",
+              recipeId, ingredientId));
+    }
+
+    // Get all ingredient revisions for the recipe and ingredient
+    List<RecipeRevision> revisions =
+        recipeRevisionRepository.findIngredientRevisionsByRecipeIdAndIngredientId(
+            recipeId, ingredientId);
+
+    // Convert to DTOs
+    var revisionDtos = recipeRevisionMapper.toDtoList(revisions);
+
+    return IngredientRevisionsResponse.builder()
+        .recipeId(recipeId)
+        .ingredientId(ingredientId)
+        .revisions(revisionDtos)
+        .totalCount(revisionDtos.size())
+        .build();
   }
 }

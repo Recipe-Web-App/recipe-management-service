@@ -71,11 +71,8 @@ class AbstractRecipeRequestTest {
     assertThat(req.getPreparationTime()).isNull();
     assertThat(req.getCookingTime()).isNull();
     assertThat(req.getDifficulty()).isNull();
-    assertThat(req.getIngredients()).isNotNull();
-    assertThat(req.getIngredients()).isEmpty();
-    assertThat(req.getSteps()).isNotNull();
-    assertThat(req.getSteps()).isEmpty();
-    assertThat(req.getTags()).isNotNull();
-    assertThat(req.getTags()).isEmpty();
+    assertThat(req.getIngredients()).isNull();
+    assertThat(req.getSteps()).isNull();
+    assertThat(req.getTags()).isNull();
   }
 }

@@ -8,7 +8,7 @@ public class RevisionSerializationException extends RuntimeException {
    *
    * @param message the detail message
    */
-  public RevisionSerializationException(String message) {
+  public RevisionSerializationException(final String message) {
     super(message);
   }
 
@@ -18,7 +18,7 @@ public class RevisionSerializationException extends RuntimeException {
    * @param message the detail message
    * @param cause the cause
    */
-  public RevisionSerializationException(String message, Throwable cause) {
+  public RevisionSerializationException(final String message, final Throwable cause) {
     super(message, cause);
   }
 }

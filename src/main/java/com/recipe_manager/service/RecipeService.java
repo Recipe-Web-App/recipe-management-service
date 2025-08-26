@@ -711,9 +711,15 @@ public class RecipeService {
     return revisions;
   }
 
-  /** Finds an existing ingredient matching the new ingredient request. */
+  /**
+   * Finds an existing ingredient matching the new ingredient request.
+   *
+   * @param currentIngredients the list of current recipe ingredients
+   * @param newIngredient the new ingredient to match against
+   * @return the matching RecipeIngredient if found, null otherwise
+   */
   private RecipeIngredient findExistingIngredient(
-      List<RecipeIngredient> currentIngredients, RecipeIngredientDto newIngredient) {
+      final List<RecipeIngredient> currentIngredients, final RecipeIngredientDto newIngredient) {
     return currentIngredients.stream()
         .filter(
             current ->
@@ -729,20 +735,35 @@ public class RecipeService {
         .orElse(null);
   }
 
-  /** Finds an existing step by step number. */
-  private RecipeStep findExistingStep(List<RecipeStep> currentSteps, Integer stepNumber) {
+  /**
+   * Finds an existing step by step number.
+   *
+   * @param currentSteps the list of current recipe steps
+   * @param stepNumber the step number to find
+   * @return the matching RecipeStep if found, null otherwise
+   */
+  private RecipeStep findExistingStep(
+      final List<RecipeStep> currentSteps, final Integer stepNumber) {
     return currentSteps.stream()
         .filter(step -> step.getStepNumber().equals(stepNumber))
         .findFirst()
         .orElse(null);
   }
 
-  /** Creates update revisions for ingredient field changes. */
+  /**
+   * Creates update revisions for ingredient field changes.
+   *
+   * @param recipe the recipe being updated
+   * @param currentUserId the ID of the user making the changes
+   * @param existingIngredient the existing ingredient
+   * @param newIngredient the new ingredient data
+   * @return list of revision objects representing the changes
+   */
   private List<RecipeRevision> createIngredientUpdateRevisions(
-      Recipe recipe,
-      java.util.UUID currentUserId,
-      RecipeIngredient existingIngredient,
-      RecipeIngredientDto newIngredient) {
+      final Recipe recipe,
+      final java.util.UUID currentUserId,
+      final RecipeIngredient existingIngredient,
+      final RecipeIngredientDto newIngredient) {
     List<RecipeRevision> revisions = new ArrayList<>();
 
     // Check quantity changes
@@ -821,9 +842,20 @@ public class RecipeService {
     return revisions;
   }
 
-  /** Creates update revisions for step field changes. */
+  /**
+   * Creates update revisions for step field changes.
+   *
+   * @param recipe the recipe being updated
+   * @param currentUserId the ID of the user making the changes
+   * @param existingStep the existing step
+   * @param newStep the new step data
+   * @return list of revision objects representing the changes
+   */
   private List<RecipeRevision> createStepUpdateRevisions(
-      Recipe recipe, java.util.UUID currentUserId, RecipeStep existingStep, RecipeStepDto newStep) {
+      final Recipe recipe,
+      final java.util.UUID currentUserId,
+      final RecipeStep existingStep,
+      final RecipeStepDto newStep) {
     List<RecipeRevision> revisions = new ArrayList<>();
 
     // Check instruction changes
@@ -853,14 +885,24 @@ public class RecipeService {
     return revisions;
   }
 
-  /** Creates a RecipeRevision entity from revision data. */
+  /**
+   * Creates a RecipeRevision entity from revision data.
+   *
+   * @param recipe the recipe being revised
+   * @param userId the ID of the user making the revision
+   * @param category the category of the revision
+   * @param type the type of revision
+   * @param previousData the previous data state
+   * @param newData the new data state
+   * @return the created RecipeRevision entity
+   */
   private RecipeRevision createRevisionEntity(
-      Recipe recipe,
-      java.util.UUID userId,
-      RevisionCategory category,
-      RevisionType type,
-      com.recipe_manager.model.dto.revision.AbstractRevision previousData,
-      com.recipe_manager.model.dto.revision.AbstractRevision newData) {
+      final Recipe recipe,
+      final java.util.UUID userId,
+      final RevisionCategory category,
+      final RevisionType type,
+      final com.recipe_manager.model.dto.revision.AbstractRevision previousData,
+      final com.recipe_manager.model.dto.revision.AbstractRevision newData) {
     return RecipeRevision.builder()
         .recipe(recipe)
         .userId(userId)

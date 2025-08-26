@@ -10,8 +10,8 @@ import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 
 /**
- * Data Transfer Object for RecipeIngredient media. Used for transferring recipe ingredient media
- * data between layers.
+ * Data Transfer Object for RecipeIngredient media relationship. Used for transferring recipe
+ * ingredient-media relationship data between layers.
  */
 @Data
 @Getter
@@ -19,12 +19,18 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 @NoArgsConstructor
 @SuperBuilder
-@EqualsAndHashCode(callSuper = true)
-@ToString(callSuper = true)
-public final class RecipeIngredientMediaDto extends MediaDto {
+@EqualsAndHashCode
+@ToString
+public final class RecipeIngredientMediaDto {
+  /** The media ID. */
+  private Long mediaId;
+
   /** The recipe ID. */
   private Long recipeId;
 
   /** The ingredient ID. */
   private Long ingredientId;
+
+  /** The media details. */
+  private MediaDto media;
 }

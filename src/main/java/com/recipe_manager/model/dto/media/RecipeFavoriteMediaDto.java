@@ -19,12 +19,18 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 @NoArgsConstructor
 @SuperBuilder
-@EqualsAndHashCode(callSuper = true)
-@ToString(callSuper = true)
-public final class RecipeFavoriteMediaDto extends MediaDto {
+@EqualsAndHashCode
+@ToString
+public final class RecipeFavoriteMediaDto {
+  /** The media ID. */
+  private Long mediaId;
+
   /** The recipe ID. */
   private Long recipeId;
 
   /** The user ID. */
   private String userId;
+
+  /** The media details. */
+  private MediaDto media;
 }

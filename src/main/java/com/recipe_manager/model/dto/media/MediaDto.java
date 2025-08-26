@@ -1,6 +1,10 @@
 package com.recipe_manager.model.dto.media;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
+
+import com.recipe_manager.model.enums.MediaType;
+import com.recipe_manager.model.enums.ProcessingStatus;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -12,7 +16,7 @@ import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 
 /**
- * Base Data Transfer Object for media entities. Used for transferring media data between layers.
+ * Data Transfer Object for Media entity. Used for transferring media data between layers.
  *
  * <p>WARNING: The all-args constructor has many parameters. Consider using the builder for clarity.
  */
@@ -24,21 +28,30 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @EqualsAndHashCode
 @ToString
-abstract class MediaDto {
+public class MediaDto {
   /** The media ID. */
   private Long mediaId;
 
-  /** The media URL. */
-  private String url;
+  /** The user ID of the media owner. */
+  private UUID userId;
 
-  /** The alt text for the media. */
-  private String altText;
+  /** The type of media content. */
+  private MediaType mediaType;
 
-  /** The content type of the media. */
-  private String contentType;
+  /** The file path or URL of the media. */
+  private String mediaPath;
 
   /** The file size in bytes. */
   private Long fileSize;
+
+  /** The content hash for integrity verification. */
+  private String contentHash;
+
+  /** The original filename when uploaded. */
+  private String originalFilename;
+
+  /** The processing status of the media. */
+  private ProcessingStatus processingStatus;
 
   /** The creation timestamp. */
   private LocalDateTime createdAt;

@@ -3,8 +3,6 @@ package com.recipe_manager.model.dto.request;
 import static org.assertj.core.api.Assertions.*;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
 
 import com.recipe_manager.model.enums.IngredientUnit;
 
@@ -19,7 +17,6 @@ class CreateRecipeIngredientRequestTest {
   @DisplayName("Builder sets all fields")
   @Tag("standard-processing")
   void builderSetsAllFields() {
-    List<String> mediaUrls = new ArrayList<>();
     CreateRecipeIngredientRequest req = CreateRecipeIngredientRequest.builder()
         .ingredientName("N")
         .ingredientId(1L)
@@ -27,7 +24,6 @@ class CreateRecipeIngredientRequestTest {
         .unit(IngredientUnit.G)
         .isOptional(true)
         .notes("notes")
-        .mediaUrls(mediaUrls)
         .build();
     assertThat(req.getIngredientName()).isEqualTo("N");
     assertThat(req.getIngredientId()).isEqualTo(1L);
@@ -35,7 +31,6 @@ class CreateRecipeIngredientRequestTest {
     assertThat(req.getUnit()).isEqualTo(IngredientUnit.G);
     assertThat(req.getIsOptional()).isTrue();
     assertThat(req.getNotes()).isEqualTo("notes");
-    assertThat(req.getMediaUrls()).isSameAs(mediaUrls);
   }
 
   @Test
@@ -45,9 +40,6 @@ class CreateRecipeIngredientRequestTest {
     CreateRecipeIngredientRequest req = new CreateRecipeIngredientRequest();
     req.setIngredientName("N");
     assertThat(req.getIngredientName()).isEqualTo("N");
-    List<String> list = new ArrayList<>();
-    req.setMediaUrls(list);
-    assertThat(req.getMediaUrls()).isSameAs(list);
   }
 
   @Test
@@ -72,7 +64,5 @@ class CreateRecipeIngredientRequestTest {
     assertThat(req.getUnit()).isNull();
     assertThat(req.getIsOptional()).isNull();
     assertThat(req.getNotes()).isNull();
-    assertThat(req.getMediaUrls()).isNotNull();
-    assertThat(req.getMediaUrls()).isEmpty();
   }
 }

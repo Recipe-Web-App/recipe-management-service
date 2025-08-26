@@ -1,15 +1,11 @@
 package com.recipe_manager.model.dto.request;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
 
 import com.recipe_manager.model.enums.IngredientUnit;
 
-import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Builder.Default;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -44,7 +40,4 @@ public final class CreateRecipeIngredientRequest {
 
   /** Notes about the ingredient. */
   private String notes;
-
-  /** The list of media URLs for this ingredient. */
-  @Valid @Default private List<String> mediaUrls = new ArrayList<>();
 }

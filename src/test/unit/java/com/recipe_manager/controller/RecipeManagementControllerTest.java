@@ -15,6 +15,7 @@ import java.util.UUID;
 
 import com.recipe_manager.model.dto.ingredient.IngredientCommentDto;
 import com.recipe_manager.model.dto.recipe.RecipeDto;
+import com.recipe_manager.model.dto.recipe.StepCommentDto;
 import com.recipe_manager.model.dto.request.AddIngredientCommentRequest;
 import com.recipe_manager.model.dto.request.AddReviewRequest;
 import com.recipe_manager.model.dto.request.AddStepCommentRequest;
@@ -25,14 +26,12 @@ import com.recipe_manager.model.dto.request.EditReviewRequest;
 import com.recipe_manager.model.dto.request.EditStepCommentRequest;
 import com.recipe_manager.model.dto.request.SearchRecipesRequest;
 import com.recipe_manager.model.dto.request.UpdateRecipeRequest;
-import com.recipe_manager.model.dto.recipe.StepCommentDto;
 import com.recipe_manager.model.dto.response.IngredientCommentResponse;
 import com.recipe_manager.model.dto.response.ReviewResponse;
 import com.recipe_manager.model.dto.response.SearchRecipesResponse;
 import com.recipe_manager.model.dto.response.StepResponse;
 import com.recipe_manager.model.dto.review.ReviewDto;
 import com.recipe_manager.service.IngredientService;
-import com.recipe_manager.service.MediaService;
 import com.recipe_manager.service.RecipeService;
 import com.recipe_manager.service.ReviewService;
 import com.recipe_manager.service.StepService;
@@ -69,9 +68,6 @@ class RecipeManagementControllerTest {
 
   @Mock
   private StepService stepService;
-
-  @Mock
-  private MediaService mediaService;
 
   @Mock
   private TagService tagService;
@@ -165,21 +161,6 @@ class RecipeManagementControllerTest {
 
     mockMvc.perform(get("/recipe-management/recipes/1/steps")
         .contentType(MediaType.APPLICATION_JSON))
-        .andExpect(status().isOk());
-  }
-
-  /**
-   * Test POST /recipe-management/recipes/{recipeId}/media endpoint.
-   */
-  @Test
-  @Tag("standard-processing")
-  @DisplayName("Should handle POST /recipe-management/recipes/{recipeId}/media")
-  void shouldHandlePostMedia() throws Exception {
-    when(mediaService.addMediaToRecipe("1")).thenReturn(ResponseEntity.ok("Add Media - placeholder"));
-
-    mockMvc.perform(post("/recipe-management/recipes/1/media")
-        .contentType(MediaType.APPLICATION_JSON)
-        .content("{}"))
         .andExpect(status().isOk());
   }
 

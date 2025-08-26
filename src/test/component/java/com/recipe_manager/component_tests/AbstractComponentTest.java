@@ -20,7 +20,6 @@ import com.recipe_manager.repository.recipe.RecipeStepRepository;
 import com.recipe_manager.repository.recipe.RecipeTagRepository;
 import com.recipe_manager.repository.recipe.StepCommentRepository;
 import com.recipe_manager.service.IngredientService;
-import com.recipe_manager.service.MediaService;
 import com.recipe_manager.service.RecipeService;
 import com.recipe_manager.service.ReviewService;
 import com.recipe_manager.service.StepService;
@@ -48,9 +47,6 @@ public abstract class AbstractComponentTest {
 
   @Mock
   protected StepService stepService;
-
-  @Mock
-  protected MediaService mediaService;
 
   @Mock
   protected TagService tagService;
@@ -127,14 +123,17 @@ public abstract class AbstractComponentTest {
     // Create real service instances for repository-level component testing
     if (recipeMapper != null && recipeRevisionMapper != null) {
       realRecipeService = new RecipeService(
-          recipeRepository, ingredientRepository, recipeTagRepository, recipeRevisionRepository, recipeMapper, recipeRevisionMapper, recipeStepMapper);
+          recipeRepository, ingredientRepository, recipeTagRepository, recipeRevisionRepository, recipeMapper,
+          recipeRevisionMapper, recipeStepMapper);
     }
     if (recipeIngredientMapper != null && recipeRevisionMapper != null) {
-      realIngredientService = new IngredientService(recipeIngredientRepository, ingredientRepository, ingredientCommentRepository, recipeRepository, recipeRevisionRepository, recipeIngredientMapper,
+      realIngredientService = new IngredientService(recipeIngredientRepository, ingredientRepository,
+          ingredientCommentRepository, recipeRepository, recipeRevisionRepository, recipeIngredientMapper,
           ingredientCommentMapper, recipeRevisionMapper, shoppingListMapper, recipeScraperService);
     }
     if (stepCommentMapper != null && recipeStepMapper != null && recipeRevisionMapper != null) {
-      realStepService = new StepService(recipeRepository, recipeStepRepository, stepCommentRepository, recipeRevisionRepository, recipeStepMapper, stepCommentMapper, recipeRevisionMapper);
+      realStepService = new StepService(recipeRepository, recipeStepRepository, stepCommentRepository,
+          recipeRevisionRepository, recipeStepMapper, stepCommentMapper, recipeRevisionMapper);
     }
     if (recipeTagMapper != null) {
       realTagService = new TagService(recipeRepository, recipeTagRepository, recipeTagMapper);

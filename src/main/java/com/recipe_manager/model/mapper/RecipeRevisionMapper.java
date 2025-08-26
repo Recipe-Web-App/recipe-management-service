@@ -18,7 +18,8 @@ import com.recipe_manager.model.entity.recipe.RecipeRevision;
 @Mapper(componentModel = "spring")
 public interface RecipeRevisionMapper {
 
-  ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
+  /** ObjectMapper instance configured with JavaTimeModule for JSON processing. */
+  ObjectMapper OBJECT_MAPPER = new ObjectMapper().registerModule(new JavaTimeModule());
 
   /**
    * Maps a RecipeRevision entity to a RecipeRevisionDto.
@@ -51,7 +52,7 @@ public interface RecipeRevisionMapper {
       return null;
     }
     try {
-      return objectMapper.writeValueAsString(revision);
+      return OBJECT_MAPPER.writeValueAsString(revision);
     } catch (JsonProcessingException e) {
       throw new RevisionSerializationException("Failed to convert revision to JSON string", e);
     }

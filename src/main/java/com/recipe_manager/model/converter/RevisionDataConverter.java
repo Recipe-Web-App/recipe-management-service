@@ -11,24 +11,32 @@ import jakarta.persistence.Converter;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * JPA AttributeConverter for converting between AbstractRevision objects and JSON strings for
- * storage in JSONB database columns.
+ * JPA Attribute Converter for AbstractRevision objects. Handles conversion between AbstractRevision
+ * objects and their JSON string representation for storage in JSONB database columns.
  */
 @Converter
 @Slf4j
-public class RevisionDataConverter implements AttributeConverter<AbstractRevision, String> {
+public final class RevisionDataConverter implements AttributeConverter<AbstractRevision, String> {
 
-  private static final ObjectMapper objectMapper =
+  /** ObjectMapper instance configured with JavaTimeModule for JSON processing. */
+  private static final ObjectMapper OBJECT_MAPPER =
       new ObjectMapper().registerModule(new JavaTimeModule());
 
+  /**
+   * Converts the value stored in the entity attribute into the data representation to be stored in
+   * the database.
+   *
+   * @param attribute the entity attribute value to be converted
+   * @return the converted data to be stored in the database column
+   */
   @Override
-  public String convertToDatabaseColumn(AbstractRevision attribute) {
+  public String convertToDatabaseColumn(final AbstractRevision attribute) {
     if (attribute == null) {
       return null;
     }
 
     try {
-      String json = objectMapper.writeValueAsString(attribute);
+      String json = OBJECT_MAPPER.writeValueAsString(attribute);
       log.debug("Converted revision to JSON: {}", json);
       return json;
     } catch (JsonProcessingException e) {
@@ -37,14 +45,21 @@ public class RevisionDataConverter implements AttributeConverter<AbstractRevisio
     }
   }
 
+  /**
+   * Converts the data stored in the database column into the value to be stored in the entity
+   * attribute.
+   *
+   * @param dbData the data from the database column to be converted
+   * @return the converted value to be stored in the entity attribute
+   */
   @Override
-  public AbstractRevision convertToEntityAttribute(String dbData) {
+  public AbstractRevision convertToEntityAttribute(final String dbData) {
     if (dbData == null || dbData.trim().isEmpty()) {
       return null;
     }
 
     try {
-      AbstractRevision revision = objectMapper.readValue(dbData, AbstractRevision.class);
+      AbstractRevision revision = OBJECT_MAPPER.readValue(dbData, AbstractRevision.class);
       log.debug("Converted JSON to revision: {}", revision);
       return revision;
     } catch (JsonProcessingException e) {

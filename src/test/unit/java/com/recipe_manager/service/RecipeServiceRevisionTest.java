@@ -1,8 +1,12 @@
 package com.recipe_manager.service;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -10,16 +14,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Tag;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mock;
-import org.mockito.MockedStatic;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.ResponseEntity;
 
 import com.recipe_manager.model.dto.recipe.RecipeIngredientDto;
 import com.recipe_manager.model.dto.recipe.RecipeStepDto;
@@ -30,9 +24,9 @@ import com.recipe_manager.model.entity.recipe.RecipeIngredient;
 import com.recipe_manager.model.entity.recipe.RecipeIngredientId;
 import com.recipe_manager.model.entity.recipe.RecipeRevision;
 import com.recipe_manager.model.entity.recipe.RecipeStep;
+import com.recipe_manager.model.enums.IngredientUnit;
 import com.recipe_manager.model.enums.RevisionCategory;
 import com.recipe_manager.model.enums.RevisionType;
-import com.recipe_manager.model.enums.IngredientUnit;
 import com.recipe_manager.model.mapper.RecipeMapper;
 import com.recipe_manager.model.mapper.RecipeRevisionMapper;
 import com.recipe_manager.model.mapper.RecipeStepMapper;
@@ -42,6 +36,17 @@ import com.recipe_manager.repository.recipe.RecipeRevisionRepository;
 import com.recipe_manager.repository.recipe.RecipeTagRepository;
 import com.recipe_manager.util.SecurityUtils;
 
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+
 /**
  * Unit tests for RecipeService revision tracking functionality.
  */
@@ -49,13 +54,20 @@ import com.recipe_manager.util.SecurityUtils;
 @Tag("unit")
 class RecipeServiceRevisionTest {
 
-  @Mock private RecipeRepository recipeRepository;
-  @Mock private IngredientRepository ingredientRepository;
-  @Mock private RecipeTagRepository recipeTagRepository;
-  @Mock private RecipeRevisionRepository recipeRevisionRepository;
-  @Mock private RecipeMapper recipeMapper;
-  @Mock private RecipeRevisionMapper recipeRevisionMapper;
-  @Mock private RecipeStepMapper recipeStepMapper;
+  @Mock
+  private RecipeRepository recipeRepository;
+  @Mock
+  private IngredientRepository ingredientRepository;
+  @Mock
+  private RecipeTagRepository recipeTagRepository;
+  @Mock
+  private RecipeRevisionRepository recipeRevisionRepository;
+  @Mock
+  private RecipeMapper recipeMapper;
+  @Mock
+  private RecipeRevisionMapper recipeRevisionMapper;
+  @Mock
+  private RecipeStepMapper recipeStepMapper;
 
   private RecipeService recipeService;
   private UUID currentUserId;
@@ -127,13 +139,13 @@ class RecipeServiceRevisionTest {
                 .quantity(new BigDecimal("0.5"))
                 .unit(IngredientUnit.TSP)
                 .isOptional(true)
-                .build()
-        ))
+                .build()))
         .build();
 
     // Mock dependencies
     when(recipeRepository.findById(1L)).thenReturn(Optional.of(existingRecipe));
-    when(ingredientRepository.findById(1L)).thenReturn(Optional.of(existingRecipe.getRecipeIngredients().get(0).getIngredient()));
+    when(ingredientRepository.findById(1L))
+        .thenReturn(Optional.of(existingRecipe.getRecipeIngredients().get(0).getIngredient()));
 
     Ingredient newIngredient = Ingredient.builder()
         .ingredientId(2L)
@@ -150,21 +162,23 @@ class RecipeServiceRevisionTest {
       ResponseEntity<?> response = recipeService.updateRecipe("1", request);
 
       // Assert
-      assertEquals(200, response.getStatusCodeValue());
+      assertEquals(HttpStatus.OK.value(), response.getStatusCode().value());
 
       // Verify revisions were saved
-      ArgumentCaptor<List<RecipeRevision>> revisionsCaptor = ArgumentCaptor.forClass(List.class);
-      verify(recipeRevisionRepository).saveAll(revisionsCaptor.capture());
+      ArgumentCaptor<List<RecipeRevision>> revisionCaptor = ArgumentCaptor.captor();
+      verify(recipeRevisionRepository).saveAll(revisionCaptor.capture());
 
-      List<RecipeRevision> savedRevisions = revisionsCaptor.getValue();
+      List<RecipeRevision> savedRevisions = revisionCaptor.getValue();
       assertEquals(2, savedRevisions.size());
 
       // Check that we have both UPDATE and ADD revisions for ingredients
       long updateRevisions = savedRevisions.stream()
-          .filter(r -> r.getRevisionType() == RevisionType.UPDATE && r.getRevisionCategory() == RevisionCategory.INGREDIENT)
+          .filter(
+              r -> r.getRevisionType() == RevisionType.UPDATE && r.getRevisionCategory() == RevisionCategory.INGREDIENT)
           .count();
       long addRevisions = savedRevisions.stream()
-          .filter(r -> r.getRevisionType() == RevisionType.ADD && r.getRevisionCategory() == RevisionCategory.INGREDIENT)
+          .filter(
+              r -> r.getRevisionType() == RevisionType.ADD && r.getRevisionCategory() == RevisionCategory.INGREDIENT)
           .count();
 
       assertEquals(1, updateRevisions);
@@ -184,8 +198,7 @@ class RecipeServiceRevisionTest {
             RecipeStepDto.builder()
                 .stepNumber(2)
                 .instruction("Cook for 10 minutes") // New step
-                .build()
-        ))
+                .build()))
         .build();
 
     when(recipeRepository.findById(1L)).thenReturn(Optional.of(existingRecipe));
@@ -198,8 +211,7 @@ class RecipeServiceRevisionTest {
         RecipeStep.builder()
             .stepNumber(2)
             .instruction("Cook for 10 minutes")
-            .build()
-    ));
+            .build()));
 
     try (MockedStatic<SecurityUtils> mockedSecurityUtils = mockStatic(SecurityUtils.class)) {
       mockedSecurityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(currentUserId);
@@ -208,10 +220,10 @@ class RecipeServiceRevisionTest {
       ResponseEntity<?> response = recipeService.updateRecipe("1", request);
 
       // Assert
-      assertEquals(200, response.getStatusCodeValue());
+      assertEquals(HttpStatus.OK.value(), response.getStatusCode().value());
 
       // Verify revisions were saved
-      ArgumentCaptor<List<RecipeRevision>> revisionsCaptor = ArgumentCaptor.forClass(List.class);
+      ArgumentCaptor<List<RecipeRevision>> revisionsCaptor = ArgumentCaptor.captor();
       verify(recipeRevisionRepository).saveAll(revisionsCaptor.capture());
 
       List<RecipeRevision> savedRevisions = revisionsCaptor.getValue();
@@ -247,10 +259,10 @@ class RecipeServiceRevisionTest {
       ResponseEntity<?> response = recipeService.updateRecipe("1", request);
 
       // Assert
-      assertEquals(200, response.getStatusCodeValue());
+      assertEquals(HttpStatus.OK.value(), response.getStatusCode().value());
 
       // Verify revisions were saved
-      ArgumentCaptor<List<RecipeRevision>> revisionsCaptor = ArgumentCaptor.forClass(List.class);
+      ArgumentCaptor<List<RecipeRevision>> revisionsCaptor = ArgumentCaptor.captor();
       verify(recipeRevisionRepository).saveAll(revisionsCaptor.capture());
 
       List<RecipeRevision> savedRevisions = revisionsCaptor.getValue();
@@ -281,10 +293,10 @@ class RecipeServiceRevisionTest {
       ResponseEntity<?> response = recipeService.updateRecipe("1", request);
 
       // Assert
-      assertEquals(200, response.getStatusCodeValue());
+      assertEquals(HttpStatus.OK.value(), response.getStatusCode().value());
 
       // Verify revisions were saved
-      ArgumentCaptor<List<RecipeRevision>> revisionsCaptor = ArgumentCaptor.forClass(List.class);
+      ArgumentCaptor<List<RecipeRevision>> revisionsCaptor = ArgumentCaptor.captor();
       verify(recipeRevisionRepository).saveAll(revisionsCaptor.capture());
 
       List<RecipeRevision> savedRevisions = revisionsCaptor.getValue();
@@ -308,25 +320,23 @@ class RecipeServiceRevisionTest {
                 .quantity(new BigDecimal("1.0")) // Same quantity
                 .unit(IngredientUnit.TSP)
                 .isOptional(false)
-                .build()
-        ))
+                .build()))
         .steps(Arrays.asList(
             RecipeStepDto.builder()
                 .stepNumber(1)
                 .instruction("Mix ingredients") // Same instruction
-                .build()
-        ))
+                .build()))
         .build();
 
     when(recipeRepository.findById(1L)).thenReturn(Optional.of(existingRecipe));
-    when(ingredientRepository.findById(1L)).thenReturn(Optional.of(existingRecipe.getRecipeIngredients().get(0).getIngredient()));
+    when(ingredientRepository.findById(1L))
+        .thenReturn(Optional.of(existingRecipe.getRecipeIngredients().get(0).getIngredient()));
     when(recipeRepository.save(any(Recipe.class))).thenReturn(existingRecipe);
     when(recipeStepMapper.toEntityList(anyList())).thenReturn(Arrays.asList(
         RecipeStep.builder()
             .stepNumber(1)
             .instruction("Mix ingredients")
-            .build()
-    ));
+            .build()));
 
     try (MockedStatic<SecurityUtils> mockedSecurityUtils = mockStatic(SecurityUtils.class)) {
       mockedSecurityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(currentUserId);
@@ -335,7 +345,7 @@ class RecipeServiceRevisionTest {
       ResponseEntity<?> response = recipeService.updateRecipe("1", request);
 
       // Assert
-      assertEquals(200, response.getStatusCodeValue());
+      assertEquals(HttpStatus.OK.value(), response.getStatusCode().value());
 
       // Verify no revisions were saved since there were no changes
       verify(recipeRevisionRepository, never()).saveAll(anyList());
@@ -359,7 +369,7 @@ class RecipeServiceRevisionTest {
       ResponseEntity<?> response = recipeService.updateRecipe("1", request);
 
       // Assert
-      assertEquals(200, response.getStatusCodeValue());
+      assertEquals(HttpStatus.OK.value(), response.getStatusCode().value());
 
       // Verify no revisions were saved since ingredients and steps weren't changed
       verify(recipeRevisionRepository, never()).saveAll(anyList());

@@ -2,8 +2,6 @@ package com.recipe_manager.model.dto.request;
 
 import static org.assertj.core.api.Assertions.*;
 
-import java.util.ArrayList;
-import java.util.List;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -16,19 +14,16 @@ class CreateRecipeStepRequestTest {
   @DisplayName("Builder sets all fields")
   @Tag("standard-processing")
   void builderSetsAllFields() {
-    List<String> mediaUrls = new ArrayList<>();
     CreateRecipeStepRequest req = CreateRecipeStepRequest.builder()
         .stepNumber(1)
         .instruction("I")
         .optional(true)
         .timerSeconds(60)
-        .mediaUrls(mediaUrls)
         .build();
     assertThat(req.getStepNumber()).isEqualTo(1);
     assertThat(req.getInstruction()).isEqualTo("I");
     assertThat(req.getOptional()).isTrue();
     assertThat(req.getTimerSeconds()).isEqualTo(60);
-    assertThat(req.getMediaUrls()).isSameAs(mediaUrls);
   }
 
   @Test
@@ -38,9 +33,6 @@ class CreateRecipeStepRequestTest {
     CreateRecipeStepRequest req = new CreateRecipeStepRequest();
     req.setInstruction("I");
     assertThat(req.getInstruction()).isEqualTo("I");
-    List<String> list = new ArrayList<>();
-    req.setMediaUrls(list);
-    assertThat(req.getMediaUrls()).isSameAs(list);
   }
 
   @Test
@@ -63,7 +55,5 @@ class CreateRecipeStepRequestTest {
     assertThat(req.getInstruction()).isNull();
     assertThat(req.getOptional()).isNull();
     assertThat(req.getTimerSeconds()).isNull();
-    assertThat(req.getMediaUrls()).isNotNull();
-    assertThat(req.getMediaUrls()).isEmpty();
   }
 }

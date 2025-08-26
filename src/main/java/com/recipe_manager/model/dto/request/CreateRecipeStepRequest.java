@@ -1,12 +1,7 @@
 package com.recipe_manager.model.dto.request;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Builder.Default;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -35,7 +30,4 @@ public final class CreateRecipeStepRequest {
 
   /** Timer in seconds for this step. */
   private Integer timerSeconds;
-
-  /** The list of media URLs for this step. */
-  @Valid @Default private List<String> mediaUrls = new ArrayList<>();
 }

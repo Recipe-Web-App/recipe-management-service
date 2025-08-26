@@ -43,7 +43,6 @@ import com.recipe_manager.model.dto.response.StepRevisionsResponse;
 import com.recipe_manager.model.dto.response.TagResponse;
 import com.recipe_manager.model.dto.review.ReviewDto;
 import com.recipe_manager.service.IngredientService;
-import com.recipe_manager.service.MediaService;
 import com.recipe_manager.service.RecipeService;
 import com.recipe_manager.service.ReviewService;
 import com.recipe_manager.service.StepService;
@@ -77,9 +76,6 @@ public class RecipeManagementController {
   /** Service for tag-related operations. */
   private final TagService tagService;
 
-  /** Service for media-related operations. */
-  private final MediaService mediaService;
-
   /** Service for review-related operations. */
   private final ReviewService reviewService;
 
@@ -90,7 +86,6 @@ public class RecipeManagementController {
    * @param ingredientService the ingredient service
    * @param stepService the step service
    * @param tagService the tag service
-   * @param mediaService the media service
    * @param reviewService the review service
    */
   @SuppressFBWarnings(
@@ -101,13 +96,11 @@ public class RecipeManagementController {
       final IngredientService ingredientService,
       final StepService stepService,
       final TagService tagService,
-      final MediaService mediaService,
       final ReviewService reviewService) {
     this.recipeService = recipeService;
     this.ingredientService = ingredientService;
     this.stepService = stepService;
     this.tagService = tagService;
-    this.mediaService = mediaService;
     this.reviewService = reviewService;
   }
 
@@ -283,117 +276,6 @@ public class RecipeManagementController {
   public ResponseEntity<TagResponse> getTags(@PathVariable final Long recipeId) {
     TagResponse response = tagService.getTags(recipeId);
     return ResponseEntity.ok(response);
-  }
-
-  /**
-   * Add media reference to a recipe.
-   *
-   * @param recipeId the recipe ID
-   * @return placeholder response
-   */
-  @PostMapping("/{recipeId}/media")
-  public ResponseEntity<String> addMediaToRecipe(@PathVariable final String recipeId) {
-    return mediaService.addMediaToRecipe(recipeId);
-  }
-
-  /**
-   * Update media reference on a recipe.
-   *
-   * @param recipeId the recipe ID
-   * @return placeholder response
-   */
-  @PutMapping("/{recipeId}/media")
-  public ResponseEntity<String> updateMediaOnRecipe(@PathVariable final String recipeId) {
-    return mediaService.updateMediaOnRecipe(recipeId);
-  }
-
-  /**
-   * Delete media reference from a recipe.
-   *
-   * @param recipeId the recipe ID
-   * @return placeholder response
-   */
-  @DeleteMapping("/{recipeId}/media")
-  public ResponseEntity<String> deleteMediaFromRecipe(@PathVariable final String recipeId) {
-    return mediaService.deleteMediaFromRecipe(recipeId);
-  }
-
-  /**
-   * Add media reference to an ingredient.
-   *
-   * @param recipeId the recipe ID
-   * @param ingredientId the ingredient ID
-   * @return placeholder response
-   */
-  @PostMapping("/{recipeId}/ingredients/{ingredientId}/media")
-  public ResponseEntity<String> addMediaToIngredient(
-      @PathVariable final String recipeId, @PathVariable final String ingredientId) {
-    return mediaService.addMediaToIngredient(recipeId, ingredientId);
-  }
-
-  /**
-   * Update media reference on an ingredient.
-   *
-   * @param recipeId the recipe ID
-   * @param ingredientId the ingredient ID
-   * @return placeholder response
-   */
-  @PutMapping("/{recipeId}/ingredients/{ingredientId}/media")
-  public ResponseEntity<String> updateMediaOnIngredient(
-      @PathVariable final String recipeId, @PathVariable final String ingredientId) {
-    return mediaService.updateMediaOnIngredient(recipeId, ingredientId);
-  }
-
-  /**
-   * Delete media reference from an ingredient.
-   *
-   * @param recipeId the recipe ID
-   * @param ingredientId the ingredient ID
-   * @return placeholder response
-   */
-  @DeleteMapping("/{recipeId}/ingredients/{ingredientId}/media")
-  public ResponseEntity<String> deleteMediaFromIngredient(
-      @PathVariable final String recipeId, @PathVariable final String ingredientId) {
-    return mediaService.deleteMediaFromIngredient(recipeId, ingredientId);
-  }
-
-  /**
-   * Add media reference to a step.
-   *
-   * @param recipeId the recipe ID
-   * @param stepId the step ID
-   * @return placeholder response
-   */
-  @PostMapping("/{recipeId}/steps/{stepId}/media")
-  public ResponseEntity<String> addMediaToStep(
-      @PathVariable final String recipeId, @PathVariable final String stepId) {
-    return mediaService.addMediaToStep(recipeId, stepId);
-  }
-
-  /**
-   * Update media reference on a step.
-   *
-   * @param recipeId the recipe ID
-   * @param stepId the step ID
-   * @return placeholder response
-   */
-  @PutMapping("/{recipeId}/steps/{stepId}/media")
-  public ResponseEntity<String> updateMediaOnStep(
-      @PathVariable final String recipeId, @PathVariable final String stepId) {
-    return mediaService.updateMediaOnStep(recipeId, stepId);
-  }
-
-  /**
-   * Delete media reference from a step.
-   *
-   * @param recipeId the recipe ID
-   * @param stepId the step ID
-   * @return placeholder response
-   */
-  @DeleteMapping("/{recipeId}/steps/{stepId}/media")
-  public ResponseEntity<String> deleteMediaFromStep(
-      @PathVariable final String recipeId, @PathVariable final String stepId) {
-    return mediaService.deleteMediaFromStep(recipeId, stepId);
   }
 
   /**

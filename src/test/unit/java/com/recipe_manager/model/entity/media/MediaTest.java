@@ -1,4 +1,4 @@
-package com.recipe_manager.unit_tests.model.entity.media;
+package com.recipe_manager.model.entity.media;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -8,12 +8,11 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-import org.junit.jupiter.api.Tag;
-import org.junit.jupiter.api.Test;
-
-import com.recipe_manager.model.entity.media.Media;
 import com.recipe_manager.model.enums.MediaType;
 import com.recipe_manager.model.enums.ProcessingStatus;
+
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit tests for Media entity.
@@ -59,7 +58,7 @@ class MediaTest {
         .userId(userId)
         .mediaType(MediaType.IMAGE_PNG)
         .mediaPath("/path/to/image.png")
-        .processingStatus(ProcessingStatus.PENDING)
+        .processingStatus(ProcessingStatus.INITIATED)
         .build();
 
     assertNull(media.getMediaId());
@@ -69,7 +68,7 @@ class MediaTest {
     assertNull(media.getFileSize());
     assertNull(media.getContentHash());
     assertNull(media.getOriginalFilename());
-    assertEquals(ProcessingStatus.PENDING, media.getProcessingStatus());
+    assertEquals(ProcessingStatus.INITIATED, media.getProcessingStatus());
     assertNull(media.getCreatedAt());
     assertNull(media.getUpdatedAt());
   }
@@ -105,8 +104,7 @@ class MediaTest {
         "video.mp4",
         ProcessingStatus.PROCESSING,
         now,
-        now
-    );
+        now);
 
     assertEquals(1L, media.getMediaId());
     assertEquals(userId, media.getUserId());

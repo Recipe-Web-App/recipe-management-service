@@ -1,4 +1,4 @@
-package com.recipe_manager.unit_tests.repository.media;
+package com.recipe_manager.repository.media;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -9,17 +9,16 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Tag;
-import org.junit.jupiter.api.Test;
-
 import com.recipe_manager.model.entity.ingredient.Ingredient;
 import com.recipe_manager.model.entity.media.IngredientMedia;
 import com.recipe_manager.model.entity.media.IngredientMediaId;
 import com.recipe_manager.model.entity.media.Media;
 import com.recipe_manager.model.entity.recipe.Recipe;
-import com.recipe_manager.repository.media.IngredientMediaRepository;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit tests for IngredientMediaRepository.
@@ -47,8 +46,7 @@ class IngredientMediaRepositoryTest {
     List<IngredientMedia> expectedMedia = Arrays.asList(
         createTestIngredientMedia(recipeId, 10L, 100L),
         createTestIngredientMedia(recipeId, 20L, 200L),
-        createTestIngredientMedia(recipeId, 30L, 300L)
-    );
+        createTestIngredientMedia(recipeId, 30L, 300L));
     when(ingredientMediaRepository.findByIdRecipeId(recipeId)).thenReturn(expectedMedia);
 
     // When
@@ -81,8 +79,7 @@ class IngredientMediaRepositoryTest {
     Long ingredientId = 10L;
     List<IngredientMedia> expectedMedia = Arrays.asList(
         createTestIngredientMedia(1L, ingredientId, 100L),
-        createTestIngredientMedia(2L, ingredientId, 200L)
-    );
+        createTestIngredientMedia(2L, ingredientId, 200L));
     when(ingredientMediaRepository.findByIdIngredientId(ingredientId)).thenReturn(expectedMedia);
 
     // When
@@ -102,8 +99,7 @@ class IngredientMediaRepositoryTest {
     List<IngredientMedia> expectedMedia = Arrays.asList(
         createTestIngredientMedia(1L, 10L, mediaId),
         createTestIngredientMedia(1L, 20L, mediaId),
-        createTestIngredientMedia(2L, 10L, mediaId)
-    );
+        createTestIngredientMedia(2L, 10L, mediaId));
     when(ingredientMediaRepository.findByIdMediaId(mediaId)).thenReturn(expectedMedia);
 
     // When
@@ -123,8 +119,7 @@ class IngredientMediaRepositoryTest {
     Long ingredientId = 10L;
     List<IngredientMedia> expectedMedia = Arrays.asList(
         createTestIngredientMedia(recipeId, ingredientId, 100L),
-        createTestIngredientMedia(recipeId, ingredientId, 200L)
-    );
+        createTestIngredientMedia(recipeId, ingredientId, 200L));
     when(ingredientMediaRepository.findByIdRecipeIdAndIdIngredientId(recipeId, ingredientId))
         .thenReturn(expectedMedia);
 
@@ -135,8 +130,7 @@ class IngredientMediaRepositoryTest {
     // Then
     assertThat(result).hasSize(2);
     assertThat(result).containsExactlyElementsOf(expectedMedia);
-    assertThat(result).allMatch(im ->
-        im.getId().getRecipeId().equals(recipeId) &&
+    assertThat(result).allMatch(im -> im.getId().getRecipeId().equals(recipeId) &&
         im.getId().getIngredientId().equals(ingredientId));
   }
 
@@ -148,8 +142,7 @@ class IngredientMediaRepositoryTest {
     List<IngredientMedia> expectedMedia = Arrays.asList(
         createTestIngredientMedia(1L, 10L, 100L),
         createTestIngredientMedia(2L, 20L, 200L),
-        createTestIngredientMedia(3L, 30L, 300L)
-    );
+        createTestIngredientMedia(3L, 30L, 300L));
     when(ingredientMediaRepository.findByIdRecipeIdIn(recipeIds)).thenReturn(expectedMedia);
 
     // When
@@ -326,7 +319,7 @@ class IngredientMediaRepositoryTest {
         createTestIngredientMedia(recipeId, 10L, 100L), // Recipe 1, Ingredient 10, Media 100
         createTestIngredientMedia(recipeId, 10L, 200L), // Recipe 1, Ingredient 10, Media 200
         createTestIngredientMedia(recipeId, 20L, 100L), // Recipe 1, Ingredient 20, Media 100
-        createTestIngredientMedia(recipeId, 30L, 300L)  // Recipe 1, Ingredient 30, Media 300
+        createTestIngredientMedia(recipeId, 30L, 300L) // Recipe 1, Ingredient 30, Media 300
     );
 
     when(ingredientMediaRepository.findByIdRecipeId(recipeId)).thenReturn(complexAssociations);

@@ -1,4 +1,4 @@
-package com.recipe_manager.unit_tests.exception;
+package com.recipe_manager.exception;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -6,8 +6,6 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-
-import com.recipe_manager.exception.RevisionSerializationException;
 
 /**
  * Unit tests for RevisionSerializationException class.

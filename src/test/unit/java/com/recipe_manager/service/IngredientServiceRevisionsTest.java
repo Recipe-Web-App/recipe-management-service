@@ -1,4 +1,4 @@
-package com.recipe_manager.unit_tests.service;
+package com.recipe_manager.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -9,16 +9,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Tag;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.MockedStatic;
-import org.mockito.Mockito;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.access.AccessDeniedException;
 
 import com.recipe_manager.exception.ResourceNotFoundException;
 import com.recipe_manager.model.dto.recipe.RecipeRevisionDto;
@@ -37,9 +27,18 @@ import com.recipe_manager.repository.ingredient.IngredientRepository;
 import com.recipe_manager.repository.recipe.RecipeIngredientRepository;
 import com.recipe_manager.repository.recipe.RecipeRepository;
 import com.recipe_manager.repository.recipe.RecipeRevisionRepository;
-import com.recipe_manager.service.IngredientService;
 import com.recipe_manager.service.external.RecipeScraperService;
 import com.recipe_manager.util.SecurityUtils;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.access.AccessDeniedException;
 
 /**
  * Unit tests for IngredientService revision-related methods.
@@ -99,8 +98,7 @@ class IngredientServiceRevisionsTest {
         ingredientCommentMapper,
         recipeRevisionMapper,
         shoppingListMapper,
-        recipeScraperService
-    );
+        recipeScraperService);
 
     currentUserId = UUID.randomUUID();
     testRecipe = Recipe.builder()
@@ -124,13 +122,11 @@ class IngredientServiceRevisionsTest {
 
     testRevisions = Arrays.asList(
         RecipeRevision.builder().revisionId(1L).recipe(testRecipe).build(),
-        RecipeRevision.builder().revisionId(2L).recipe(testRecipe).build()
-    );
+        RecipeRevision.builder().revisionId(2L).recipe(testRecipe).build());
 
     testRevisionDtos = Arrays.asList(
         RecipeRevisionDto.builder().revisionId(1L).recipeId(1L).build(),
-        RecipeRevisionDto.builder().revisionId(2L).recipeId(1L).build()
-    );
+        RecipeRevisionDto.builder().revisionId(2L).recipeId(1L).build());
   }
 
   @Test
@@ -171,8 +167,7 @@ class IngredientServiceRevisionsTest {
     // Act & Assert
     ResourceNotFoundException exception = assertThrows(
         ResourceNotFoundException.class,
-        () -> ingredientService.getIngredientRevisions(recipeId, ingredientId)
-    );
+        () -> ingredientService.getIngredientRevisions(recipeId, ingredientId));
 
     assertEquals("Recipe not found with id: " + recipeId, exception.getMessage());
   }
@@ -197,8 +192,7 @@ class IngredientServiceRevisionsTest {
       // Act & Assert
       AccessDeniedException exception = assertThrows(
           AccessDeniedException.class,
-          () -> ingredientService.getIngredientRevisions(recipeId, ingredientId)
-      );
+          () -> ingredientService.getIngredientRevisions(recipeId, ingredientId));
 
       assertEquals("You don't have permission to view revisions for this recipe", exception.getMessage());
     }
@@ -220,10 +214,10 @@ class IngredientServiceRevisionsTest {
       // Act & Assert
       ResourceNotFoundException exception = assertThrows(
           ResourceNotFoundException.class,
-          () -> ingredientService.getIngredientRevisions(recipeId, ingredientId)
-      );
+          () -> ingredientService.getIngredientRevisions(recipeId, ingredientId));
 
-      assertEquals("Recipe ingredient not found for recipe " + recipeId + " and ingredient " + ingredientId, exception.getMessage());
+      assertEquals("Recipe ingredient not found for recipe " + recipeId + " and ingredient " + ingredientId,
+          exception.getMessage());
     }
   }
 

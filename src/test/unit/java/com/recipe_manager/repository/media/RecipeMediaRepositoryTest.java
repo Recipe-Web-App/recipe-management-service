@@ -1,4 +1,4 @@
-package com.recipe_manager.unit_tests.repository.media;
+package com.recipe_manager.repository.media;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -9,15 +9,14 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import com.recipe_manager.model.entity.media.Media;
+import com.recipe_manager.model.entity.media.RecipeMedia;
+import com.recipe_manager.model.entity.recipe.Recipe;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-
-import com.recipe_manager.model.entity.media.Media;
-import com.recipe_manager.model.entity.media.RecipeMedia;
-import com.recipe_manager.model.entity.recipe.Recipe;
-import com.recipe_manager.repository.media.RecipeMediaRepository;
 
 /**
  * Unit tests for RecipeMediaRepository.
@@ -45,8 +44,7 @@ class RecipeMediaRepositoryTest {
     List<RecipeMedia> expectedRecipeMedia = Arrays.asList(
         createTestRecipeMedia(1L, recipeId),
         createTestRecipeMedia(2L, recipeId),
-        createTestRecipeMedia(3L, recipeId)
-    );
+        createTestRecipeMedia(3L, recipeId));
     when(recipeMediaRepository.findByRecipeId(recipeId)).thenReturn(expectedRecipeMedia);
 
     // When
@@ -79,8 +77,7 @@ class RecipeMediaRepositoryTest {
     Long mediaId = 10L;
     List<RecipeMedia> expectedRecipeMedia = Arrays.asList(
         createTestRecipeMedia(mediaId, 1L),
-        createTestRecipeMedia(mediaId, 2L)
-    );
+        createTestRecipeMedia(mediaId, 2L));
     when(recipeMediaRepository.findByMediaId(mediaId)).thenReturn(expectedRecipeMedia);
 
     // When
@@ -225,8 +222,7 @@ class RecipeMediaRepositoryTest {
         createTestRecipeMedia(10L, recipeId),
         createTestRecipeMedia(20L, recipeId),
         createTestRecipeMedia(30L, recipeId),
-        createTestRecipeMedia(40L, recipeId)
-    );
+        createTestRecipeMedia(40L, recipeId));
     when(recipeMediaRepository.findByRecipeId(recipeId)).thenReturn(multipleMedia);
     when(recipeMediaRepository.countByRecipeId(recipeId)).thenReturn(4L);
 
@@ -252,8 +248,7 @@ class RecipeMediaRepositoryTest {
     List<RecipeMedia> recipesUsingMedia = Arrays.asList(
         createTestRecipeMedia(sharedMediaId, 1L),
         createTestRecipeMedia(sharedMediaId, 2L),
-        createTestRecipeMedia(sharedMediaId, 3L)
-    );
+        createTestRecipeMedia(sharedMediaId, 3L));
     when(recipeMediaRepository.findByMediaId(sharedMediaId)).thenReturn(recipesUsingMedia);
     when(recipeMediaRepository.countByMediaId(sharedMediaId)).thenReturn(3L);
 

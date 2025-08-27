@@ -1,4 +1,4 @@
-package com.recipe_manager.unit_tests.service;
+package com.recipe_manager.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -8,16 +8,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Tag;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.MockedStatic;
-import org.mockito.Mockito;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.access.AccessDeniedException;
 
 import com.recipe_manager.exception.ResourceNotFoundException;
 import com.recipe_manager.model.dto.recipe.RecipeRevisionDto;
@@ -32,8 +22,17 @@ import com.recipe_manager.repository.recipe.RecipeRepository;
 import com.recipe_manager.repository.recipe.RecipeRevisionRepository;
 import com.recipe_manager.repository.recipe.RecipeStepRepository;
 import com.recipe_manager.repository.recipe.StepCommentRepository;
-import com.recipe_manager.service.StepService;
 import com.recipe_manager.util.SecurityUtils;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.access.AccessDeniedException;
 
 /**
  * Unit tests for StepService revision-related methods.
@@ -80,8 +79,7 @@ class StepServiceRevisionsTest {
         recipeRevisionRepository,
         recipeStepMapper,
         stepCommentMapper,
-        recipeRevisionMapper
-    );
+        recipeRevisionMapper);
 
     currentUserId = UUID.randomUUID();
     testRecipe = Recipe.builder()
@@ -99,13 +97,11 @@ class StepServiceRevisionsTest {
 
     testRevisions = Arrays.asList(
         RecipeRevision.builder().revisionId(1L).recipe(testRecipe).build(),
-        RecipeRevision.builder().revisionId(2L).recipe(testRecipe).build()
-    );
+        RecipeRevision.builder().revisionId(2L).recipe(testRecipe).build());
 
     testRevisionDtos = Arrays.asList(
         RecipeRevisionDto.builder().revisionId(1L).recipeId(1L).build(),
-        RecipeRevisionDto.builder().revisionId(2L).recipeId(1L).build()
-    );
+        RecipeRevisionDto.builder().revisionId(2L).recipeId(1L).build());
   }
 
   @Test
@@ -147,8 +143,7 @@ class StepServiceRevisionsTest {
     // Act & Assert
     ResourceNotFoundException exception = assertThrows(
         ResourceNotFoundException.class,
-        () -> stepService.getStepRevisions(recipeId, stepId)
-    );
+        () -> stepService.getStepRevisions(recipeId, stepId));
 
     assertEquals("Recipe not found with id: " + recipeId, exception.getMessage());
   }
@@ -173,8 +168,7 @@ class StepServiceRevisionsTest {
       // Act & Assert
       AccessDeniedException exception = assertThrows(
           AccessDeniedException.class,
-          () -> stepService.getStepRevisions(recipeId, stepId)
-      );
+          () -> stepService.getStepRevisions(recipeId, stepId));
 
       assertEquals("You don't have permission to view revisions for this recipe", exception.getMessage());
     }
@@ -197,8 +191,7 @@ class StepServiceRevisionsTest {
       // Act & Assert
       ResourceNotFoundException exception = assertThrows(
           ResourceNotFoundException.class,
-          () -> stepService.getStepRevisions(recipeId, stepId)
-      );
+          () -> stepService.getStepRevisions(recipeId, stepId));
 
       assertEquals("Step not found with ID: " + stepId + " for recipe: " + recipeId, exception.getMessage());
     }

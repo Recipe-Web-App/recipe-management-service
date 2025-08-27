@@ -1,12 +1,10 @@
-package com.recipe_manager.unit_tests.model.enums;
+package com.recipe_manager.model.enums;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-
-import com.recipe_manager.model.enums.MediaType;
 
 /**
  * Unit tests for MediaType enum.

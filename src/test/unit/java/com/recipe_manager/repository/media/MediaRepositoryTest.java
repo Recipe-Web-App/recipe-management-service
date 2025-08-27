@@ -1,4 +1,4 @@
-package com.recipe_manager.unit_tests.repository.media;
+package com.recipe_manager.repository.media;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -10,15 +10,14 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
+import com.recipe_manager.model.entity.media.Media;
+import com.recipe_manager.model.enums.MediaType;
+import com.recipe_manager.model.enums.ProcessingStatus;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-
-import com.recipe_manager.model.entity.media.Media;
-import com.recipe_manager.model.enums.MediaType;
-import com.recipe_manager.model.enums.ProcessingStatus;
-import com.recipe_manager.repository.media.MediaRepository;
 
 /**
  * Unit tests for MediaRepository.
@@ -48,8 +47,7 @@ class MediaRepositoryTest {
     // Given
     List<Media> expectedMedia = Arrays.asList(
         createTestMedia(1L, testUserId, MediaType.IMAGE_JPEG, ProcessingStatus.COMPLETE),
-        createTestMedia(2L, testUserId, MediaType.VIDEO_MP4, ProcessingStatus.PROCESSING)
-    );
+        createTestMedia(2L, testUserId, MediaType.VIDEO_MP4, ProcessingStatus.PROCESSING));
     when(mediaRepository.findByUserId(testUserId)).thenReturn(expectedMedia);
 
     // When
@@ -81,8 +79,7 @@ class MediaRepositoryTest {
     // Given
     List<Media> expectedMedia = Arrays.asList(
         createTestMedia(1L, testUserId, MediaType.IMAGE_JPEG, ProcessingStatus.COMPLETE),
-        createTestMedia(2L, UUID.randomUUID(), MediaType.IMAGE_JPEG, ProcessingStatus.FAILED)
-    );
+        createTestMedia(2L, UUID.randomUUID(), MediaType.IMAGE_JPEG, ProcessingStatus.FAILED));
     when(mediaRepository.findByMediaType(MediaType.IMAGE_JPEG)).thenReturn(expectedMedia);
 
     // When
@@ -99,18 +96,17 @@ class MediaRepositoryTest {
   void shouldFindMediaByProcessingStatus() {
     // Given
     List<Media> expectedMedia = Arrays.asList(
-        createTestMedia(1L, testUserId, MediaType.IMAGE_JPEG, ProcessingStatus.PENDING),
-        createTestMedia(2L, UUID.randomUUID(), MediaType.VIDEO_MP4, ProcessingStatus.PENDING)
-    );
-    when(mediaRepository.findByProcessingStatus(ProcessingStatus.PENDING)).thenReturn(expectedMedia);
+        createTestMedia(1L, testUserId, MediaType.IMAGE_JPEG, ProcessingStatus.INITIATED),
+        createTestMedia(2L, UUID.randomUUID(), MediaType.VIDEO_MP4, ProcessingStatus.INITIATED));
+    when(mediaRepository.findByProcessingStatus(ProcessingStatus.INITIATED)).thenReturn(expectedMedia);
 
     // When
-    List<Media> result = mediaRepository.findByProcessingStatus(ProcessingStatus.PENDING);
+    List<Media> result = mediaRepository.findByProcessingStatus(ProcessingStatus.INITIATED);
 
     // Then
     assertThat(result).hasSize(2);
     assertThat(result).containsExactlyElementsOf(expectedMedia);
-    assertThat(result).allMatch(media -> media.getProcessingStatus() == ProcessingStatus.PENDING);
+    assertThat(result).allMatch(media -> media.getProcessingStatus() == ProcessingStatus.INITIATED);
   }
 
   @Test
@@ -119,8 +115,7 @@ class MediaRepositoryTest {
     // Given
     List<Media> expectedMedia = Arrays.asList(
         createTestMedia(1L, testUserId, MediaType.VIDEO_MP4, ProcessingStatus.COMPLETE),
-        createTestMedia(2L, testUserId, MediaType.VIDEO_MP4, ProcessingStatus.PROCESSING)
-    );
+        createTestMedia(2L, testUserId, MediaType.VIDEO_MP4, ProcessingStatus.PROCESSING));
     when(mediaRepository.findByUserIdAndMediaType(testUserId, MediaType.VIDEO_MP4))
         .thenReturn(expectedMedia);
 
@@ -130,8 +125,8 @@ class MediaRepositoryTest {
     // Then
     assertThat(result).hasSize(2);
     assertThat(result).containsExactlyElementsOf(expectedMedia);
-    assertThat(result).allMatch(media ->
-        media.getUserId().equals(testUserId) && media.getMediaType() == MediaType.VIDEO_MP4);
+    assertThat(result)
+        .allMatch(media -> media.getUserId().equals(testUserId) && media.getMediaType() == MediaType.VIDEO_MP4);
   }
 
   @Test
@@ -140,8 +135,7 @@ class MediaRepositoryTest {
     // Given
     List<Media> expectedMedia = Arrays.asList(
         createTestMedia(1L, testUserId, MediaType.IMAGE_PNG, ProcessingStatus.FAILED),
-        createTestMedia(2L, testUserId, MediaType.VIDEO_WEBM, ProcessingStatus.FAILED)
-    );
+        createTestMedia(2L, testUserId, MediaType.VIDEO_WEBM, ProcessingStatus.FAILED));
     when(mediaRepository.findByUserIdAndProcessingStatus(testUserId, ProcessingStatus.FAILED))
         .thenReturn(expectedMedia);
 
@@ -151,8 +145,8 @@ class MediaRepositoryTest {
     // Then
     assertThat(result).hasSize(2);
     assertThat(result).containsExactlyElementsOf(expectedMedia);
-    assertThat(result).allMatch(media ->
-        media.getUserId().equals(testUserId) && media.getProcessingStatus() == ProcessingStatus.FAILED);
+    assertThat(result).allMatch(
+        media -> media.getUserId().equals(testUserId) && media.getProcessingStatus() == ProcessingStatus.FAILED);
   }
 
   @Test
@@ -213,11 +207,9 @@ class MediaRepositoryTest {
     // Given
     List<Media> imageMedia = Arrays.asList(
         createTestMedia(1L, testUserId, MediaType.IMAGE_JPEG, ProcessingStatus.COMPLETE),
-        createTestMedia(2L, testUserId, MediaType.IMAGE_PNG, ProcessingStatus.COMPLETE)
-    );
+        createTestMedia(2L, testUserId, MediaType.IMAGE_PNG, ProcessingStatus.COMPLETE));
     List<Media> videoMedia = Arrays.asList(
-        createTestMedia(3L, testUserId, MediaType.VIDEO_MP4, ProcessingStatus.COMPLETE)
-    );
+        createTestMedia(3L, testUserId, MediaType.VIDEO_MP4, ProcessingStatus.COMPLETE));
 
     when(mediaRepository.findByUserIdAndMediaType(testUserId, MediaType.IMAGE_JPEG))
         .thenReturn(Arrays.asList(imageMedia.get(0)));
@@ -240,14 +232,18 @@ class MediaRepositoryTest {
   @DisplayName("Should handle all processing statuses")
   void shouldHandleAllProcessingStatuses() {
     // Given
-    when(mediaRepository.findByProcessingStatus(ProcessingStatus.PENDING))
-        .thenReturn(Arrays.asList(createTestMedia(1L, testUserId, MediaType.IMAGE_JPEG, ProcessingStatus.PENDING)));
+    when(mediaRepository.findByProcessingStatus(ProcessingStatus.INITIATED))
+        .thenReturn(Arrays.asList(createTestMedia(1L, testUserId, MediaType.IMAGE_JPEG, ProcessingStatus.INITIATED)));
+    when(mediaRepository.findByProcessingStatus(ProcessingStatus.UPLOADING)).thenReturn(
+        Arrays.asList(createTestMedia(1L, testUserId, MediaType.IMAGE_JPEG, ProcessingStatus.UPLOADING)));
     when(mediaRepository.findByProcessingStatus(ProcessingStatus.PROCESSING))
         .thenReturn(Arrays.asList(createTestMedia(2L, testUserId, MediaType.IMAGE_JPEG, ProcessingStatus.PROCESSING)));
     when(mediaRepository.findByProcessingStatus(ProcessingStatus.COMPLETE))
         .thenReturn(Arrays.asList(createTestMedia(3L, testUserId, MediaType.IMAGE_JPEG, ProcessingStatus.COMPLETE)));
     when(mediaRepository.findByProcessingStatus(ProcessingStatus.FAILED))
         .thenReturn(Arrays.asList(createTestMedia(4L, testUserId, MediaType.IMAGE_JPEG, ProcessingStatus.FAILED)));
+    when(mediaRepository.findByProcessingStatus(ProcessingStatus.EXPIRED))
+        .thenReturn(Arrays.asList(createTestMedia(5L, testUserId, MediaType.IMAGE_JPEG, ProcessingStatus.EXPIRED)));
 
     // When & Then
     for (ProcessingStatus status : ProcessingStatus.values()) {
@@ -274,11 +270,16 @@ class MediaRepositoryTest {
 
   private String getFileExtension(MediaType mediaType) {
     switch (mediaType) {
-      case IMAGE_JPEG: return ".jpg";
-      case IMAGE_PNG: return ".png";
-      case VIDEO_MP4: return ".mp4";
-      case VIDEO_WEBM: return ".webm";
-      default: return ".bin";
+      case IMAGE_JPEG:
+        return ".jpg";
+      case IMAGE_PNG:
+        return ".png";
+      case VIDEO_MP4:
+        return ".mp4";
+      case VIDEO_WEBM:
+        return ".webm";
+      default:
+        return ".bin";
     }
   }
 }

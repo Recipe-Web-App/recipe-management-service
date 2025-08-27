@@ -1,18 +1,15 @@
-package com.recipe_manager.unit_tests.model.entity.media;
+package com.recipe_manager.model.entity.media;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
-import org.junit.jupiter.api.Tag;
-import org.junit.jupiter.api.Test;
-
-import com.recipe_manager.model.entity.media.Media;
-import com.recipe_manager.model.entity.media.StepMedia;
-import com.recipe_manager.model.entity.media.StepMediaId;
 import com.recipe_manager.model.entity.recipe.Recipe;
 import com.recipe_manager.model.entity.recipe.RecipeStep;
+
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit tests for StepMedia entity.

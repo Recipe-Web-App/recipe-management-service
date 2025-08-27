@@ -1,4 +1,4 @@
-package com.recipe_manager.unit_tests.repository.media;
+package com.recipe_manager.repository.media;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -9,17 +9,16 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Tag;
-import org.junit.jupiter.api.Test;
-
 import com.recipe_manager.model.entity.media.Media;
 import com.recipe_manager.model.entity.media.StepMedia;
 import com.recipe_manager.model.entity.media.StepMediaId;
 import com.recipe_manager.model.entity.recipe.Recipe;
 import com.recipe_manager.model.entity.recipe.RecipeStep;
-import com.recipe_manager.repository.media.StepMediaRepository;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit tests for StepMediaRepository.
@@ -46,8 +45,7 @@ class StepMediaRepositoryTest {
     Long stepId = 10L;
     List<StepMedia> expectedStepMedia = Arrays.asList(
         createTestStepMedia(1L, stepId, 100L),
-        createTestStepMedia(1L, stepId, 200L)
-    );
+        createTestStepMedia(1L, stepId, 200L));
     when(stepMediaRepository.findByIdStepId(stepId)).thenReturn(expectedStepMedia);
 
     // When
@@ -81,8 +79,7 @@ class StepMediaRepositoryTest {
     List<StepMedia> expectedStepMedia = Arrays.asList(
         createTestStepMedia(1L, 10L, mediaId),
         createTestStepMedia(1L, 20L, mediaId),
-        createTestStepMedia(2L, 30L, mediaId)
-    );
+        createTestStepMedia(2L, 30L, mediaId));
     when(stepMediaRepository.findByIdMediaId(mediaId)).thenReturn(expectedStepMedia);
 
     // When
@@ -102,8 +99,7 @@ class StepMediaRepositoryTest {
     List<StepMedia> expectedStepMedia = Arrays.asList(
         createTestStepMedia(recipeId, 10L, 100L),
         createTestStepMedia(recipeId, 20L, 200L),
-        createTestStepMedia(recipeId, 30L, 300L)
-    );
+        createTestStepMedia(recipeId, 30L, 300L));
     when(stepMediaRepository.findByRecipeRecipeId(recipeId)).thenReturn(expectedStepMedia);
 
     // When
@@ -123,8 +119,7 @@ class StepMediaRepositoryTest {
     List<StepMedia> expectedStepMedia = Arrays.asList(
         createTestStepMedia(1L, 10L, 100L),
         createTestStepMedia(1L, 20L, 200L),
-        createTestStepMedia(2L, 30L, 300L)
-    );
+        createTestStepMedia(2L, 30L, 300L));
     when(stepMediaRepository.findByIdStepIdIn(stepIds)).thenReturn(expectedStepMedia);
 
     // When
@@ -145,8 +140,7 @@ class StepMediaRepositoryTest {
     List<StepMedia> expectedStepMedia = Arrays.asList(
         createTestStepMedia(1L, 10L, 100L),
         createTestStepMedia(2L, 20L, 200L),
-        createTestStepMedia(3L, 30L, 300L)
-    );
+        createTestStepMedia(3L, 30L, 300L));
     when(stepMediaRepository.findByRecipeRecipeIdIn(recipeIds)).thenReturn(expectedStepMedia);
 
     // When
@@ -328,7 +322,7 @@ class StepMediaRepositoryTest {
         createTestStepMedia(recipeId, 10L, 200L), // Step 10, Media 200 (multiple media per step)
         createTestStepMedia(recipeId, 20L, 100L), // Step 20, Media 100 (shared media)
         createTestStepMedia(recipeId, 30L, 300L), // Step 30, Media 300
-        createTestStepMedia(recipeId, 30L, 400L)  // Step 30, Media 400
+        createTestStepMedia(recipeId, 30L, 400L) // Step 30, Media 400
     );
 
     when(stepMediaRepository.findByRecipeRecipeId(recipeId)).thenReturn(complexStepMedia);

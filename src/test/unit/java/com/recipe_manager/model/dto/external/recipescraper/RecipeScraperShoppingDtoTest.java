@@ -1,4 +1,4 @@
-package com.recipe_manager.model.dto.external;
+package com.recipe_manager.model.dto.external.recipescraper;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -7,8 +7,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.recipe_manager.model.dto.external.recipescraper.IngredientShoppingInfoDto;
-import com.recipe_manager.model.dto.external.recipescraper.RecipeScraperShoppingDto;
 import com.recipe_manager.model.dto.ingredient.QuantityDto;
 import com.recipe_manager.model.enums.IngredientUnit;
 

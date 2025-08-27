@@ -1,4 +1,4 @@
-package com.recipe_manager.unit_tests.model.converter;
+package com.recipe_manager.model.converter;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -9,12 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Tag;
-import org.junit.jupiter.api.Test;
-
 import com.recipe_manager.exception.RevisionSerializationException;
-import com.recipe_manager.model.converter.RevisionDataConverter;
 import com.recipe_manager.model.dto.revision.AbstractRevision;
 import com.recipe_manager.model.dto.revision.IngredientAddRevision;
 import com.recipe_manager.model.dto.revision.IngredientDeleteRevision;
@@ -25,6 +20,10 @@ import com.recipe_manager.model.dto.revision.StepUpdateRevision;
 import com.recipe_manager.model.enums.IngredientUnit;
 import com.recipe_manager.model.enums.RevisionCategory;
 import com.recipe_manager.model.enums.RevisionType;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit tests for RevisionDataConverter class.

@@ -45,6 +45,24 @@
       "value": "vegetarian",
       "type": "string",
       "description": "Sample tag name for testing"
+    },
+    {
+      "key": "recipeMediaId",
+      "value": "",
+      "type": "string",
+      "description": "Media ID for recipe media operations"
+    },
+    {
+      "key": "ingredientMediaId",
+      "value": "",
+      "type": "string",
+      "description": "Media ID for ingredient media operations"
+    },
+    {
+      "key": "stepMediaId",
+      "value": "",
+      "type": "string",
+      "description": "Media ID for step media operations"
     }
   ],
   "item": [
@@ -990,136 +1008,6 @@
           }
         },
         {
-          "name": "Add Ingredient Media",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Ingredient media added successfully', function () {",
-                  "    pm.response.to.have.status(201);",
-                  "});",
-                  "",
-                  "pm.test('Media has required fields', function () {",
-                  "    const response = pm.response.json();",
-                  "    pm.expect(response).to.have.property('id');",
-                  "    pm.expect(response).to.have.property('mediaUrl');",
-                  "});"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"mediaUrl\": \"https://example.com/images/ingredient-photo.jpg\",\n  \"mediaType\": \"IMAGE\",\n  \"description\": \"Fresh ingredient preparation photo\",\n  \"altText\": \"Fresh ingredient being prepared\"\n}"
-            },
-            "url": {
-              "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/recipes/{{testRecipeId}}/ingredients/{{testIngredientId}}/media",
-              "host": ["{{recipeManagementServiceBaseUrl}}"],
-              "path": [
-                "recipe-management",
-                "recipes",
-                "{{testRecipeId}}",
-                "ingredients",
-                "{{testIngredientId}}",
-                "media"
-              ]
-            }
-          }
-        },
-        {
-          "name": "Update Ingredient Media",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Ingredient media updated successfully', function () {",
-                  "    pm.response.to.have.status(200);",
-                  "});",
-                  "",
-                  "pm.test('Media has updated description', function () {",
-                  "    const response = pm.response.json();",
-                  "    pm.expect(response.description).to.include('Updated');",
-                  "});"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"mediaUrl\": \"https://example.com/images/ingredient-photo-updated.jpg\",\n  \"mediaType\": \"IMAGE\",\n  \"description\": \"Updated: Fresh ingredient preparation photo with better lighting\",\n  \"altText\": \"Updated fresh ingredient being prepared\"\n}"
-            },
-            "url": {
-              "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/recipes/{{testRecipeId}}/ingredients/{{testIngredientId}}/media",
-              "host": ["{{recipeManagementServiceBaseUrl}}"],
-              "path": [
-                "recipe-management",
-                "recipes",
-                "{{testRecipeId}}",
-                "ingredients",
-                "{{testIngredientId}}",
-                "media"
-              ]
-            }
-          }
-        },
-        {
-          "name": "Delete Ingredient Media",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Ingredient media deleted successfully', function () {",
-                  "    pm.response.to.have.status(204);",
-                  "});"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "DELETE",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/recipes/{{testRecipeId}}/ingredients/{{testIngredientId}}/media",
-              "host": ["{{recipeManagementServiceBaseUrl}}"],
-              "path": [
-                "recipe-management",
-                "recipes",
-                "{{testRecipeId}}",
-                "ingredients",
-                "{{testIngredientId}}",
-                "media"
-              ]
-            }
-          }
-        },
-        {
           "name": "Scale Recipe Ingredients",
           "event": [
             {
@@ -1483,144 +1371,6 @@
               ]
             }
           }
-        },
-        {
-          "name": "Add Step Media",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Step media added successfully', function () {",
-                  "    pm.response.to.have.status(201);",
-                  "});",
-                  "",
-                  "pm.test('Media has required fields', function () {",
-                  "    const response = pm.response.json();",
-                  "    pm.expect(response).to.have.property('id');",
-                  "    pm.expect(response).to.have.property('mediaUrl');",
-                  "    pm.expect(response).to.have.property('mediaType');",
-                  "});",
-                  "",
-                  "pm.test('Extract media ID', function () {",
-                  "    const response = pm.response.json();",
-                  "    if (response.id) {",
-                  "        pm.environment.set('recipeManagementServiceCreatedStepMediaId', response.id);",
-                  "    }",
-                  "});"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"mediaUrl\": \"https://example.com/videos/cooking-technique-demo.mp4\",\n  \"mediaType\": \"VIDEO\",\n  \"description\": \"Detailed video demonstration of the cooking technique for this step\",\n  \"altText\": \"Chef demonstrating proper cooking technique\",\n  \"duration\": 45\n}"
-            },
-            "url": {
-              "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/recipes/{{testRecipeId}}/steps/{{testStepId}}/media",
-              "host": ["{{recipeManagementServiceBaseUrl}}"],
-              "path": [
-                "recipe-management",
-                "recipes",
-                "{{testRecipeId}}",
-                "steps",
-                "{{testStepId}}",
-                "media"
-              ]
-            }
-          }
-        },
-        {
-          "name": "Update Step Media",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Step media updated successfully', function () {",
-                  "    pm.response.to.have.status(200);",
-                  "});",
-                  "",
-                  "pm.test('Media has updated description', function () {",
-                  "    const response = pm.response.json();",
-                  "    pm.expect(response.description).to.include('Updated');",
-                  "});"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"mediaUrl\": \"https://example.com/videos/cooking-technique-demo-hd.mp4\",\n  \"mediaType\": \"VIDEO\",\n  \"description\": \"Updated: High-definition video demonstration with multiple camera angles showing the cooking technique\",\n  \"altText\": \"Updated chef demonstration with multiple angles\",\n  \"duration\": 60\n}"
-            },
-            "url": {
-              "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/recipes/{{testRecipeId}}/steps/{{testStepId}}/media",
-              "host": ["{{recipeManagementServiceBaseUrl}}"],
-              "path": [
-                "recipe-management",
-                "recipes",
-                "{{testRecipeId}}",
-                "steps",
-                "{{testStepId}}",
-                "media"
-              ]
-            }
-          }
-        },
-        {
-          "name": "Delete Step Media",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Step media deleted successfully', function () {",
-                  "    pm.response.to.have.status(204);",
-                  "});"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "DELETE",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/recipes/{{testRecipeId}}/steps/{{testStepId}}/media",
-              "host": ["{{recipeManagementServiceBaseUrl}}"],
-              "path": [
-                "recipe-management",
-                "recipes",
-                "{{testRecipeId}}",
-                "steps",
-                "{{testStepId}}",
-                "media"
-              ]
-            }
-          }
         }
       ]
     },
@@ -1780,21 +1530,81 @@
           "description": "Media operations for recipes",
           "item": [
             {
-              "name": "Add Media to Recipe",
+              "name": "Get Recipe Media",
               "event": [
                 {
                   "listen": "test",
                   "script": {
                     "exec": [
-                      "pm.test('Recipe media added successfully', function () {",
-                      "    pm.response.to.have.status(201);",
+                      "pm.test('Get recipe media successful', function () {",
+                      "    pm.response.to.have.status(200);",
                       "});",
                       "",
-                      "pm.test('Media has required fields', function () {",
+                      "pm.test('Response has pagination structure', function () {",
                       "    const response = pm.response.json();",
-                      "    pm.expect(response).to.have.property('id');",
-                      "    pm.expect(response).to.have.property('mediaUrl');",
-                      "    pm.expect(response).to.have.property('mediaType');",
+                      "    pm.expect(response).to.have.property('content');",
+                      "    pm.expect(response).to.have.property('totalElements');",
+                      "    pm.expect(response).to.have.property('totalPages');",
+                      "});",
+                      "",
+                      "pm.test('Media items have required fields', function () {",
+                      "    const response = pm.response.json();",
+                      "    if (response.content && response.content.length > 0) {",
+                      "        const mediaItem = response.content[0];",
+                      "        pm.expect(mediaItem).to.have.property('mediaId');",
+                      "        pm.expect(mediaItem).to.have.property('mediaType');",
+                      "        pm.expect(mediaItem).to.have.property('originalFilename');",
+                      "    }",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/recipes/{{testRecipeId}}/media?page=0&size=20",
+                  "host": ["{{recipeManagementServiceBaseUrl}}"],
+                  "path": ["recipe-management", "recipes", "{{testRecipeId}}", "media"],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "0",
+                      "description": "Page number (0-based)"
+                    },
+                    {
+                      "key": "size",
+                      "value": "20",
+                      "description": "Page size"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Upload Recipe Media",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Recipe media uploaded successfully', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Response has required fields', function () {",
+                      "    const response = pm.response.json();",
+                      "    pm.expect(response).to.have.property('mediaId');",
+                      "    pm.expect(response).to.have.property('uploadUrl');",
+                      "});",
+                      "",
+                      "pm.test('Extract media ID for further operations', function () {",
+                      "    const response = pm.response.json();",
+                      "    if (response.mediaId) {",
+                      "        pm.collectionVariables.set('recipeMediaId', response.mediaId.toString());",
+                      "    }",
                       "});"
                     ],
                     "type": "text/javascript"
@@ -1803,15 +1613,41 @@
               ],
               "request": {
                 "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
+                "header": [],
                 "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"mediaUrl\": \"https://example.com/images/recipe-hero-image.jpg\",\n  \"mediaType\": \"IMAGE\",\n  \"description\": \"Main hero image for the recipe\",\n  \"altText\": \"Delicious finished dish\",\n  \"isPrimary\": true\n}"
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "file",
+                      "type": "file",
+                      "src": [],
+                      "description": "Media file to upload"
+                    },
+                    {
+                      "key": "originalFilename",
+                      "value": "recipe-hero-image.jpg",
+                      "type": "text",
+                      "description": "Original filename"
+                    },
+                    {
+                      "key": "mediaType",
+                      "value": "IMAGE_JPEG",
+                      "type": "text",
+                      "description": "Media type (IMAGE_JPEG, IMAGE_PNG, VIDEO_MP4, etc.)"
+                    },
+                    {
+                      "key": "fileSize",
+                      "value": "1048576",
+                      "type": "text",
+                      "description": "File size in bytes"
+                    },
+                    {
+                      "key": "contentHash",
+                      "value": "sha256:abcd1234567890",
+                      "type": "text",
+                      "description": "Optional SHA-256 content hash"
+                    }
+                  ]
                 },
                 "url": {
                   "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/recipes/{{testRecipeId}}/media",
@@ -1821,53 +1657,19 @@
               }
             },
             {
-              "name": "Update Media on Recipe",
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      "pm.test('Recipe media updated successfully', function () {",
-                      "    pm.response.to.have.status(200);",
-                      "});",
-                      "",
-                      "pm.test('Media has updated description', function () {",
-                      "    const response = pm.response.json();",
-                      "    pm.expect(response.description).to.include('Updated');",
-                      "});"
-                    ],
-                    "type": "text/javascript"
-                  }
-                }
-              ],
-              "request": {
-                "method": "PUT",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"mediaUrl\": \"https://example.com/images/recipe-hero-image-updated.jpg\",\n  \"mediaType\": \"IMAGE\",\n  \"description\": \"Updated: Main hero image for the recipe with better lighting\",\n  \"altText\": \"Updated delicious finished dish\",\n  \"isPrimary\": true\n}"
-                },
-                "url": {
-                  "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/recipes/{{testRecipeId}}/media",
-                  "host": ["{{recipeManagementServiceBaseUrl}}"],
-                  "path": ["recipe-management", "recipes", "{{testRecipeId}}", "media"]
-                }
-              }
-            },
-            {
-              "name": "Delete Media from Recipe",
+              "name": "Delete Recipe Media",
               "event": [
                 {
                   "listen": "test",
                   "script": {
                     "exec": [
                       "pm.test('Recipe media deleted successfully', function () {",
-                      "    pm.response.to.have.status(204);",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Response has success confirmation', function () {",
+                      "    const response = pm.response.json();",
+                      "    pm.expect(response).to.have.property('message');",
                       "});"
                     ],
                     "type": "text/javascript"
@@ -1876,16 +1678,11 @@
               ],
               "request": {
                 "method": "DELETE",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
+                "header": [],
                 "url": {
-                  "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/recipes/{{testRecipeId}}/media",
+                  "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/recipes/{{testRecipeId}}/media/{{recipeMediaId}}",
                   "host": ["{{recipeManagementServiceBaseUrl}}"],
-                  "path": ["recipe-management", "recipes", "{{testRecipeId}}", "media"]
+                  "path": ["recipe-management", "recipes", "{{testRecipeId}}", "media", "{{recipeMediaId}}"]
                 }
               }
             }
@@ -1896,21 +1693,88 @@
           "description": "Media operations for ingredients",
           "item": [
             {
-              "name": "Add Media to Ingredient",
+              "name": "Get Ingredient Media",
               "event": [
                 {
                   "listen": "test",
                   "script": {
                     "exec": [
-                      "pm.test('Ingredient media added successfully', function () {",
-                      "    pm.response.to.have.status(201);",
+                      "pm.test('Get ingredient media successful', function () {",
+                      "    pm.response.to.have.status(200);",
                       "});",
                       "",
-                      "pm.test('Media has required fields', function () {",
+                      "pm.test('Response has pagination structure', function () {",
                       "    const response = pm.response.json();",
-                      "    pm.expect(response).to.have.property('id');",
-                      "    pm.expect(response).to.have.property('mediaUrl');",
-                      "    pm.expect(response).to.have.property('mediaType');",
+                      "    pm.expect(response).to.have.property('content');",
+                      "    pm.expect(response).to.have.property('totalElements');",
+                      "    pm.expect(response).to.have.property('totalPages');",
+                      "});",
+                      "",
+                      "pm.test('Media items have required fields', function () {",
+                      "    const response = pm.response.json();",
+                      "    if (response.content && response.content.length > 0) {",
+                      "        const mediaItem = response.content[0];",
+                      "        pm.expect(mediaItem).to.have.property('mediaId');",
+                      "        pm.expect(mediaItem).to.have.property('mediaType');",
+                      "        pm.expect(mediaItem).to.have.property('originalFilename');",
+                      "    }",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/recipes/{{testRecipeId}}/ingredients/{{testIngredientId}}/media?page=0&size=20",
+                  "host": ["{{recipeManagementServiceBaseUrl}}"],
+                  "path": [
+                    "recipe-management",
+                    "recipes",
+                    "{{testRecipeId}}",
+                    "ingredients",
+                    "{{testIngredientId}}",
+                    "media"
+                  ],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "0",
+                      "description": "Page number (0-based)"
+                    },
+                    {
+                      "key": "size",
+                      "value": "20",
+                      "description": "Page size"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Upload Ingredient Media",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Ingredient media uploaded successfully', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Response has required fields', function () {",
+                      "    const response = pm.response.json();",
+                      "    pm.expect(response).to.have.property('mediaId');",
+                      "    pm.expect(response).to.have.property('uploadUrl');",
+                      "});",
+                      "",
+                      "pm.test('Extract media ID for further operations', function () {",
+                      "    const response = pm.response.json();",
+                      "    if (response.mediaId) {",
+                      "        pm.collectionVariables.set('ingredientMediaId', response.mediaId.toString());",
+                      "    }",
                       "});"
                     ],
                     "type": "text/javascript"
@@ -1919,15 +1783,41 @@
               ],
               "request": {
                 "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
+                "header": [],
                 "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"mediaUrl\": \"https://example.com/images/ingredient-preparation.jpg\",\n  \"mediaType\": \"IMAGE\",\n  \"description\": \"How to properly prepare this ingredient\",\n  \"altText\": \"Ingredient being prepared\"\n}"
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "file",
+                      "type": "file",
+                      "src": [],
+                      "description": "Media file to upload"
+                    },
+                    {
+                      "key": "originalFilename",
+                      "value": "ingredient-preparation.jpg",
+                      "type": "text",
+                      "description": "Original filename"
+                    },
+                    {
+                      "key": "mediaType",
+                      "value": "IMAGE_JPEG",
+                      "type": "text",
+                      "description": "Media type (IMAGE_JPEG, IMAGE_PNG, VIDEO_MP4, etc.)"
+                    },
+                    {
+                      "key": "fileSize",
+                      "value": "524288",
+                      "type": "text",
+                      "description": "File size in bytes"
+                    },
+                    {
+                      "key": "contentHash",
+                      "value": "sha256:def456789012",
+                      "type": "text",
+                      "description": "Optional SHA-256 content hash"
+                    }
+                  ]
                 },
                 "url": {
                   "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/recipes/{{testRecipeId}}/ingredients/{{testIngredientId}}/media",
@@ -1944,60 +1834,19 @@
               }
             },
             {
-              "name": "Update Media on Ingredient",
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      "pm.test('Ingredient media updated successfully', function () {",
-                      "    pm.response.to.have.status(200);",
-                      "});",
-                      "",
-                      "pm.test('Media has updated description', function () {",
-                      "    const response = pm.response.json();",
-                      "    pm.expect(response.description).to.include('Updated');",
-                      "});"
-                    ],
-                    "type": "text/javascript"
-                  }
-                }
-              ],
-              "request": {
-                "method": "PUT",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"mediaUrl\": \"https://example.com/images/ingredient-preparation-updated.jpg\",\n  \"mediaType\": \"IMAGE\",\n  \"description\": \"Updated: How to properly prepare this ingredient with detailed technique\",\n  \"altText\": \"Updated ingredient being prepared\"\n}"
-                },
-                "url": {
-                  "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/recipes/{{testRecipeId}}/ingredients/{{testIngredientId}}/media",
-                  "host": ["{{recipeManagementServiceBaseUrl}}"],
-                  "path": [
-                    "recipe-management",
-                    "recipes",
-                    "{{testRecipeId}}",
-                    "ingredients",
-                    "{{testIngredientId}}",
-                    "media"
-                  ]
-                }
-              }
-            },
-            {
-              "name": "Delete Media from Ingredient",
+              "name": "Delete Ingredient Media",
               "event": [
                 {
                   "listen": "test",
                   "script": {
                     "exec": [
                       "pm.test('Ingredient media deleted successfully', function () {",
-                      "    pm.response.to.have.status(204);",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Response has success confirmation', function () {",
+                      "    const response = pm.response.json();",
+                      "    pm.expect(response).to.have.property('message');",
                       "});"
                     ],
                     "type": "text/javascript"
@@ -2006,14 +1855,9 @@
               ],
               "request": {
                 "method": "DELETE",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
+                "header": [],
                 "url": {
-                  "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/recipes/{{testRecipeId}}/ingredients/{{testIngredientId}}/media",
+                  "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/recipes/{{testRecipeId}}/ingredients/{{testIngredientId}}/media/{{ingredientMediaId}}",
                   "host": ["{{recipeManagementServiceBaseUrl}}"],
                   "path": [
                     "recipe-management",
@@ -2021,7 +1865,8 @@
                     "{{testRecipeId}}",
                     "ingredients",
                     "{{testIngredientId}}",
-                    "media"
+                    "media",
+                    "{{ingredientMediaId}}"
                   ]
                 }
               }
@@ -2033,21 +1878,88 @@
           "description": "Media operations for recipe steps",
           "item": [
             {
-              "name": "Add Media to Step",
+              "name": "Get Step Media",
               "event": [
                 {
                   "listen": "test",
                   "script": {
                     "exec": [
-                      "pm.test('Step media added successfully', function () {",
-                      "    pm.response.to.have.status(201);",
+                      "pm.test('Get step media successful', function () {",
+                      "    pm.response.to.have.status(200);",
                       "});",
                       "",
-                      "pm.test('Media has required fields', function () {",
+                      "pm.test('Response has pagination structure', function () {",
                       "    const response = pm.response.json();",
-                      "    pm.expect(response).to.have.property('id');",
-                      "    pm.expect(response).to.have.property('mediaUrl');",
-                      "    pm.expect(response).to.have.property('mediaType');",
+                      "    pm.expect(response).to.have.property('content');",
+                      "    pm.expect(response).to.have.property('totalElements');",
+                      "    pm.expect(response).to.have.property('totalPages');",
+                      "});",
+                      "",
+                      "pm.test('Media items have required fields', function () {",
+                      "    const response = pm.response.json();",
+                      "    if (response.content && response.content.length > 0) {",
+                      "        const mediaItem = response.content[0];",
+                      "        pm.expect(mediaItem).to.have.property('mediaId');",
+                      "        pm.expect(mediaItem).to.have.property('mediaType');",
+                      "        pm.expect(mediaItem).to.have.property('originalFilename');",
+                      "    }",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/recipes/{{testRecipeId}}/steps/{{testStepId}}/media?page=0&size=20",
+                  "host": ["{{recipeManagementServiceBaseUrl}}"],
+                  "path": [
+                    "recipe-management",
+                    "recipes",
+                    "{{testRecipeId}}",
+                    "steps",
+                    "{{testStepId}}",
+                    "media"
+                  ],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "0",
+                      "description": "Page number (0-based)"
+                    },
+                    {
+                      "key": "size",
+                      "value": "20",
+                      "description": "Page size"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Upload Step Media",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Step media uploaded successfully', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Response has required fields', function () {",
+                      "    const response = pm.response.json();",
+                      "    pm.expect(response).to.have.property('mediaId');",
+                      "    pm.expect(response).to.have.property('uploadUrl');",
+                      "});",
+                      "",
+                      "pm.test('Extract media ID for further operations', function () {",
+                      "    const response = pm.response.json();",
+                      "    if (response.mediaId) {",
+                      "        pm.collectionVariables.set('stepMediaId', response.mediaId.toString());",
+                      "    }",
                       "});"
                     ],
                     "type": "text/javascript"
@@ -2056,15 +1968,41 @@
               ],
               "request": {
                 "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
+                "header": [],
                 "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"mediaUrl\": \"https://example.com/videos/cooking-step-demo.mp4\",\n  \"mediaType\": \"VIDEO\",\n  \"description\": \"Video demonstration of this cooking step\",\n  \"altText\": \"Cooking technique demonstration\"\n}"
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "file",
+                      "type": "file",
+                      "src": [],
+                      "description": "Media file to upload"
+                    },
+                    {
+                      "key": "originalFilename",
+                      "value": "cooking-step-demo.mp4",
+                      "type": "text",
+                      "description": "Original filename"
+                    },
+                    {
+                      "key": "mediaType",
+                      "value": "VIDEO_MP4",
+                      "type": "text",
+                      "description": "Media type (IMAGE_JPEG, IMAGE_PNG, VIDEO_MP4, etc.)"
+                    },
+                    {
+                      "key": "fileSize",
+                      "value": "10485760",
+                      "type": "text",
+                      "description": "File size in bytes"
+                    },
+                    {
+                      "key": "contentHash",
+                      "value": "sha256:ghi789012345",
+                      "type": "text",
+                      "description": "Optional SHA-256 content hash"
+                    }
+                  ]
                 },
                 "url": {
                   "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/recipes/{{testRecipeId}}/steps/{{testStepId}}/media",
@@ -2081,60 +2019,19 @@
               }
             },
             {
-              "name": "Update Media on Step",
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      "pm.test('Step media updated successfully', function () {",
-                      "    pm.response.to.have.status(200);",
-                      "});",
-                      "",
-                      "pm.test('Media has updated description', function () {",
-                      "    const response = pm.response.json();",
-                      "    pm.expect(response.description).to.include('Updated');",
-                      "});"
-                    ],
-                    "type": "text/javascript"
-                  }
-                }
-              ],
-              "request": {
-                "method": "PUT",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"mediaUrl\": \"https://example.com/videos/cooking-step-demo-updated.mp4\",\n  \"mediaType\": \"VIDEO\",\n  \"description\": \"Updated: Enhanced video demonstration of this cooking step with close-ups\",\n  \"altText\": \"Updated cooking technique demonstration\"\n}"
-                },
-                "url": {
-                  "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/recipes/{{testRecipeId}}/steps/{{testStepId}}/media",
-                  "host": ["{{recipeManagementServiceBaseUrl}}"],
-                  "path": [
-                    "recipe-management",
-                    "recipes",
-                    "{{testRecipeId}}",
-                    "steps",
-                    "{{testStepId}}",
-                    "media"
-                  ]
-                }
-              }
-            },
-            {
-              "name": "Delete Media from Step",
+              "name": "Delete Step Media",
               "event": [
                 {
                   "listen": "test",
                   "script": {
                     "exec": [
                       "pm.test('Step media deleted successfully', function () {",
-                      "    pm.response.to.have.status(204);",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Response has success confirmation', function () {",
+                      "    const response = pm.response.json();",
+                      "    pm.expect(response).to.have.property('message');",
                       "});"
                     ],
                     "type": "text/javascript"
@@ -2143,14 +2040,9 @@
               ],
               "request": {
                 "method": "DELETE",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
+                "header": [],
                 "url": {
-                  "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/recipes/{{testRecipeId}}/steps/{{testStepId}}/media",
+                  "raw": "{{recipeManagementServiceBaseUrl}}/recipe-management/recipes/{{testRecipeId}}/steps/{{testStepId}}/media/{{stepMediaId}}",
                   "host": ["{{recipeManagementServiceBaseUrl}}"],
                   "path": [
                     "recipe-management",
@@ -2158,7 +2050,8 @@
                     "{{testRecipeId}}",
                     "steps",
                     "{{testStepId}}",
-                    "media"
+                    "media",
+                    "{{stepMediaId}}"
                   ]
                 }
               }

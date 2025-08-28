@@ -15,6 +15,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
@@ -28,10 +29,15 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.recipe_manager.exception.ResourceNotFoundException;
+import com.recipe_manager.model.dto.external.mediamanager.response.UploadMediaResponseDto;
 import com.recipe_manager.model.dto.media.MediaDto;
+import com.recipe_manager.model.dto.request.CreateMediaRequest;
+import com.recipe_manager.model.dto.response.CreateMediaResponse;
 import com.recipe_manager.model.entity.media.IngredientMedia;
 import com.recipe_manager.model.entity.media.IngredientMediaId;
 import com.recipe_manager.model.entity.media.Media;
@@ -47,6 +53,7 @@ import com.recipe_manager.repository.media.MediaRepository;
 import com.recipe_manager.repository.media.RecipeMediaRepository;
 import com.recipe_manager.repository.media.StepMediaRepository;
 import com.recipe_manager.repository.recipe.RecipeRepository;
+import com.recipe_manager.service.external.mediamanager.MediaManagerService;
 import com.recipe_manager.util.SecurityUtils;
 
 /** Unit tests for MediaService. */
@@ -59,6 +66,7 @@ class MediaServiceTest {
   @Mock private IngredientMediaRepository ingredientMediaRepository;
   @Mock private StepMediaRepository stepMediaRepository;
   @Mock private RecipeRepository recipeRepository;
+  @Mock private MediaManagerService mediaManagerService;
   @Mock private MediaMapper mediaMapper;
   @InjectMocks private MediaService mediaService;
 
@@ -442,6 +450,138 @@ class MediaServiceTest {
           assertThrows(
               IllegalStateException.class,
               () -> mediaService.getMediaByRecipeId(recipeId, pageable));
+
+      assertEquals("No authenticated user found", exception.getMessage());
+    }
+  }
+
+  @Test
+  void createRecipeMedia_Success() {
+    // Arrange
+    MultipartFile file = new MockMultipartFile("test.jpg", "test.jpg", "image/jpeg", "test data".getBytes());
+    CreateMediaRequest request = CreateMediaRequest.builder()
+        .originalFilename("test.jpg")
+        .mediaType(MediaType.IMAGE_JPEG)
+        .fileSize(9L)
+        .contentHash("abc123")
+        .build();
+
+    UploadMediaResponseDto uploadResponse = UploadMediaResponseDto.builder()
+        .mediaId(100L)
+        .uploadUrl("/uploads/test.jpg")
+        .contentHash("def456")
+        .processingStatus(ProcessingStatus.COMPLETE)
+        .build();
+
+    Media savedMedia = Media.builder()
+        .mediaId(100L)
+        .userId(currentUserId)
+        .mediaType(MediaType.IMAGE_JPEG)
+        .mediaPath("/uploads/test.jpg")
+        .fileSize(9L)
+        .contentHash("abc123")
+        .originalFilename("test.jpg")
+        .processingStatus(ProcessingStatus.INITIATED)
+        .createdAt(LocalDateTime.now())
+        .updatedAt(LocalDateTime.now())
+        .build();
+
+    try (MockedStatic<SecurityUtils> securityUtils = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(currentUserId);
+      when(recipeRepository.findById(recipeId)).thenReturn(Optional.of(recipe));
+      when(mediaManagerService.uploadMedia(file)).thenReturn(CompletableFuture.completedFuture(uploadResponse));
+      when(mediaRepository.save(any(Media.class))).thenReturn(savedMedia);
+      when(recipeMediaRepository.save(any(RecipeMedia.class))).thenReturn(new RecipeMedia());
+
+      // Act
+      CreateMediaResponse response = mediaService.createRecipeMedia(recipeId, request, file);
+
+      // Assert
+      assertNotNull(response);
+      assertEquals(100L, response.getMediaId());
+      assertEquals("/uploads/test.jpg", response.getUploadUrl());
+      assertEquals("def456", response.getContentHash());
+
+      verify(mediaManagerService).uploadMedia(file);
+      verify(mediaRepository).save(any(Media.class));
+      verify(recipeMediaRepository).save(any(RecipeMedia.class));
+    }
+  }
+
+  @Test
+  void createRecipeMedia_RecipeNotFound() {
+    // Arrange
+    MultipartFile file = new MockMultipartFile("test.jpg", "test.jpg", "image/jpeg", "test data".getBytes());
+    CreateMediaRequest request = CreateMediaRequest.builder()
+        .originalFilename("test.jpg")
+        .mediaType(MediaType.IMAGE_JPEG)
+        .fileSize(9L)
+        .build();
+
+    try (MockedStatic<SecurityUtils> securityUtils = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(currentUserId);
+      when(recipeRepository.findById(recipeId)).thenReturn(Optional.empty());
+
+      // Act & Assert
+      ResourceNotFoundException exception =
+          assertThrows(
+              ResourceNotFoundException.class,
+              () -> mediaService.createRecipeMedia(recipeId, request, file));
+
+      assertEquals("Recipe with identifier '123' was not found", exception.getMessage());
+    }
+  }
+
+  @Test
+  void createRecipeMedia_AccessDenied() {
+    // Arrange
+    Recipe differentUserRecipe = Recipe.builder()
+        .recipeId(recipeId)
+        .userId(differentUserId)
+        .title("Test Recipe")
+        .build();
+
+    MultipartFile file = new MockMultipartFile("test.jpg", "test.jpg", "image/jpeg", "test data".getBytes());
+    CreateMediaRequest request = CreateMediaRequest.builder()
+        .originalFilename("test.jpg")
+        .mediaType(MediaType.IMAGE_JPEG)
+        .fileSize(9L)
+        .build();
+
+    try (MockedStatic<SecurityUtils> securityUtils = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(currentUserId);
+      when(recipeRepository.findById(recipeId)).thenReturn(Optional.of(differentUserRecipe));
+
+      // Act & Assert
+      AccessDeniedException exception =
+          assertThrows(
+              AccessDeniedException.class,
+              () -> mediaService.createRecipeMedia(recipeId, request, file));
+
+      assertEquals("You don't have permission to add media to this recipe", exception.getMessage());
+    }
+  }
+
+  @Test
+  void createRecipeMedia_SecurityContextException() {
+    // Arrange
+    MultipartFile file = new MockMultipartFile("test.jpg", "test.jpg", "image/jpeg", "test data".getBytes());
+    CreateMediaRequest request = CreateMediaRequest.builder()
+        .originalFilename("test.jpg")
+        .mediaType(MediaType.IMAGE_JPEG)
+        .fileSize(9L)
+        .build();
+
+    try (MockedStatic<SecurityUtils> securityUtils = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtils
+          .when(SecurityUtils::getCurrentUserId)
+          .thenThrow(new IllegalStateException("No authenticated user found"));
+
+      // Act & Assert
+      IllegalStateException exception =
+          assertThrows(
+              IllegalStateException.class,
+              () -> mediaService.createRecipeMedia(recipeId, request, file));
 
       assertEquals("No authenticated user found", exception.getMessage());
     }

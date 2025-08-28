@@ -1,5 +1,6 @@
 package com.recipe_manager.service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -10,20 +11,25 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.recipe_manager.exception.ResourceNotFoundException;
 import com.recipe_manager.model.dto.media.MediaDto;
+import com.recipe_manager.model.dto.request.CreateMediaRequest;
+import com.recipe_manager.model.dto.response.CreateMediaResponse;
 import com.recipe_manager.model.entity.media.IngredientMedia;
 import com.recipe_manager.model.entity.media.Media;
 import com.recipe_manager.model.entity.media.RecipeMedia;
 import com.recipe_manager.model.entity.media.StepMedia;
 import com.recipe_manager.model.entity.recipe.Recipe;
+import com.recipe_manager.model.enums.ProcessingStatus;
 import com.recipe_manager.model.mapper.MediaMapper;
 import com.recipe_manager.repository.media.IngredientMediaRepository;
 import com.recipe_manager.repository.media.MediaRepository;
 import com.recipe_manager.repository.media.RecipeMediaRepository;
 import com.recipe_manager.repository.media.StepMediaRepository;
 import com.recipe_manager.repository.recipe.RecipeRepository;
+import com.recipe_manager.service.external.mediamanager.MediaManagerService;
 import com.recipe_manager.util.SecurityUtils;
 
 import lombok.RequiredArgsConstructor;
@@ -49,6 +55,9 @@ public class MediaService {
 
   /** Repository for managing recipe entities. */
   private final RecipeRepository recipeRepository;
+
+  /** Service for media manager external service integration. */
+  private final MediaManagerService mediaManagerService;
 
   /** Mapper for converting between media entities and DTOs. */
   private final MediaMapper mediaMapper;
@@ -198,6 +207,81 @@ public class MediaService {
         stepId,
         recipeId);
     return result;
+  }
+
+  /**
+   * Creates new media and associates it with a specific recipe.
+   *
+   * @param recipeId the ID of the recipe to associate the media with
+   * @param request the create media request containing media details
+   * @param file the media file to upload
+   * @return the created media response
+   * @throws ResourceNotFoundException if the recipe is not found
+   * @throws AccessDeniedException if the current user doesn't own the recipe
+   */
+  @Transactional
+  public CreateMediaResponse createRecipeMedia(
+      final Long recipeId, final CreateMediaRequest request, final MultipartFile file) {
+    log.debug("Creating media for recipe ID: {}", recipeId);
+
+    // Extract current user ID from security context
+    final UUID currentUserId = SecurityUtils.getCurrentUserId();
+
+    // Validate recipe exists and user owns it
+    final Recipe recipe =
+        recipeRepository
+            .findById(recipeId)
+            .orElseThrow(() -> ResourceNotFoundException.forEntity("Recipe", recipeId));
+
+    if (!recipe.getUserId().equals(currentUserId)) {
+      log.warn(
+          "User {} attempted to create media for recipe {} owned by {}",
+          currentUserId,
+          recipeId,
+          recipe.getUserId());
+      throw new AccessDeniedException("You don't have permission to add media to this recipe");
+    }
+
+    // Upload media to external media manager service
+    final com.recipe_manager.model.dto.external.mediamanager.response.UploadMediaResponseDto
+        uploadResponse = mediaManagerService.uploadMedia(file).join();
+
+    // Create local Media entity
+    final Media media =
+        Media.builder()
+            .userId(currentUserId)
+            .mediaType(request.getMediaType())
+            .mediaPath(uploadResponse.getUploadUrl()) // Use upload URL as media path
+            .fileSize(request.getFileSize())
+            .contentHash(request.getContentHash())
+            .originalFilename(request.getOriginalFilename())
+            .processingStatus(ProcessingStatus.INITIATED)
+            .createdAt(LocalDateTime.now())
+            .updatedAt(LocalDateTime.now())
+            .build();
+
+    final Media savedMedia = mediaRepository.save(media);
+
+    // Create recipe-media association
+    final RecipeMedia recipeMedia =
+        RecipeMedia.builder()
+            .recipeId(recipeId)
+            .mediaId(savedMedia.getMediaId())
+            .media(savedMedia)
+            .build();
+
+    recipeMediaRepository.save(recipeMedia);
+
+    // Build response
+    final CreateMediaResponse response =
+        CreateMediaResponse.builder()
+            .mediaId(savedMedia.getMediaId())
+            .uploadUrl(uploadResponse.getUploadUrl())
+            .contentHash(uploadResponse.getContentHash())
+            .build();
+
+    log.debug("Successfully created media {} for recipe {}", savedMedia.getMediaId(), recipeId);
+    return response;
   }
 
   /**

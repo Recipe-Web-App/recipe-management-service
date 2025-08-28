@@ -1,6 +1,8 @@
 package com.recipe_manager.component_tests.media_service;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -11,6 +13,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
@@ -19,6 +22,7 @@ import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.TestPropertySource;
 
 import com.recipe_manager.component_tests.AbstractComponentTest;
@@ -33,6 +37,7 @@ import com.recipe_manager.model.entity.recipe.Recipe;
 import com.recipe_manager.model.enums.MediaType;
 import com.recipe_manager.model.enums.ProcessingStatus;
 import com.recipe_manager.model.mapper.MediaMapper;
+import com.recipe_manager.service.external.mediamanager.MediaManagerService;
 import com.recipe_manager.repository.media.IngredientMediaRepository;
 import com.recipe_manager.repository.media.MediaRepository;
 import com.recipe_manager.repository.media.RecipeMediaRepository;
@@ -62,6 +67,7 @@ class GetRecipeMediaComponentTest extends AbstractComponentTest {
   private RecipeMediaRepository recipeMediaRepository;
   private IngredientMediaRepository ingredientMediaRepository;
   private StepMediaRepository stepMediaRepository;
+  private MediaManagerService mediaManagerService;
 
   @Autowired(required = false)
   private MediaMapper mediaMapper;
@@ -88,17 +94,18 @@ class GetRecipeMediaComponentTest extends AbstractComponentTest {
   }
 
   private void useRealMediaService() {
-    // Mock repositories
+    // Mock repositories and external services
     this.mediaRepository = Mockito.mock(MediaRepository.class);
     this.recipeMediaRepository = Mockito.mock(RecipeMediaRepository.class);
     this.ingredientMediaRepository = Mockito.mock(IngredientMediaRepository.class);
     this.stepMediaRepository = Mockito.mock(StepMediaRepository.class);
+    this.mediaManagerService = Mockito.mock(MediaManagerService.class);
 
     if (mediaMapper == null) {
       throw new RuntimeException("MediaMapper not available in this test context");
     }
 
-    // Create real service with mocked repositories
+    // Create real service with mocked repositories and external services
     this.mediaService =
         new MediaService(
             mediaRepository,
@@ -106,6 +113,7 @@ class GetRecipeMediaComponentTest extends AbstractComponentTest {
             ingredientMediaRepository,
             stepMediaRepository,
             recipeRepository,
+            mediaManagerService,
             mediaMapper);
 
     // Create controller with real service
@@ -368,6 +376,97 @@ class GetRecipeMediaComponentTest extends AbstractComponentTest {
           .perform(get("/recipe-management/recipes/{recipeId}/media", recipeId))
           .andExpect(status().isInternalServerError())
           .andExpect(jsonPath("$.message").value("An unexpected error occurred"));
+    }
+  }
+
+  @Test
+  void createRecipeMedia_Success() throws Exception {
+    // Arrange
+    MockMultipartFile file = new MockMultipartFile("file", "test.jpg", "image/jpeg", "test data".getBytes());
+
+    Media savedMedia = Media.builder()
+        .mediaId(100L)
+        .userId(currentUserId)
+        .mediaType(MediaType.IMAGE_JPEG)
+        .mediaPath("/uploads/test.jpg")
+        .fileSize(9L)
+        .contentHash("abc123")
+        .originalFilename("test.jpg")
+        .processingStatus(ProcessingStatus.INITIATED)
+        .createdAt(LocalDateTime.now())
+        .updatedAt(LocalDateTime.now())
+        .build();
+
+    com.recipe_manager.model.dto.external.mediamanager.response.UploadMediaResponseDto uploadResponse =
+        com.recipe_manager.model.dto.external.mediamanager.response.UploadMediaResponseDto.builder()
+            .mediaId(100L)
+            .uploadUrl("/uploads/test.jpg")
+            .contentHash("def456")
+            .processingStatus(ProcessingStatus.COMPLETE)
+            .build();
+
+    try (MockedStatic<SecurityUtils> securityUtils = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(currentUserId);
+      Mockito.when(recipeRepository.findById(recipeId)).thenReturn(Optional.of(recipe));
+      Mockito.when(mediaManagerService.uploadMedia(file)).thenReturn(CompletableFuture.completedFuture(uploadResponse));
+      Mockito.when(mediaRepository.save(any(Media.class))).thenReturn(savedMedia);
+      Mockito.when(recipeMediaRepository.save(any(RecipeMedia.class))).thenReturn(new RecipeMedia());
+
+      // Act & Assert
+      mockMvc
+          .perform(multipart("/recipe-management/recipes/{recipeId}/media", recipeId)
+              .file(file)
+              .param("originalFilename", "test.jpg")
+              .param("mediaType", "IMAGE_JPEG")
+              .param("fileSize", "9")
+              .param("contentHash", "abc123"))
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$.mediaId").value(100))
+          .andExpect(jsonPath("$.uploadUrl").value("/uploads/test.jpg"))
+          .andExpect(jsonPath("$.contentHash").value("def456"));
+    }
+  }
+
+  @Test
+  void createRecipeMedia_RecipeNotFound() throws Exception {
+    // Arrange
+    MockMultipartFile file = new MockMultipartFile("file", "test.jpg", "image/jpeg", "test data".getBytes());
+
+    try (MockedStatic<SecurityUtils> securityUtils = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(currentUserId);
+      Mockito.when(recipeRepository.findById(recipeId)).thenReturn(Optional.empty());
+
+      // Act & Assert
+      mockMvc
+          .perform(multipart("/recipe-management/recipes/{recipeId}/media", recipeId)
+              .file(file)
+              .param("originalFilename", "test.jpg")
+              .param("mediaType", "IMAGE_JPEG")
+              .param("fileSize", "9"))
+          .andExpect(status().isNotFound())
+          .andExpect(jsonPath("$.message").value("Recipe with identifier '123' was not found"));
+    }
+  }
+
+  @Test
+  void createRecipeMedia_AccessDenied() throws Exception {
+    // Arrange
+    recipe.setUserId(differentUserId);
+    MockMultipartFile file = new MockMultipartFile("file", "test.jpg", "image/jpeg", "test data".getBytes());
+
+    try (MockedStatic<SecurityUtils> securityUtils = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(currentUserId);
+      Mockito.when(recipeRepository.findById(recipeId)).thenReturn(Optional.of(recipe));
+
+      // Act & Assert
+      mockMvc
+          .perform(multipart("/recipe-management/recipes/{recipeId}/media", recipeId)
+              .file(file)
+              .param("originalFilename", "test.jpg")
+              .param("mediaType", "IMAGE_JPEG")
+              .param("fileSize", "9"))
+          .andExpect(status().isForbidden())
+          .andExpect(jsonPath("$.message").value("You don't have permission to access this resource"));
     }
   }
 }

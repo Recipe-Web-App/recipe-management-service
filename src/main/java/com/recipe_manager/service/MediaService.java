@@ -3,11 +3,11 @@ package com.recipe_manager.service;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,6 +17,7 @@ import com.recipe_manager.exception.ResourceNotFoundException;
 import com.recipe_manager.model.dto.media.MediaDto;
 import com.recipe_manager.model.dto.request.CreateMediaRequest;
 import com.recipe_manager.model.dto.response.CreateMediaResponse;
+import com.recipe_manager.model.dto.response.DeleteMediaResponse;
 import com.recipe_manager.model.entity.media.IngredientMedia;
 import com.recipe_manager.model.entity.media.IngredientMediaId;
 import com.recipe_manager.model.entity.media.Media;
@@ -99,8 +100,7 @@ public class MediaService {
     final List<RecipeMedia> recipeMediaList = recipeMediaRepository.findByRecipeId(recipeId);
 
     // Extract media IDs and convert to paginated DTOs
-    final List<Long> mediaIds =
-        recipeMediaList.stream().map(RecipeMedia::getMediaId).collect(Collectors.toList());
+    final List<Long> mediaIds = recipeMediaList.stream().map(RecipeMedia::getMediaId).toList();
 
     final Page<MediaDto> result = convertMediaIdsToPaginatedDtos(mediaIds, pageable);
     log.debug(
@@ -149,9 +149,7 @@ public class MediaService {
 
     // Extract media IDs and convert to paginated DTOs
     final List<Long> mediaIds =
-        ingredientMediaList.stream()
-            .map(im -> im.getId().getMediaId())
-            .collect(Collectors.toList());
+        ingredientMediaList.stream().map(im -> im.getId().getMediaId()).toList();
 
     final Page<MediaDto> result = convertMediaIdsToPaginatedDtos(mediaIds, pageable);
     log.debug(
@@ -199,8 +197,7 @@ public class MediaService {
     final List<StepMedia> stepMediaList = stepMediaRepository.findByIdStepId(stepId);
 
     // Extract media IDs and convert to paginated DTOs
-    final List<Long> mediaIds =
-        stepMediaList.stream().map(sm -> sm.getId().getMediaId()).collect(Collectors.toList());
+    final List<Long> mediaIds = stepMediaList.stream().map(sm -> sm.getId().getMediaId()).toList();
 
     final Page<MediaDto> result = convertMediaIdsToPaginatedDtos(mediaIds, pageable);
     log.debug(
@@ -226,43 +223,14 @@ public class MediaService {
       final Long recipeId, final CreateMediaRequest request, final MultipartFile file) {
     log.debug("Creating media for recipe ID: {}", recipeId);
 
-    // Extract current user ID from security context
+    // Validate recipe ownership
+    validateRecipeOwnership(recipeId, HttpMethod.POST);
     final UUID currentUserId = SecurityUtils.getCurrentUserId();
 
-    // Validate recipe exists and user owns it
-    final Recipe recipe =
-        recipeRepository
-            .findById(recipeId)
-            .orElseThrow(() -> ResourceNotFoundException.forEntity("Recipe", recipeId));
-
-    if (!recipe.getUserId().equals(currentUserId)) {
-      log.warn(
-          "User {} attempted to create media for recipe {} owned by {}",
-          currentUserId,
-          recipeId,
-          recipe.getUserId());
-      throw new AccessDeniedException("You don't have permission to add media to this recipe");
-    }
-
-    // Upload media to external media manager service
-    final com.recipe_manager.model.dto.external.mediamanager.response.UploadMediaResponseDto
-        uploadResponse = mediaManagerService.uploadMedia(file).join();
-
-    // Create local Media entity
-    final Media media =
-        Media.builder()
-            .userId(currentUserId)
-            .mediaType(request.getMediaType())
-            .mediaPath(uploadResponse.getUploadUrl()) // Use upload URL as media path
-            .fileSize(request.getFileSize())
-            .contentHash(request.getContentHash())
-            .originalFilename(request.getOriginalFilename())
-            .processingStatus(ProcessingStatus.INITIATED)
-            .createdAt(LocalDateTime.now())
-            .updatedAt(LocalDateTime.now())
-            .build();
-
-    final Media savedMedia = mediaRepository.save(media);
+    // Create and upload media
+    final MediaCreationResult result = createAndUploadMedia(request, file, currentUserId);
+    final Media savedMedia = result.savedMedia();
+    final var uploadResponse = result.uploadResponse();
 
     // Create recipe-media association
     final RecipeMedia recipeMedia =
@@ -274,7 +242,7 @@ public class MediaService {
 
     recipeMediaRepository.save(recipeMedia);
 
-    // Build response
+    // Build response - use upload response for correct content hash
     final CreateMediaResponse response =
         CreateMediaResponse.builder()
             .mediaId(savedMedia.getMediaId())
@@ -305,43 +273,14 @@ public class MediaService {
       final MultipartFile file) {
     log.debug("Creating media for recipe ID: {} and ingredient ID: {}", recipeId, ingredientId);
 
-    // Extract current user ID from security context
+    // Validate recipe ownership
+    validateRecipeOwnership(recipeId, HttpMethod.POST);
     final UUID currentUserId = SecurityUtils.getCurrentUserId();
 
-    // Validate recipe exists and user owns it
-    final Recipe recipe =
-        recipeRepository
-            .findById(recipeId)
-            .orElseThrow(() -> ResourceNotFoundException.forEntity("Recipe", recipeId));
-
-    if (!recipe.getUserId().equals(currentUserId)) {
-      log.warn(
-          "User {} attempted to create media for recipe {} owned by {}",
-          currentUserId,
-          recipeId,
-          recipe.getUserId());
-      throw new AccessDeniedException("You don't have permission to add media to this recipe");
-    }
-
-    // Upload media to external media manager service
-    final com.recipe_manager.model.dto.external.mediamanager.response.UploadMediaResponseDto
-        uploadResponse = mediaManagerService.uploadMedia(file).join();
-
-    // Create local Media entity
-    final Media media =
-        Media.builder()
-            .userId(currentUserId)
-            .mediaType(request.getMediaType())
-            .mediaPath(uploadResponse.getUploadUrl()) // Use upload URL as media path
-            .fileSize(request.getFileSize())
-            .contentHash(request.getContentHash())
-            .originalFilename(request.getOriginalFilename())
-            .processingStatus(ProcessingStatus.INITIATED)
-            .createdAt(LocalDateTime.now())
-            .updatedAt(LocalDateTime.now())
-            .build();
-
-    final Media savedMedia = mediaRepository.save(media);
+    // Create and upload media
+    final MediaCreationResult result = createAndUploadMedia(request, file, currentUserId);
+    final Media savedMedia = result.savedMedia();
+    final var uploadResponse = result.uploadResponse();
 
     // Create ingredient-media association
     final IngredientMedia ingredientMedia =
@@ -356,7 +295,7 @@ public class MediaService {
 
     ingredientMediaRepository.save(ingredientMedia);
 
-    // Build response
+    // Build response - use upload response for correct content hash
     final CreateMediaResponse response =
         CreateMediaResponse.builder()
             .mediaId(savedMedia.getMediaId())
@@ -391,43 +330,14 @@ public class MediaService {
       final MultipartFile file) {
     log.debug("Creating media for recipe ID: {} and step ID: {}", recipeId, stepId);
 
-    // Extract current user ID from security context
+    // Validate recipe ownership
+    validateRecipeOwnership(recipeId, HttpMethod.POST);
     final UUID currentUserId = SecurityUtils.getCurrentUserId();
 
-    // Validate recipe exists and user owns it
-    final Recipe recipe =
-        recipeRepository
-            .findById(recipeId)
-            .orElseThrow(() -> ResourceNotFoundException.forEntity("Recipe", recipeId));
-
-    if (!recipe.getUserId().equals(currentUserId)) {
-      log.warn(
-          "User {} attempted to create media for recipe {} owned by {}",
-          currentUserId,
-          recipeId,
-          recipe.getUserId());
-      throw new AccessDeniedException("You don't have permission to add media to this recipe");
-    }
-
-    // Upload media to external media manager service
-    final com.recipe_manager.model.dto.external.mediamanager.response.UploadMediaResponseDto
-        uploadResponse = mediaManagerService.uploadMedia(file).join();
-
-    // Create local Media entity
-    final Media media =
-        Media.builder()
-            .userId(currentUserId)
-            .mediaType(request.getMediaType())
-            .mediaPath(uploadResponse.getUploadUrl()) // Use upload URL as media path
-            .fileSize(request.getFileSize())
-            .contentHash(request.getContentHash())
-            .originalFilename(request.getOriginalFilename())
-            .processingStatus(ProcessingStatus.INITIATED)
-            .createdAt(LocalDateTime.now())
-            .updatedAt(LocalDateTime.now())
-            .build();
-
-    final Media savedMedia = mediaRepository.save(media);
+    // Create and upload media
+    final MediaCreationResult result = createAndUploadMedia(request, file, currentUserId);
+    final Media savedMedia = result.savedMedia();
+    final var uploadResponse = result.uploadResponse();
 
     // Create step-media association
     final StepMedia stepMedia =
@@ -438,7 +348,7 @@ public class MediaService {
 
     stepMediaRepository.save(stepMedia);
 
-    // Build response
+    // Build response - use upload response for correct content hash
     final CreateMediaResponse response =
         CreateMediaResponse.builder()
             .mediaId(savedMedia.getMediaId())
@@ -466,8 +376,7 @@ public class MediaService {
     final List<Media> mediaList = mediaRepository.findAllById(mediaIds);
 
     // Convert to DTOs
-    final List<MediaDto> mediaDtos =
-        mediaList.stream().map(mediaMapper::toDto).collect(Collectors.toList());
+    final List<MediaDto> mediaDtos = mediaList.stream().map(mediaMapper::toDto).toList();
 
     return applyPaginationManually(mediaDtos, pageable);
   }
@@ -486,5 +395,259 @@ public class MediaService {
     final List<MediaDto> pageContent = mediaDtos.subList(start, end);
 
     return new PageImpl<>(pageContent, pageable, mediaDtos.size());
+  }
+
+  /**
+   * Helper method to validate recipe ownership and return the recipe entity.
+   *
+   * @param recipeId the ID of the recipe to validate
+   * @param operationType the type of operation being performed (for error messages)
+   * @return the validated recipe entity
+   * @throws ResourceNotFoundException if the recipe is not found
+   * @throws AccessDeniedException if the current user doesn't own the recipe
+   */
+  private Recipe validateRecipeOwnership(final Long recipeId, final HttpMethod operationType) {
+    // Extract current user ID from security context
+    final UUID currentUserId = SecurityUtils.getCurrentUserId();
+
+    // Validate recipe exists and user owns it
+    final Recipe recipe =
+        recipeRepository
+            .findById(recipeId)
+            .orElseThrow(() -> ResourceNotFoundException.forEntity("Recipe", recipeId));
+
+    if (!recipe.getUserId().equals(currentUserId)) {
+      log.warn(
+          "User {} attempted to {} recipe {} owned by {}",
+          currentUserId,
+          operationType,
+          recipeId,
+          recipe.getUserId());
+      throw new AccessDeniedException(
+          "You don't have permission to " + operationType + " this recipe");
+    }
+
+    return recipe;
+  }
+
+  /**
+   * Helper method to create a media entity and upload to external service.
+   *
+   * @param request the create media request
+   * @param file the media file to upload
+   * @param currentUserId the current user's ID
+   * @return a record containing both the saved media entity and upload response
+   */
+  private MediaCreationResult createAndUploadMedia(
+      final CreateMediaRequest request, final MultipartFile file, final UUID currentUserId) {
+    // Upload media to external media manager service
+    final com.recipe_manager.model.dto.external.mediamanager.response.UploadMediaResponseDto
+        uploadResponse = mediaManagerService.uploadMedia(file).join();
+
+    // Create local Media entity
+    final Media media =
+        Media.builder()
+            .userId(currentUserId)
+            .mediaType(request.getMediaType())
+            .mediaPath(uploadResponse.getUploadUrl()) // Use upload URL as media path
+            .fileSize(request.getFileSize())
+            .contentHash(request.getContentHash())
+            .originalFilename(request.getOriginalFilename())
+            .processingStatus(ProcessingStatus.INITIATED)
+            .createdAt(LocalDateTime.now())
+            .updatedAt(LocalDateTime.now())
+            .build();
+
+    final Media savedMedia = mediaRepository.save(media);
+    return new MediaCreationResult(savedMedia, uploadResponse);
+  }
+
+  /** Record to hold media creation results. */
+  private record MediaCreationResult(
+      Media savedMedia,
+      com.recipe_manager.model.dto.external.mediamanager.response.UploadMediaResponseDto
+          uploadResponse) {}
+
+  /**
+   * Helper method to validate media ownership and return the media entity.
+   *
+   * @param mediaId the ID of the media to validate
+   * @param currentUserId the current user's ID
+   * @param operationType the type of operation being performed (for error messages)
+   * @return the validated media entity
+   * @throws ResourceNotFoundException if the media is not found
+   * @throws AccessDeniedException if the current user doesn't own the media
+   */
+  private Media validateMediaOwnership(
+      final Long mediaId, final UUID currentUserId, final HttpMethod operationType) {
+    final Media media =
+        mediaRepository
+            .findById(mediaId)
+            .orElseThrow(() -> ResourceNotFoundException.forEntity("Media", mediaId));
+
+    if (!media.getUserId().equals(currentUserId)) {
+      log.warn(
+          "User {} attempted to {} media {} owned by {}",
+          currentUserId,
+          operationType,
+          mediaId,
+          media.getUserId());
+      throw new AccessDeniedException(
+          "You don't have permission to " + operationType + " this media");
+    }
+
+    return media;
+  }
+
+  /**
+   * Deletes media associated with a specific recipe.
+   *
+   * @param recipeId the ID of the recipe containing the media
+   * @param mediaId the ID of the media to delete
+   * @return the delete media response
+   * @throws ResourceNotFoundException if the recipe or media is not found
+   * @throws AccessDeniedException if the current user doesn't own the recipe
+   */
+  @Transactional
+  public DeleteMediaResponse deleteRecipeMedia(final Long recipeId, final Long mediaId) {
+    log.debug("Deleting media ID: {} from recipe ID: {}", mediaId, recipeId);
+
+    // Validate recipe ownership
+    validateRecipeOwnership(recipeId, HttpMethod.DELETE);
+    final UUID currentUserId = SecurityUtils.getCurrentUserId();
+
+    // Verify media exists and is owned by current user
+    validateMediaOwnership(mediaId, currentUserId, HttpMethod.DELETE);
+
+    // Check if media is associated with this recipe
+    final boolean isAssociated =
+        recipeMediaRepository.findByRecipeId(recipeId).stream()
+            .anyMatch(rm -> rm.getMediaId().equals(mediaId));
+    if (!isAssociated) {
+      throw new ResourceNotFoundException(
+          "Media with ID " + mediaId + " is not associated with recipe " + recipeId);
+    }
+
+    // Delete from external media manager service
+    mediaManagerService.deleteMedia(mediaId).join();
+
+    // Delete local associations and media record
+    recipeMediaRepository.deleteByMediaId(mediaId);
+    mediaRepository.deleteById(mediaId);
+
+    final DeleteMediaResponse response =
+        DeleteMediaResponse.builder()
+            .success(true)
+            .message("Media successfully deleted from recipe")
+            .mediaId(mediaId)
+            .build();
+
+    log.debug("Successfully deleted media {} from recipe {}", mediaId, recipeId);
+    return response;
+  }
+
+  /**
+   * Deletes media associated with a specific ingredient within a recipe.
+   *
+   * @param recipeId the ID of the recipe containing the ingredient
+   * @param ingredientId the ID of the ingredient containing the media
+   * @param mediaId the ID of the media to delete
+   * @return the delete media response
+   * @throws ResourceNotFoundException if the recipe, ingredient, or media is not found
+   * @throws AccessDeniedException if the current user doesn't own the recipe
+   */
+  @Transactional
+  public DeleteMediaResponse deleteIngredientMedia(
+      final Long recipeId, final Long ingredientId, final Long mediaId) {
+    log.debug(
+        "Deleting media ID: {} from ingredient ID: {} in recipe ID: {}",
+        mediaId,
+        ingredientId,
+        recipeId);
+
+    // Validate recipe ownership
+    validateRecipeOwnership(recipeId, HttpMethod.DELETE);
+    final UUID currentUserId = SecurityUtils.getCurrentUserId();
+
+    // Verify media exists and is owned by current user
+    validateMediaOwnership(mediaId, currentUserId, HttpMethod.DELETE);
+
+    // Check if media is associated with this ingredient
+    final IngredientMediaId ingredientMediaId =
+        IngredientMediaId.builder().ingredientId(ingredientId).mediaId(mediaId).build();
+
+    if (!ingredientMediaRepository.existsById(ingredientMediaId)) {
+      throw new ResourceNotFoundException(
+          "Media with ID " + mediaId + " is not associated with ingredient " + ingredientId);
+    }
+
+    // Delete from external media manager service
+    mediaManagerService.deleteMedia(mediaId).join();
+
+    // Delete local associations and media record
+    ingredientMediaRepository.deleteByIdMediaId(mediaId);
+    mediaRepository.deleteById(mediaId);
+
+    final DeleteMediaResponse response =
+        DeleteMediaResponse.builder()
+            .success(true)
+            .message("Media successfully deleted from ingredient")
+            .mediaId(mediaId)
+            .build();
+
+    log.debug(
+        "Successfully deleted media {} from ingredient {} in recipe {}",
+        mediaId,
+        ingredientId,
+        recipeId);
+    return response;
+  }
+
+  /**
+   * Deletes media associated with a specific step within a recipe.
+   *
+   * @param recipeId the ID of the recipe containing the step
+   * @param stepId the ID of the step containing the media
+   * @param mediaId the ID of the media to delete
+   * @return the delete media response
+   * @throws ResourceNotFoundException if the recipe, step, or media is not found
+   * @throws AccessDeniedException if the current user doesn't own the recipe
+   */
+  @Transactional
+  public DeleteMediaResponse deleteStepMedia(
+      final Long recipeId, final Long stepId, final Long mediaId) {
+    log.debug("Deleting media ID: {} from step ID: {} in recipe ID: {}", mediaId, stepId, recipeId);
+
+    // Validate recipe ownership
+    validateRecipeOwnership(recipeId, HttpMethod.DELETE);
+    final UUID currentUserId = SecurityUtils.getCurrentUserId();
+
+    // Verify media exists and is owned by current user
+    validateMediaOwnership(mediaId, currentUserId, HttpMethod.DELETE);
+
+    // Check if media is associated with this step
+    final StepMediaId stepMediaId = StepMediaId.builder().stepId(stepId).mediaId(mediaId).build();
+
+    if (!stepMediaRepository.existsById(stepMediaId)) {
+      throw new ResourceNotFoundException(
+          "Media with ID " + mediaId + " is not associated with step " + stepId);
+    }
+
+    // Delete from external media manager service
+    mediaManagerService.deleteMedia(mediaId).join();
+
+    // Delete local associations and media record
+    stepMediaRepository.deleteByIdMediaId(mediaId);
+    mediaRepository.deleteById(mediaId);
+
+    final DeleteMediaResponse response =
+        DeleteMediaResponse.builder()
+            .success(true)
+            .message("Media successfully deleted from step")
+            .mediaId(mediaId)
+            .build();
+
+    log.debug("Successfully deleted media {} from step {} in recipe {}", mediaId, stepId, recipeId);
+    return response;
   }
 }

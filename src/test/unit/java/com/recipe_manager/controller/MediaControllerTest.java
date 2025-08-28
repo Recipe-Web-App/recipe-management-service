@@ -4,6 +4,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -22,6 +23,7 @@ import com.recipe_manager.exception.ResourceNotFoundException;
 import com.recipe_manager.model.dto.media.MediaDto;
 import com.recipe_manager.model.dto.request.CreateMediaRequest;
 import com.recipe_manager.model.dto.response.CreateMediaResponse;
+import com.recipe_manager.model.dto.response.DeleteMediaResponse;
 import com.recipe_manager.model.enums.MediaType;
 import com.recipe_manager.model.enums.ProcessingStatus;
 import com.recipe_manager.service.MediaService;
@@ -642,5 +644,142 @@ class MediaControllerTest {
         .andExpect(jsonPath("$.message").value("You don't have permission to access this resource"));
 
     verify(mediaService).createStepMedia(eq(recipeId), eq(stepId), any(CreateMediaRequest.class), any(MultipartFile.class));
+  }
+
+  @Test
+  void deleteRecipeMedia_Success() throws Exception {
+    // Arrange
+    Long mediaId = 100L;
+    DeleteMediaResponse response = DeleteMediaResponse.builder()
+        .success(true)
+        .message("Media successfully deleted from recipe")
+        .mediaId(mediaId)
+        .build();
+
+    when(mediaService.deleteRecipeMedia(eq(recipeId), eq(mediaId))).thenReturn(response);
+
+    // Act & Assert
+    mockMvc
+        .perform(delete("/recipe-management/recipes/{recipeId}/media/{mediaId}", recipeId, mediaId))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.success").value(true))
+        .andExpect(jsonPath("$.message").value("Media successfully deleted from recipe"))
+        .andExpect(jsonPath("$.mediaId").value(100));
+
+    verify(mediaService).deleteRecipeMedia(eq(recipeId), eq(mediaId));
+  }
+
+  @Test
+  void deleteRecipeMedia_RecipeNotFound() throws Exception {
+    // Arrange
+    Long mediaId = 100L;
+    when(mediaService.deleteRecipeMedia(eq(recipeId), eq(mediaId)))
+        .thenThrow(ResourceNotFoundException.forEntity("Recipe", recipeId));
+
+    // Act & Assert
+    mockMvc
+        .perform(delete("/recipe-management/recipes/{recipeId}/media/{mediaId}", recipeId, mediaId))
+        .andExpect(status().isNotFound())
+        .andExpect(jsonPath("$.message").value("Recipe with identifier '123' was not found"));
+
+    verify(mediaService).deleteRecipeMedia(eq(recipeId), eq(mediaId));
+  }
+
+  @Test
+  void deleteRecipeMedia_AccessDenied() throws Exception {
+    // Arrange
+    Long mediaId = 100L;
+    when(mediaService.deleteRecipeMedia(eq(recipeId), eq(mediaId)))
+        .thenThrow(new AccessDeniedException("You don't have permission to delete media from this recipe"));
+
+    // Act & Assert
+    mockMvc
+        .perform(delete("/recipe-management/recipes/{recipeId}/media/{mediaId}", recipeId, mediaId))
+        .andExpect(status().isForbidden())
+        .andExpect(jsonPath("$.message").value("You don't have permission to access this resource"));
+
+    verify(mediaService).deleteRecipeMedia(eq(recipeId), eq(mediaId));
+  }
+
+  @Test
+  void deleteIngredientMedia_Success() throws Exception {
+    // Arrange
+    Long mediaId = 100L;
+    DeleteMediaResponse response = DeleteMediaResponse.builder()
+        .success(true)
+        .message("Media successfully deleted from ingredient")
+        .mediaId(mediaId)
+        .build();
+
+    when(mediaService.deleteIngredientMedia(eq(recipeId), eq(ingredientId), eq(mediaId))).thenReturn(response);
+
+    // Act & Assert
+    mockMvc
+        .perform(delete("/recipe-management/recipes/{recipeId}/ingredients/{ingredientId}/media/{mediaId}",
+                 recipeId, ingredientId, mediaId))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.success").value(true))
+        .andExpect(jsonPath("$.message").value("Media successfully deleted from ingredient"))
+        .andExpect(jsonPath("$.mediaId").value(100));
+
+    verify(mediaService).deleteIngredientMedia(eq(recipeId), eq(ingredientId), eq(mediaId));
+  }
+
+  @Test
+  void deleteIngredientMedia_RecipeNotFound() throws Exception {
+    // Arrange
+    Long mediaId = 100L;
+    when(mediaService.deleteIngredientMedia(eq(recipeId), eq(ingredientId), eq(mediaId)))
+        .thenThrow(ResourceNotFoundException.forEntity("Recipe", recipeId));
+
+    // Act & Assert
+    mockMvc
+        .perform(delete("/recipe-management/recipes/{recipeId}/ingredients/{ingredientId}/media/{mediaId}",
+                 recipeId, ingredientId, mediaId))
+        .andExpect(status().isNotFound())
+        .andExpect(jsonPath("$.message").value("Recipe with identifier '123' was not found"));
+
+    verify(mediaService).deleteIngredientMedia(eq(recipeId), eq(ingredientId), eq(mediaId));
+  }
+
+  @Test
+  void deleteStepMedia_Success() throws Exception {
+    // Arrange
+    Long mediaId = 100L;
+    DeleteMediaResponse response = DeleteMediaResponse.builder()
+        .success(true)
+        .message("Media successfully deleted from step")
+        .mediaId(mediaId)
+        .build();
+
+    when(mediaService.deleteStepMedia(eq(recipeId), eq(stepId), eq(mediaId))).thenReturn(response);
+
+    // Act & Assert
+    mockMvc
+        .perform(delete("/recipe-management/recipes/{recipeId}/steps/{stepId}/media/{mediaId}",
+                 recipeId, stepId, mediaId))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.success").value(true))
+        .andExpect(jsonPath("$.message").value("Media successfully deleted from step"))
+        .andExpect(jsonPath("$.mediaId").value(100));
+
+    verify(mediaService).deleteStepMedia(eq(recipeId), eq(stepId), eq(mediaId));
+  }
+
+  @Test
+  void deleteStepMedia_AccessDenied() throws Exception {
+    // Arrange
+    Long mediaId = 100L;
+    when(mediaService.deleteStepMedia(eq(recipeId), eq(stepId), eq(mediaId)))
+        .thenThrow(new AccessDeniedException("You don't have permission to delete media from this recipe"));
+
+    // Act & Assert
+    mockMvc
+        .perform(delete("/recipe-management/recipes/{recipeId}/steps/{stepId}/media/{mediaId}",
+                 recipeId, stepId, mediaId))
+        .andExpect(status().isForbidden())
+        .andExpect(jsonPath("$.message").value("You don't have permission to access this resource"));
+
+    verify(mediaService).deleteStepMedia(eq(recipeId), eq(stepId), eq(mediaId));
   }
 }

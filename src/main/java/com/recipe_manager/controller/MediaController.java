@@ -5,6 +5,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -16,6 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.recipe_manager.model.dto.media.MediaDto;
 import com.recipe_manager.model.dto.request.CreateMediaRequest;
 import com.recipe_manager.model.dto.response.CreateMediaResponse;
+import com.recipe_manager.model.dto.response.DeleteMediaResponse;
 import com.recipe_manager.service.MediaService;
 
 import lombok.RequiredArgsConstructor;
@@ -210,6 +212,72 @@ public class MediaController {
 
     final CreateMediaResponse response =
         mediaService.createStepMedia(recipeId, stepId, request, file);
+    return ResponseEntity.ok(response);
+  }
+
+  /**
+   * Deletes media associated with a specific recipe.
+   *
+   * @param recipeId the ID of the recipe containing the media
+   * @param mediaId the ID of the media to delete
+   * @return the delete media response
+   */
+  @DeleteMapping(
+      value = "/recipes/{recipeId}/media/{mediaId}",
+      produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<DeleteMediaResponse> deleteRecipeMedia(
+      @PathVariable("recipeId") final Long recipeId, @PathVariable("mediaId") final Long mediaId) {
+    log.info("Request to delete media ID: {} from recipe ID: {}", mediaId, recipeId);
+    final DeleteMediaResponse response = mediaService.deleteRecipeMedia(recipeId, mediaId);
+    return ResponseEntity.ok(response);
+  }
+
+  /**
+   * Deletes media associated with a specific ingredient within a recipe.
+   *
+   * @param recipeId the ID of the recipe containing the ingredient
+   * @param ingredientId the ID of the ingredient containing the media
+   * @param mediaId the ID of the media to delete
+   * @return the delete media response
+   */
+  @DeleteMapping(
+      value = "/recipes/{recipeId}/ingredients/{ingredientId}/media/{mediaId}",
+      produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<DeleteMediaResponse> deleteIngredientMedia(
+      @PathVariable("recipeId") final Long recipeId,
+      @PathVariable("ingredientId") final Long ingredientId,
+      @PathVariable("mediaId") final Long mediaId) {
+    log.info(
+        "Request to delete media ID: {} from ingredient ID: {} in recipe ID: {}",
+        mediaId,
+        ingredientId,
+        recipeId);
+    final DeleteMediaResponse response =
+        mediaService.deleteIngredientMedia(recipeId, ingredientId, mediaId);
+    return ResponseEntity.ok(response);
+  }
+
+  /**
+   * Deletes media associated with a specific step within a recipe.
+   *
+   * @param recipeId the ID of the recipe containing the step
+   * @param stepId the ID of the step containing the media
+   * @param mediaId the ID of the media to delete
+   * @return the delete media response
+   */
+  @DeleteMapping(
+      value = "/recipes/{recipeId}/steps/{stepId}/media/{mediaId}",
+      produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<DeleteMediaResponse> deleteStepMedia(
+      @PathVariable("recipeId") final Long recipeId,
+      @PathVariable("stepId") final Long stepId,
+      @PathVariable("mediaId") final Long mediaId) {
+    log.info(
+        "Request to delete media ID: {} from step ID: {} in recipe ID: {}",
+        mediaId,
+        stepId,
+        recipeId);
+    final DeleteMediaResponse response = mediaService.deleteStepMedia(recipeId, stepId, mediaId);
     return ResponseEntity.ok(response);
   }
 }

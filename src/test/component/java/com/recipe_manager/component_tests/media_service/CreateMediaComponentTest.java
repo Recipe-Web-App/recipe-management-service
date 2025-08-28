@@ -2,11 +2,14 @@ package com.recipe_manager.component_tests.media_service;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -22,10 +25,13 @@ import org.springframework.test.context.TestPropertySource;
 
 import com.recipe_manager.component_tests.AbstractComponentTest;
 import com.recipe_manager.model.dto.external.mediamanager.response.UploadMediaResponseDto;
+import com.recipe_manager.model.dto.response.DeleteMediaResponse;
 import com.recipe_manager.model.entity.media.IngredientMedia;
+import com.recipe_manager.model.entity.media.IngredientMediaId;
 import com.recipe_manager.model.entity.media.Media;
 import com.recipe_manager.model.entity.media.RecipeMedia;
 import com.recipe_manager.model.entity.media.StepMedia;
+import com.recipe_manager.model.entity.media.StepMediaId;
 import com.recipe_manager.model.entity.recipe.Recipe;
 import com.recipe_manager.model.enums.MediaType;
 import com.recipe_manager.model.enums.ProcessingStatus;
@@ -378,6 +384,101 @@ class CreateMediaComponentTest extends AbstractComponentTest {
                   .param("fileSize", "9"))
           .andExpect(status().isForbidden())
           .andExpect(jsonPath("$.message").value("You don't have permission to access this resource"));
+    }
+  }
+
+  @Test
+  void deleteRecipeMedia_Success() throws Exception {
+    // Arrange
+    Long mediaId = 100L;
+    List<RecipeMedia> recipeMediaList = Arrays.asList(
+        RecipeMedia.builder().recipeId(recipeId).mediaId(mediaId).build());
+
+    try (MockedStatic<SecurityUtils> securityUtils = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(currentUserId);
+      when(recipeRepository.findById(recipeId)).thenReturn(Optional.of(recipe));
+      when(mediaRepository.findById(mediaId)).thenReturn(Optional.of(savedMedia));
+      when(recipeMediaRepository.findByRecipeId(recipeId)).thenReturn(recipeMediaList);
+      when(mediaManagerService.deleteMedia(mediaId)).thenReturn(CompletableFuture.completedFuture(null));
+
+      // Act & Assert
+      mockMvc
+          .perform(delete("/recipe-management/recipes/{recipeId}/media/{mediaId}", recipeId, mediaId))
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$.success").value(true))
+          .andExpect(jsonPath("$.message").value("Media successfully deleted from recipe"))
+          .andExpect(jsonPath("$.mediaId").value(100));
+    }
+  }
+
+  @Test
+  void deleteIngredientMedia_Success() throws Exception {
+    // Arrange
+    Long mediaId = 100L;
+    IngredientMediaId ingredientMediaId = IngredientMediaId.builder()
+        .ingredientId(ingredientId)
+        .mediaId(mediaId)
+        .build();
+
+    try (MockedStatic<SecurityUtils> securityUtils = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(currentUserId);
+      when(recipeRepository.findById(recipeId)).thenReturn(Optional.of(recipe));
+      when(mediaRepository.findById(mediaId)).thenReturn(Optional.of(savedMedia));
+      when(ingredientMediaRepository.existsById(ingredientMediaId)).thenReturn(true);
+      when(mediaManagerService.deleteMedia(mediaId)).thenReturn(CompletableFuture.completedFuture(null));
+
+      // Act & Assert
+      mockMvc
+          .perform(delete("/recipe-management/recipes/{recipeId}/ingredients/{ingredientId}/media/{mediaId}",
+                   recipeId, ingredientId, mediaId))
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$.success").value(true))
+          .andExpect(jsonPath("$.message").value("Media successfully deleted from ingredient"))
+          .andExpect(jsonPath("$.mediaId").value(100));
+    }
+  }
+
+  @Test
+  void deleteStepMedia_Success() throws Exception {
+    // Arrange
+    Long mediaId = 100L;
+    StepMediaId stepMediaId = StepMediaId.builder()
+        .stepId(stepId)
+        .mediaId(mediaId)
+        .build();
+
+    try (MockedStatic<SecurityUtils> securityUtils = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(currentUserId);
+      when(recipeRepository.findById(recipeId)).thenReturn(Optional.of(recipe));
+      when(mediaRepository.findById(mediaId)).thenReturn(Optional.of(savedMedia));
+      when(stepMediaRepository.existsById(stepMediaId)).thenReturn(true);
+      when(mediaManagerService.deleteMedia(mediaId)).thenReturn(CompletableFuture.completedFuture(null));
+
+      // Act & Assert
+      mockMvc
+          .perform(delete("/recipe-management/recipes/{recipeId}/steps/{stepId}/media/{mediaId}",
+                   recipeId, stepId, mediaId))
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$.success").value(true))
+          .andExpect(jsonPath("$.message").value("Media successfully deleted from step"))
+          .andExpect(jsonPath("$.mediaId").value(100));
+    }
+  }
+
+  @Test
+  void deleteRecipeMedia_RecipeNotFound() throws Exception {
+    // Arrange
+    Long mediaId = 100L;
+
+    try (MockedStatic<SecurityUtils> securityUtils = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(currentUserId);
+      when(recipeRepository.findById(recipeId)).thenReturn(Optional.empty());
+
+      // Act & Assert
+      mockMvc
+          .perform(delete("/recipe-management/recipes/{recipeId}/media/{mediaId}", recipeId, mediaId))
+          .andExpect(status().isNotFound())
+          .andExpect(jsonPath("$.message").value("Recipe with identifier '123' was not found"));
     }
   }
 }

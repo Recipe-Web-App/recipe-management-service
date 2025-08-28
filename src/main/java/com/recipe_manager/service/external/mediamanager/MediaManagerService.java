@@ -262,6 +262,49 @@ public class MediaManagerService {
   }
 
   /**
+   * Permanently delete a media file from the external media manager service.
+   *
+   * @param mediaId the unique identifier of the media file to delete
+   * @return CompletableFuture that completes when the deletion is finished
+   * @throws ExternalServiceException if the service is unavailable or returns an error
+   * @throws ExternalServiceTimeoutException if the request times out
+   * @throws MediaManagerException if there is an error processing the deletion request
+   */
+  @CircuitBreaker(name = CIRCUIT_BREAKER_NAME, fallbackMethod = "deleteMediaFallback")
+  @Retry(name = RETRY_NAME)
+  @TimeLimiter(name = CIRCUIT_BREAKER_NAME)
+  public CompletableFuture<Void> deleteMedia(final Long mediaId) {
+    return CompletableFuture.supplyAsync(
+        () -> {
+          setupMDC("deleteMedia");
+          MDC.put("mediaId", String.valueOf(mediaId));
+
+          if (!externalServicesConfig.getMediaManager().getEnabled()) {
+            LOGGER.info(
+                "Media manager service is disabled, skipping media deletion for ID: {}", mediaId);
+            return null;
+          }
+
+          incrementCallsCounter();
+
+          try {
+            return executeWithTimer(
+                () -> {
+                  LOGGER.info("Deleting media file with ID: {}", mediaId);
+                  mediaManagerClient.deleteMedia(mediaId);
+                  LOGGER.info("Successfully deleted media file with ID: {}", mediaId);
+                  return null;
+                });
+          } catch (Exception e) {
+            return handleException(e, "media deletion", null);
+          } finally {
+            cleanupMDC();
+            MDC.remove("mediaId");
+          }
+        });
+  }
+
+  /**
    * Checks if the media manager service is currently available based on configuration.
    *
    * @return true if the service is available, false otherwise
@@ -410,5 +453,12 @@ public class MediaManagerService {
       final Integer limit, final Integer offset, final String status, final Exception exception) {
     return CompletableFuture.completedFuture(
         listMediaFallbackSync(limit, offset, status, exception));
+  }
+
+  public CompletableFuture<Void> deleteMediaFallback(
+      final Long mediaId, final Exception exception) {
+    LOGGER.error(
+        "Media manager service is unavailable for media deletion with ID: {}", mediaId, exception);
+    return CompletableFuture.completedFuture(null);
   }
 }

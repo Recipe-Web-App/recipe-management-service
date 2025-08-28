@@ -38,6 +38,7 @@ import com.recipe_manager.model.dto.external.mediamanager.response.UploadMediaRe
 import com.recipe_manager.model.dto.media.MediaDto;
 import com.recipe_manager.model.dto.request.CreateMediaRequest;
 import com.recipe_manager.model.dto.response.CreateMediaResponse;
+import com.recipe_manager.model.dto.response.DeleteMediaResponse;
 import com.recipe_manager.model.entity.media.IngredientMedia;
 import com.recipe_manager.model.entity.media.IngredientMediaId;
 import com.recipe_manager.model.entity.media.Media;
@@ -558,7 +559,7 @@ class MediaServiceTest {
               AccessDeniedException.class,
               () -> mediaService.createRecipeMedia(recipeId, request, file));
 
-      assertEquals("You don't have permission to add media to this recipe", exception.getMessage());
+      assertEquals("You don't have permission to POST this recipe", exception.getMessage());
     }
   }
 
@@ -690,7 +691,7 @@ class MediaServiceTest {
               AccessDeniedException.class,
               () -> mediaService.createIngredientMedia(recipeId, ingredientId, request, file));
 
-      assertEquals("You don't have permission to add media to this recipe", exception.getMessage());
+      assertEquals("You don't have permission to POST this recipe", exception.getMessage());
     }
   }
 
@@ -797,7 +798,208 @@ class MediaServiceTest {
               AccessDeniedException.class,
               () -> mediaService.createStepMedia(recipeId, stepId, request, file));
 
-      assertEquals("You don't have permission to add media to this recipe", exception.getMessage());
+      assertEquals("You don't have permission to POST this recipe", exception.getMessage());
+    }
+  }
+
+  @Test
+  void deleteRecipeMedia_Success() {
+    // Arrange
+    RecipeMedia recipeMedia = RecipeMedia.builder()
+        .recipeId(recipeId)
+        .mediaId(mediaId1)
+        .build();
+    List<RecipeMedia> recipeMediaList = Arrays.asList(recipeMedia);
+
+    try (MockedStatic<SecurityUtils> securityUtils = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(currentUserId);
+      when(recipeRepository.findById(recipeId)).thenReturn(Optional.of(recipe));
+      when(mediaRepository.findById(mediaId1)).thenReturn(Optional.of(media1));
+      when(recipeMediaRepository.findByRecipeId(recipeId)).thenReturn(recipeMediaList);
+      when(mediaManagerService.deleteMedia(mediaId1)).thenReturn(CompletableFuture.completedFuture(null));
+
+      // Act
+      DeleteMediaResponse response = mediaService.deleteRecipeMedia(recipeId, mediaId1);
+
+      // Assert
+      assertNotNull(response);
+      assertEquals(true, response.isSuccess());
+      assertEquals("Media successfully deleted from recipe", response.getMessage());
+      assertEquals(mediaId1, response.getMediaId());
+
+      verify(mediaManagerService).deleteMedia(mediaId1);
+      verify(recipeMediaRepository).deleteByMediaId(mediaId1);
+      verify(mediaRepository).deleteById(mediaId1);
+    }
+  }
+
+  @Test
+  void deleteRecipeMedia_RecipeNotFound() {
+    // Arrange
+    try (MockedStatic<SecurityUtils> securityUtils = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(currentUserId);
+      when(recipeRepository.findById(recipeId)).thenReturn(Optional.empty());
+
+      // Act & Assert
+      ResourceNotFoundException exception =
+          assertThrows(
+              ResourceNotFoundException.class,
+              () -> mediaService.deleteRecipeMedia(recipeId, mediaId1));
+
+      assertEquals("Recipe with identifier '123' was not found", exception.getMessage());
+    }
+  }
+
+  @Test
+  void deleteRecipeMedia_MediaNotFound() {
+    // Arrange
+    try (MockedStatic<SecurityUtils> securityUtils = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(currentUserId);
+      when(recipeRepository.findById(recipeId)).thenReturn(Optional.of(recipe));
+      when(mediaRepository.findById(mediaId1)).thenReturn(Optional.empty());
+
+      // Act & Assert
+      ResourceNotFoundException exception =
+          assertThrows(
+              ResourceNotFoundException.class,
+              () -> mediaService.deleteRecipeMedia(recipeId, mediaId1));
+
+      assertEquals("Media with identifier '1' was not found", exception.getMessage());
+    }
+  }
+
+  @Test
+  void deleteRecipeMedia_AccessDenied_RecipeNotOwned() {
+    // Arrange
+    Recipe differentUserRecipe = Recipe.builder()
+        .recipeId(recipeId)
+        .userId(differentUserId)
+        .title("Test Recipe")
+        .build();
+
+    try (MockedStatic<SecurityUtils> securityUtils = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(currentUserId);
+      when(recipeRepository.findById(recipeId)).thenReturn(Optional.of(differentUserRecipe));
+
+      // Act & Assert
+      AccessDeniedException exception =
+          assertThrows(
+              AccessDeniedException.class,
+              () -> mediaService.deleteRecipeMedia(recipeId, mediaId1));
+
+      assertEquals("You don't have permission to DELETE this recipe", exception.getMessage());
+    }
+  }
+
+  @Test
+  void deleteRecipeMedia_AccessDenied_MediaNotOwned() {
+    // Arrange
+    Media differentUserMedia = Media.builder()
+        .mediaId(mediaId1)
+        .userId(differentUserId)
+        .mediaType(MediaType.IMAGE_JPEG)
+        .mediaPath("/path/to/media1.jpg")
+        .fileSize(1024L)
+        .contentHash("abc123")
+        .originalFilename("test1.jpg")
+        .processingStatus(ProcessingStatus.COMPLETE)
+        .createdAt(LocalDateTime.now())
+        .updatedAt(LocalDateTime.now())
+        .build();
+
+    try (MockedStatic<SecurityUtils> securityUtils = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(currentUserId);
+      when(recipeRepository.findById(recipeId)).thenReturn(Optional.of(recipe));
+      when(mediaRepository.findById(mediaId1)).thenReturn(Optional.of(differentUserMedia));
+
+      // Act & Assert
+      AccessDeniedException exception =
+          assertThrows(
+              AccessDeniedException.class,
+              () -> mediaService.deleteRecipeMedia(recipeId, mediaId1));
+
+      assertEquals("You don't have permission to DELETE this media", exception.getMessage());
+    }
+  }
+
+  @Test
+  void deleteRecipeMedia_MediaNotAssociatedWithRecipe() {
+    // Arrange - empty recipe media list means no association
+    List<RecipeMedia> emptyRecipeMediaList = Collections.emptyList();
+
+    try (MockedStatic<SecurityUtils> securityUtils = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(currentUserId);
+      when(recipeRepository.findById(recipeId)).thenReturn(Optional.of(recipe));
+      when(mediaRepository.findById(mediaId1)).thenReturn(Optional.of(media1));
+      when(recipeMediaRepository.findByRecipeId(recipeId)).thenReturn(emptyRecipeMediaList);
+
+      // Act & Assert
+      ResourceNotFoundException exception =
+          assertThrows(
+              ResourceNotFoundException.class,
+              () -> mediaService.deleteRecipeMedia(recipeId, mediaId1));
+
+      assertEquals("Media with ID 1 is not associated with recipe 123", exception.getMessage());
+    }
+  }
+
+  @Test
+  void deleteIngredientMedia_Success() {
+    // Arrange
+    IngredientMediaId ingredientMediaId = IngredientMediaId.builder()
+        .ingredientId(ingredientId)
+        .mediaId(mediaId1)
+        .build();
+
+    try (MockedStatic<SecurityUtils> securityUtils = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(currentUserId);
+      when(recipeRepository.findById(recipeId)).thenReturn(Optional.of(recipe));
+      when(mediaRepository.findById(mediaId1)).thenReturn(Optional.of(media1));
+      when(ingredientMediaRepository.existsById(ingredientMediaId)).thenReturn(true);
+      when(mediaManagerService.deleteMedia(mediaId1)).thenReturn(CompletableFuture.completedFuture(null));
+
+      // Act
+      DeleteMediaResponse response = mediaService.deleteIngredientMedia(recipeId, ingredientId, mediaId1);
+
+      // Assert
+      assertNotNull(response);
+      assertEquals(true, response.isSuccess());
+      assertEquals("Media successfully deleted from ingredient", response.getMessage());
+      assertEquals(mediaId1, response.getMediaId());
+
+      verify(mediaManagerService).deleteMedia(mediaId1);
+      verify(ingredientMediaRepository).deleteByIdMediaId(mediaId1);
+      verify(mediaRepository).deleteById(mediaId1);
+    }
+  }
+
+  @Test
+  void deleteStepMedia_Success() {
+    // Arrange
+    StepMediaId stepMediaId = StepMediaId.builder()
+        .stepId(stepId)
+        .mediaId(mediaId1)
+        .build();
+
+    try (MockedStatic<SecurityUtils> securityUtils = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(currentUserId);
+      when(recipeRepository.findById(recipeId)).thenReturn(Optional.of(recipe));
+      when(mediaRepository.findById(mediaId1)).thenReturn(Optional.of(media1));
+      when(stepMediaRepository.existsById(stepMediaId)).thenReturn(true);
+      when(mediaManagerService.deleteMedia(mediaId1)).thenReturn(CompletableFuture.completedFuture(null));
+
+      // Act
+      DeleteMediaResponse response = mediaService.deleteStepMedia(recipeId, stepId, mediaId1);
+
+      // Assert
+      assertNotNull(response);
+      assertEquals(true, response.isSuccess());
+      assertEquals("Media successfully deleted from step", response.getMessage());
+      assertEquals(mediaId1, response.getMediaId());
+
+      verify(mediaManagerService).deleteMedia(mediaId1);
+      verify(stepMediaRepository).deleteByIdMediaId(mediaId1);
+      verify(mediaRepository).deleteById(mediaId1);
     }
   }
 }

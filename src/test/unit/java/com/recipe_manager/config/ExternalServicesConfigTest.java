@@ -18,6 +18,9 @@ import org.springframework.test.context.TestPropertySource;
     "external.services.recipe-scraper.apiKey=test-api-key",
     "external.services.recipe-scraper.shoppingInfoPath=/api/recipe-scraper/{recipeId}/shopping-info",
     "external.services.recipe-scraper.enabled=true",
+    "external.services.media-manager.baseUrl=http://test-media:3000",
+    "external.services.media-manager.timeout=PT5S",
+    "external.services.media-manager.enabled=true",
     "external.services.common.connectTimeout=PT3S",
     "external.services.common.readTimeout=PT10S"
 })
@@ -53,10 +56,24 @@ class ExternalServicesConfigTest {
   }
 
   @Test
+  @DisplayName("Should load media manager configuration properties")
+  void shouldLoadMediaManagerConfig() {
+    assertAll(
+        () -> assertThat(config.getMediaManager().getBaseUrl())
+            .isEqualTo("http://test-media:3000"),
+        () -> assertThat(config.getMediaManager().getTimeout())
+            .isEqualTo(Duration.ofSeconds(5)),
+        () -> assertThat(config.getMediaManager().getEnabled())
+            .isTrue());
+  }
+
+  @Test
   @DisplayName("Should validate timeout durations")
   void shouldValidateTimeoutDurations() {
     assertAll(
         () -> assertThat(config.getRecipeScraper().getTimeout())
+            .isGreaterThan(Duration.ZERO),
+        () -> assertThat(config.getMediaManager().getTimeout())
             .isGreaterThan(Duration.ZERO),
         () -> assertThat(config.getCommon().getConnectTimeout())
             .isGreaterThan(Duration.ZERO),

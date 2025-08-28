@@ -27,6 +27,9 @@ public class ExternalServicesConfig {
   /** Recipe scraper service configuration. */
   @Valid @NotNull private RecipeScraperConfig recipeScraper = new RecipeScraperConfig();
 
+  /** Media manager service configuration. */
+  @Valid @NotNull private MediaManagerConfig mediaManager = new MediaManagerConfig();
+
   /** Common configuration for all external services. */
   @Valid @NotNull private CommonConfig common = new CommonConfig();
 
@@ -46,6 +49,18 @@ public class ExternalServicesConfig {
 
     /** API key for authentication (if required). */
     private String apiKey;
+  }
+
+  @Data
+  public static class MediaManagerConfig {
+    /** Base URL for the media manager service. */
+    @NotBlank private String baseUrl;
+
+    /** Whether the service is enabled. */
+    @NotNull private Boolean enabled;
+
+    /** Request timeout for this service. */
+    @NotNull private Duration timeout;
   }
 
   @Data

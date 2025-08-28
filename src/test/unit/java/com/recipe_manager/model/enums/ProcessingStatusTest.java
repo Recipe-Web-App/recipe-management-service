@@ -21,12 +21,14 @@ class ProcessingStatusTest {
 
     // Then
     assertThat(values)
-        .hasSize(4)
+        .hasSize(6)
         .containsExactlyInAnyOrder(
-            ProcessingStatus.PENDING,
+            ProcessingStatus.INITIATED,
+            ProcessingStatus.UPLOADING,
             ProcessingStatus.PROCESSING,
             ProcessingStatus.COMPLETE,
-            ProcessingStatus.FAILED);
+            ProcessingStatus.FAILED,
+            ProcessingStatus.EXPIRED);
   }
 
   @Test
@@ -34,10 +36,12 @@ class ProcessingStatusTest {
   @Tag("standard-processing")
   void shouldHaveCorrectOrdinalValues() {
     // Then
-    assertThat(ProcessingStatus.PENDING.ordinal()).isZero();
-    assertThat(ProcessingStatus.PROCESSING.ordinal()).isEqualTo(1);
-    assertThat(ProcessingStatus.COMPLETE.ordinal()).isEqualTo(2);
-    assertThat(ProcessingStatus.FAILED.ordinal()).isEqualTo(3);
+    assertThat(ProcessingStatus.INITIATED.ordinal()).isZero();
+    assertThat(ProcessingStatus.UPLOADING.ordinal()).isEqualTo(1);
+    assertThat(ProcessingStatus.PROCESSING.ordinal()).isEqualTo(2);
+    assertThat(ProcessingStatus.COMPLETE.ordinal()).isEqualTo(3);
+    assertThat(ProcessingStatus.FAILED.ordinal()).isEqualTo(4);
+    assertThat(ProcessingStatus.EXPIRED.ordinal()).isEqualTo(5);
   }
 
   @Test
@@ -45,16 +49,20 @@ class ProcessingStatusTest {
   @Tag("standard-processing")
   void shouldConvertFromStringCorrectly() {
     // Given
-    String pendingString = "PENDING";
+    String initiatingString = "INITIATED";
+    String uploadingString = "UPLOADING";
     String processingString = "PROCESSING";
     String completeString = "COMPLETE";
     String failedString = "FAILED";
+    String expiredString = "EXPIRED";
 
     // When & Then
-    assertThat(ProcessingStatus.valueOf(pendingString)).isEqualTo(ProcessingStatus.PENDING);
+    assertThat(ProcessingStatus.valueOf(initiatingString)).isEqualTo(ProcessingStatus.INITIATED);
+    assertThat(ProcessingStatus.valueOf(uploadingString)).isEqualTo(ProcessingStatus.UPLOADING);
     assertThat(ProcessingStatus.valueOf(processingString)).isEqualTo(ProcessingStatus.PROCESSING);
     assertThat(ProcessingStatus.valueOf(completeString)).isEqualTo(ProcessingStatus.COMPLETE);
     assertThat(ProcessingStatus.valueOf(failedString)).isEqualTo(ProcessingStatus.FAILED);
+    assertThat(ProcessingStatus.valueOf(expiredString)).isEqualTo(ProcessingStatus.EXPIRED);
   }
 
   @Test
@@ -62,10 +70,12 @@ class ProcessingStatusTest {
   @Tag("standard-processing")
   void shouldHaveCorrectStringRepresentation() {
     // Then
-    assertThat(ProcessingStatus.PENDING.name()).isEqualTo("PENDING");
+    assertThat(ProcessingStatus.INITIATED.name()).isEqualTo("INITIATED");
+    assertThat(ProcessingStatus.UPLOADING.name()).isEqualTo("UPLOADING");
     assertThat(ProcessingStatus.PROCESSING.name()).isEqualTo("PROCESSING");
     assertThat(ProcessingStatus.COMPLETE.name()).isEqualTo("COMPLETE");
     assertThat(ProcessingStatus.FAILED.name()).isEqualTo("FAILED");
+    assertThat(ProcessingStatus.EXPIRED.name()).isEqualTo("EXPIRED");
   }
 
   @Test
@@ -73,16 +83,46 @@ class ProcessingStatusTest {
   @Tag("standard-processing")
   void shouldBeDistinctStatuses() {
     // Then
-    assertThat(ProcessingStatus.PENDING)
+    assertThat(ProcessingStatus.INITIATED)
+        .isNotEqualTo(ProcessingStatus.UPLOADING)
         .isNotEqualTo(ProcessingStatus.PROCESSING)
         .isNotEqualTo(ProcessingStatus.COMPLETE)
-        .isNotEqualTo(ProcessingStatus.FAILED);
+        .isNotEqualTo(ProcessingStatus.FAILED)
+        .isNotEqualTo(ProcessingStatus.EXPIRED);
+
+    assertThat(ProcessingStatus.UPLOADING)
+        .isNotEqualTo(ProcessingStatus.INITIATED)
+        .isNotEqualTo(ProcessingStatus.PROCESSING)
+        .isNotEqualTo(ProcessingStatus.COMPLETE)
+        .isNotEqualTo(ProcessingStatus.FAILED)
+        .isNotEqualTo(ProcessingStatus.EXPIRED);
 
     assertThat(ProcessingStatus.PROCESSING)
+        .isNotEqualTo(ProcessingStatus.INITIATED)
+        .isNotEqualTo(ProcessingStatus.UPLOADING)
         .isNotEqualTo(ProcessingStatus.COMPLETE)
-        .isNotEqualTo(ProcessingStatus.FAILED);
+        .isNotEqualTo(ProcessingStatus.FAILED)
+        .isNotEqualTo(ProcessingStatus.EXPIRED);
 
     assertThat(ProcessingStatus.COMPLETE)
+        .isNotEqualTo(ProcessingStatus.INITIATED)
+        .isNotEqualTo(ProcessingStatus.UPLOADING)
+        .isNotEqualTo(ProcessingStatus.PROCESSING)
+        .isNotEqualTo(ProcessingStatus.FAILED)
+        .isNotEqualTo(ProcessingStatus.EXPIRED);
+
+    assertThat(ProcessingStatus.FAILED)
+        .isNotEqualTo(ProcessingStatus.INITIATED)
+        .isNotEqualTo(ProcessingStatus.UPLOADING)
+        .isNotEqualTo(ProcessingStatus.PROCESSING)
+        .isNotEqualTo(ProcessingStatus.COMPLETE)
+        .isNotEqualTo(ProcessingStatus.EXPIRED);
+
+    assertThat(ProcessingStatus.EXPIRED)
+        .isNotEqualTo(ProcessingStatus.INITIATED)
+        .isNotEqualTo(ProcessingStatus.UPLOADING)
+        .isNotEqualTo(ProcessingStatus.PROCESSING)
+        .isNotEqualTo(ProcessingStatus.COMPLETE)
         .isNotEqualTo(ProcessingStatus.FAILED);
   }
 }

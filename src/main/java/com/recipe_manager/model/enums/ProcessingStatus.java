@@ -5,12 +5,16 @@ package com.recipe_manager.model.enums;
  * the database.
  */
 public enum ProcessingStatus {
-  /** Media is pending processing. */
-  PENDING,
-  /** Media is currently being processed. */
+  /** Media upload initiated but not started. */
+  INITIATED,
+  /** Media upload in progress. */
+  UPLOADING,
+  /** Media upload is processing. */
   PROCESSING,
-  /** Media processing completed successfully. */
+  /** Media upload completed successfully. */
   COMPLETE,
-  /** Media processing failed. */
-  FAILED
+  /** Media upload failed. */
+  FAILED,
+  /** Media upload session expired. */
+  EXPIRED
 }

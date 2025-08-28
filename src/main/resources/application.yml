@@ -142,6 +142,10 @@ external:
       enabled: ${RECIPE_SCRAPER_ENABLED:true}
       timeout: ${RECIPE_SCRAPER_TIMEOUT:5s}
       api-key: ${RECIPE_SCRAPER_API_KEY:}
+    media-manager:
+      base-url: ${MEDIA_MANAGER_BASE_URL:http://media-management.local/api/v1/media-management}
+      enabled: ${MEDIA_MANAGER_ENABLED:true}
+      timeout: ${MEDIA_MANAGER_TIMEOUT:5s}
     common:
       connect-timeout: ${EXTERNAL_SERVICES_CONNECT_TIMEOUT:3s}
       read-timeout: ${EXTERNAL_SERVICES_READ_TIMEOUT:10s}
@@ -195,9 +199,35 @@ resilience4j:
           - feign.FeignException
         ignore-exceptions:
           - java.lang.IllegalArgumentException
+      media-manager:
+        failure-rate-threshold: ${CIRCUIT_BREAKER_FAILURE_RATE:50.0}
+        wait-duration-in-open-state: ${CIRCUIT_BREAKER_WAIT_DURATION:30s}
+        sliding-window-size: ${CIRCUIT_BREAKER_SLIDING_WINDOW:10}
+        minimum-number-of-calls: ${CIRCUIT_BREAKER_MIN_CALLS:5}
+        permitted-number-of-calls-in-half-open-state: ${CIRCUIT_BREAKER_HALF_OPEN_CALLS:3}
+        register-health-indicator: true
+        record-exceptions:
+          - com.recipe_manager.exception.ExternalServiceException
+          - feign.FeignException
+        ignore-exceptions:
+          - java.lang.IllegalArgumentException
   retry:
     instances:
       recipe-scraper:
+        max-attempts: ${RETRY_MAX_ATTEMPTS:3}
+        wait-duration: ${RETRY_WAIT_DURATION:500ms}
+        exponential-backoff-multiplier: ${RETRY_BACKOFF_MULTIPLIER:2.0}
+        max-wait-duration: ${RETRY_MAX_WAIT_DURATION:5s}
+        retry-exceptions:
+          - com.recipe_manager.exception.ExternalServiceTimeoutException
+          - feign.FeignException$InternalServerError
+          - feign.FeignException$BadGateway
+          - feign.FeignException$ServiceUnavailable
+          - feign.FeignException$GatewayTimeout
+        ignore-exceptions:
+          - feign.FeignException$BadRequest
+          - feign.FeignException$NotFound
+      media-manager:
         max-attempts: ${RETRY_MAX_ATTEMPTS:3}
         wait-duration: ${RETRY_WAIT_DURATION:500ms}
         exponential-backoff-multiplier: ${RETRY_BACKOFF_MULTIPLIER:2.0}
@@ -216,8 +246,14 @@ resilience4j:
       recipe-scraper:
         timeout-duration: ${RECIPE_SCRAPER_TIMEOUT:5s}
         cancel-running-future: true
+      media-manager:
+        timeout-duration: ${MEDIA_MANAGER_TIMEOUT:5s}
+        cancel-running-future: true
   bulkhead:
     instances:
       recipe-scraper:
+        max-concurrent-calls: ${BULKHEAD_MAX_CALLS:5}
+        max-wait-duration: ${BULKHEAD_MAX_WAIT:100ms}
+      media-manager:
         max-concurrent-calls: ${BULKHEAD_MAX_CALLS:5}
         max-wait-duration: ${BULKHEAD_MAX_WAIT:100ms}

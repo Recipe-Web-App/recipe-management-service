@@ -435,26 +435,60 @@ public class MediaManagerService {
     return java.util.Collections.emptyList();
   }
 
-  // Public fallback methods for Circuit Breaker
+  /**
+   * Fallback method for media manager health check.
+   *
+   * @param exception the original exception
+   * @return a completed future with the fallback response
+   */
   public CompletableFuture<HealthResponseDto> getHealthFallback(final Exception exception) {
     return CompletableFuture.completedFuture(getHealthFallbackSync(exception));
   }
 
+  /**
+   * Fallback method for media manager readiness check.
+   *
+   * @param exception the original exception
+   * @return a completed future with the fallback response
+   */
   public CompletableFuture<ReadinessResponseDto> getReadinessFallback(final Exception exception) {
     return CompletableFuture.completedFuture(getReadinessFallbackSync(exception));
   }
 
+  /**
+   * Fallback method for media manager upload.
+   *
+   * @param file the original file
+   * @param exception the original exception
+   * @return a completed future with the fallback response
+   */
   public CompletableFuture<UploadMediaResponseDto> uploadMediaFallback(
       final MultipartFile file, final Exception exception) {
     return CompletableFuture.completedFuture(uploadMediaFallbackSync(file, exception));
   }
 
+  /**
+   * Fallback method for media manager list media.
+   *
+   * @param limit the maximum number of media items to return
+   * @param offset the offset for pagination
+   * @param status the status filter for media items
+   * @param exception the original exception
+   * @return a completed future with the fallback response
+   */
   public CompletableFuture<List<MediaDto>> listMediaFallback(
       final Integer limit, final Integer offset, final String status, final Exception exception) {
     return CompletableFuture.completedFuture(
         listMediaFallbackSync(limit, offset, status, exception));
   }
 
+  /**
+   * Fallback method for media manager deletion.
+   *
+   * @param mediaId the ID of the media item to delete
+   * @param exception the original exception
+   * @return a completed future with the fallback response
+   */
   public CompletableFuture<Void> deleteMediaFallback(
       final Long mediaId, final Exception exception) {
     LOGGER.error(

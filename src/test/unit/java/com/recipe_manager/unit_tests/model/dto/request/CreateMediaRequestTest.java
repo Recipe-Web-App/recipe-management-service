@@ -1,16 +1,20 @@
 package com.recipe_manager.unit_tests.model.dto.request;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Set;
 import java.util.UUID;
 
+import com.recipe_manager.model.dto.request.CreateMediaRequest;
+import com.recipe_manager.model.enums.MediaType;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-
-import com.recipe_manager.model.dto.request.CreateMediaRequest;
-import com.recipe_manager.model.enums.MediaType;
 
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
@@ -31,7 +35,6 @@ class CreateMediaRequestTest {
 
     testUserId = UUID.randomUUID();
     baseRequestBuilder = CreateMediaRequest.builder()
-        .userId(testUserId)
         .originalFilename("test-image.jpg")
         .mediaType(MediaType.IMAGE_JPEG)
         .fileSize(1024L)
@@ -46,12 +49,10 @@ class CreateMediaRequestTest {
 
     assertTrue(violations.isEmpty());
     assertAll("CreateMediaRequest fields",
-        () -> assertEquals(testUserId, request.getUserId()),
         () -> assertEquals("test-image.jpg", request.getOriginalFilename()),
         () -> assertEquals(MediaType.IMAGE_JPEG, request.getMediaType()),
         () -> assertEquals(1024L, request.getFileSize()),
-        () -> assertEquals("abc123", request.getContentHash())
-    );
+        () -> assertEquals("abc123", request.getContentHash()));
   }
 
   @Test
@@ -61,21 +62,9 @@ class CreateMediaRequestTest {
     Set<ConstraintViolation<CreateMediaRequest>> violations = validator.validate(request);
 
     assertFalse(violations.isEmpty());
-    assertTrue(violations.stream().anyMatch(v -> v.getPropertyPath().toString().equals("userId")));
     assertTrue(violations.stream().anyMatch(v -> v.getPropertyPath().toString().equals("originalFilename")));
     assertTrue(violations.stream().anyMatch(v -> v.getPropertyPath().toString().equals("mediaType")));
     assertTrue(violations.stream().anyMatch(v -> v.getPropertyPath().toString().equals("fileSize")));
-  }
-
-  @Test
-  void shouldRejectNullUserId() {
-    CreateMediaRequest request = baseRequestBuilder.userId(null).build();
-
-    Set<ConstraintViolation<CreateMediaRequest>> violations = validator.validate(request);
-
-    assertTrue(violations.stream().anyMatch(v ->
-        v.getPropertyPath().toString().equals("userId") &&
-        v.getMessage().contains("must not be null")));
   }
 
   @Test
@@ -84,8 +73,7 @@ class CreateMediaRequestTest {
 
     Set<ConstraintViolation<CreateMediaRequest>> violations = validator.validate(request);
 
-    assertTrue(violations.stream().anyMatch(v ->
-        v.getPropertyPath().toString().equals("originalFilename")));
+    assertTrue(violations.stream().anyMatch(v -> v.getPropertyPath().toString().equals("originalFilename")));
   }
 
   @Test
@@ -95,8 +83,7 @@ class CreateMediaRequestTest {
 
     Set<ConstraintViolation<CreateMediaRequest>> violations = validator.validate(request);
 
-    assertTrue(violations.stream().anyMatch(v ->
-        v.getPropertyPath().toString().equals("originalFilename") &&
+    assertTrue(violations.stream().anyMatch(v -> v.getPropertyPath().toString().equals("originalFilename") &&
         v.getMessage().contains("size must be between")));
   }
 
@@ -106,8 +93,7 @@ class CreateMediaRequestTest {
 
     Set<ConstraintViolation<CreateMediaRequest>> violations = validator.validate(request);
 
-    assertTrue(violations.stream().anyMatch(v ->
-        v.getPropertyPath().toString().equals("mediaType")));
+    assertTrue(violations.stream().anyMatch(v -> v.getPropertyPath().toString().equals("mediaType")));
   }
 
   @Test
@@ -116,14 +102,12 @@ class CreateMediaRequestTest {
 
     Set<ConstraintViolation<CreateMediaRequest>> violations = validator.validate(request);
 
-    assertTrue(violations.stream().anyMatch(v ->
-        v.getPropertyPath().toString().equals("fileSize")));
+    assertTrue(violations.stream().anyMatch(v -> v.getPropertyPath().toString().equals("fileSize")));
 
     request = baseRequestBuilder.fileSize(-1L).build();
     violations = validator.validate(request);
 
-    assertTrue(violations.stream().anyMatch(v ->
-        v.getPropertyPath().toString().equals("fileSize")));
+    assertTrue(violations.stream().anyMatch(v -> v.getPropertyPath().toString().equals("fileSize")));
   }
 
   @Test
@@ -133,8 +117,7 @@ class CreateMediaRequestTest {
 
     Set<ConstraintViolation<CreateMediaRequest>> violations = validator.validate(request);
 
-    assertTrue(violations.stream().anyMatch(v ->
-        v.getPropertyPath().toString().equals("contentHash")));
+    assertTrue(violations.stream().anyMatch(v -> v.getPropertyPath().toString().equals("contentHash")));
   }
 
   @Test
@@ -143,8 +126,7 @@ class CreateMediaRequestTest {
 
     Set<ConstraintViolation<CreateMediaRequest>> violations = validator.validate(request);
 
-    assertFalse(violations.stream().anyMatch(v ->
-        v.getPropertyPath().toString().equals("contentHash")));
+    assertFalse(violations.stream().anyMatch(v -> v.getPropertyPath().toString().equals("contentHash")));
   }
 
   @Test
@@ -168,8 +150,7 @@ class CreateMediaRequestTest {
         () -> assertEquals(request1, request2),
         () -> assertEquals(request1.hashCode(), request2.hashCode()),
         () -> assertNotEquals(request1, request3),
-        () -> assertNotEquals(request1.hashCode(), request3.hashCode())
-    );
+        () -> assertNotEquals(request1.hashCode(), request3.hashCode()));
   }
 
   @Test
@@ -178,10 +159,8 @@ class CreateMediaRequestTest {
     String toString = request.toString();
 
     assertAll("ToString contains key fields",
-        () -> assertTrue(toString.contains("userId=" + testUserId)),
         () -> assertTrue(toString.contains("originalFilename=test-image.jpg")),
         () -> assertTrue(toString.contains("mediaType=" + MediaType.IMAGE_JPEG)),
-        () -> assertTrue(toString.contains("fileSize=1024"))
-    );
+        () -> assertTrue(toString.contains("fileSize=1024")));
   }
 }

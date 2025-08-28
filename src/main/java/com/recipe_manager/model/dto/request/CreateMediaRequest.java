@@ -1,7 +1,5 @@
 package com.recipe_manager.model.dto.request;
 
-import java.util.UUID;
-
 import com.recipe_manager.model.enums.MediaType;
 
 import jakarta.validation.constraints.NotBlank;
@@ -19,7 +17,7 @@ import lombok.ToString;
 
 /**
  * Request DTO for creating new media. Contains the data needed to initiate media creation which
- * will be forwarded to the media-manager service.
+ * will be forwarded to the media-manager service. User ID is extracted from security context.
  */
 @Data
 @Getter
@@ -30,9 +28,6 @@ import lombok.ToString;
 @EqualsAndHashCode
 @ToString
 public final class CreateMediaRequest {
-  /** The user ID of the media owner. */
-  @NotNull private UUID userId;
-
   /** The original filename when uploaded. */
   @NotBlank
   @Size(max = 255)

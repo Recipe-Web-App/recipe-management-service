@@ -127,11 +127,33 @@ Ingredient management with comments, media, and utility features:
 
 ### 4. Recipe-Manager-Media Collection
 
-Media management for recipes, ingredients, and steps:
+Comprehensive media management for recipes, ingredients, and steps with
+external service integration:
 
-- **Recipe Media** - Add, update, delete media for recipes
-- **Ingredient Media** - Media operations for ingredients
-- **Step Media** - Media operations for cooking steps
+#### Recipe Media Operations
+
+- **Get Recipe Media** - Retrieve all media files associated with a recipe
+- **Create Recipe Media** - Upload media files (images/videos) for recipes
+- **Delete Recipe Media** - Remove media files from recipes
+
+#### Ingredient Media Operations
+
+- **Get Ingredient Media** - Retrieve media files for specific recipe ingredients
+- **Create Ingredient Media** - Upload instructional media for ingredient preparation
+- **Delete Ingredient Media** - Remove media files from ingredients
+
+#### Step Media Operations
+
+- **Get Step Media** - Retrieve media files for specific cooking steps
+- **Create Step Media** - Upload step-by-step visual guides and videos
+- **Delete Step Media** - Remove media files from cooking steps
+
+#### Media Features
+
+- **External Service Integration** - Seamless integration with media-management-service
+- **Content Validation** - Automatic file type and size validation
+- **Security** - User ownership validation for all media operations
+- **Multipart Upload** - Support for multipart form data file uploads
 
 ### 5. Recipe-Manager-Review Collection
 

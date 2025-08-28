@@ -6,6 +6,7 @@ Spring Boot, designed for cloud-native deployment on Kubernetes.
 ## Features
 
 - RESTful API for recipe management
+- Media management with external service integration
 - PostgreSQL database integration
 - Health checks and metrics
 - Containerized with Docker
@@ -240,6 +241,24 @@ curl -X POST \
   -H "Content-Type: application/json" \
   -d '{"name":"Pasta","description":"Delicious pasta recipe"}' \
   http://localhost:8080/api/v1/recipe-manager/recipes
+
+# Get recipe media (requires authentication)
+curl -H "Authorization: Bearer YOUR_TOKEN" \
+     http://localhost:8080/recipe-management/recipes/123/media
+
+# Upload media for recipe (requires authentication)
+curl -X POST \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -F "file=@photo.jpg" \
+  -F "originalFilename=recipe_photo.jpg" \
+  -F "mediaType=IMAGE_JPEG" \
+  -F "fileSize=1048576" \
+  http://localhost:8080/recipe-management/recipes/123/media
+
+# Delete recipe media (requires authentication)
+curl -X DELETE \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  http://localhost:8080/recipe-management/recipes/123/media/456
 ```
 
 ### Testing
@@ -442,6 +461,7 @@ kubectl get services -n recipe-manager
 ### Required Services
 
 - **user-management-service**: JWT token generation and validation
+- **media-management-service**: Media file storage and processing
 - **PostgreSQL**: Primary database storage
 
 ### Optional Services

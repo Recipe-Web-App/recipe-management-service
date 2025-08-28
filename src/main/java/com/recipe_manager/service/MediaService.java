@@ -462,7 +462,12 @@ public class MediaService {
     return new MediaCreationResult(savedMedia, uploadResponse);
   }
 
-  /** Record to hold media creation results. */
+  /**
+   * Record to hold media creation results.
+   *
+   * @param savedMedia the saved media entity
+   * @param uploadResponse the upload response from the media manager service
+   */
   private record MediaCreationResult(
       Media savedMedia,
       com.recipe_manager.model.dto.external.mediamanager.response.UploadMediaResponseDto

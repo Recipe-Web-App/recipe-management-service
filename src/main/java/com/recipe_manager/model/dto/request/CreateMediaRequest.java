@@ -28,9 +28,15 @@ import lombok.ToString;
 @EqualsAndHashCode
 @ToString
 public final class CreateMediaRequest {
+  /** Maximum allowed length for filenames. */
+  public static final int MAX_FILENAME_LENGTH = 255;
+
+  /** Maximum allowed length for content hashes. */
+  public static final int MAX_CONTENT_HASH_LENGTH = 64;
+
   /** The original filename when uploaded. */
   @NotBlank
-  @Size(max = 255)
+  @Size(max = MAX_FILENAME_LENGTH)
   private String originalFilename;
 
   /** The media type (MIME type). */
@@ -40,6 +46,6 @@ public final class CreateMediaRequest {
   @NotNull @Positive private Long fileSize;
 
   /** Optional content hash for integrity checking. */
-  @Size(max = 64)
+  @Size(max = MAX_CONTENT_HASH_LENGTH)
   private String contentHash;
 }

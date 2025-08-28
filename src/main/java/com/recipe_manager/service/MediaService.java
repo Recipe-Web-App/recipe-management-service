@@ -18,9 +18,11 @@ import com.recipe_manager.model.dto.media.MediaDto;
 import com.recipe_manager.model.dto.request.CreateMediaRequest;
 import com.recipe_manager.model.dto.response.CreateMediaResponse;
 import com.recipe_manager.model.entity.media.IngredientMedia;
+import com.recipe_manager.model.entity.media.IngredientMediaId;
 import com.recipe_manager.model.entity.media.Media;
 import com.recipe_manager.model.entity.media.RecipeMedia;
 import com.recipe_manager.model.entity.media.StepMedia;
+import com.recipe_manager.model.entity.media.StepMediaId;
 import com.recipe_manager.model.entity.recipe.Recipe;
 import com.recipe_manager.model.enums.ProcessingStatus;
 import com.recipe_manager.model.mapper.MediaMapper;
@@ -281,6 +283,174 @@ public class MediaService {
             .build();
 
     log.debug("Successfully created media {} for recipe {}", savedMedia.getMediaId(), recipeId);
+    return response;
+  }
+
+  /**
+   * Creates new media and associates it with a specific ingredient within a recipe.
+   *
+   * @param recipeId the ID of the recipe containing the ingredient
+   * @param ingredientId the ID of the ingredient to associate the media with
+   * @param request the create media request containing media details
+   * @param file the media file to upload
+   * @return the created media response
+   * @throws ResourceNotFoundException if the recipe is not found
+   * @throws AccessDeniedException if the current user doesn't own the recipe
+   */
+  @Transactional
+  public CreateMediaResponse createIngredientMedia(
+      final Long recipeId,
+      final Long ingredientId,
+      final CreateMediaRequest request,
+      final MultipartFile file) {
+    log.debug("Creating media for recipe ID: {} and ingredient ID: {}", recipeId, ingredientId);
+
+    // Extract current user ID from security context
+    final UUID currentUserId = SecurityUtils.getCurrentUserId();
+
+    // Validate recipe exists and user owns it
+    final Recipe recipe =
+        recipeRepository
+            .findById(recipeId)
+            .orElseThrow(() -> ResourceNotFoundException.forEntity("Recipe", recipeId));
+
+    if (!recipe.getUserId().equals(currentUserId)) {
+      log.warn(
+          "User {} attempted to create media for recipe {} owned by {}",
+          currentUserId,
+          recipeId,
+          recipe.getUserId());
+      throw new AccessDeniedException("You don't have permission to add media to this recipe");
+    }
+
+    // Upload media to external media manager service
+    final com.recipe_manager.model.dto.external.mediamanager.response.UploadMediaResponseDto
+        uploadResponse = mediaManagerService.uploadMedia(file).join();
+
+    // Create local Media entity
+    final Media media =
+        Media.builder()
+            .userId(currentUserId)
+            .mediaType(request.getMediaType())
+            .mediaPath(uploadResponse.getUploadUrl()) // Use upload URL as media path
+            .fileSize(request.getFileSize())
+            .contentHash(request.getContentHash())
+            .originalFilename(request.getOriginalFilename())
+            .processingStatus(ProcessingStatus.INITIATED)
+            .createdAt(LocalDateTime.now())
+            .updatedAt(LocalDateTime.now())
+            .build();
+
+    final Media savedMedia = mediaRepository.save(media);
+
+    // Create ingredient-media association
+    final IngredientMedia ingredientMedia =
+        IngredientMedia.builder()
+            .id(
+                IngredientMediaId.builder()
+                    .ingredientId(ingredientId)
+                    .mediaId(savedMedia.getMediaId())
+                    .build())
+            .media(savedMedia)
+            .build();
+
+    ingredientMediaRepository.save(ingredientMedia);
+
+    // Build response
+    final CreateMediaResponse response =
+        CreateMediaResponse.builder()
+            .mediaId(savedMedia.getMediaId())
+            .uploadUrl(uploadResponse.getUploadUrl())
+            .contentHash(uploadResponse.getContentHash())
+            .build();
+
+    log.debug(
+        "Successfully created media {} for ingredient {} in recipe {}",
+        savedMedia.getMediaId(),
+        ingredientId,
+        recipeId);
+    return response;
+  }
+
+  /**
+   * Creates new media and associates it with a specific step within a recipe.
+   *
+   * @param recipeId the ID of the recipe containing the step
+   * @param stepId the ID of the step to associate the media with
+   * @param request the create media request containing media details
+   * @param file the media file to upload
+   * @return the created media response
+   * @throws ResourceNotFoundException if the recipe is not found
+   * @throws AccessDeniedException if the current user doesn't own the recipe
+   */
+  @Transactional
+  public CreateMediaResponse createStepMedia(
+      final Long recipeId,
+      final Long stepId,
+      final CreateMediaRequest request,
+      final MultipartFile file) {
+    log.debug("Creating media for recipe ID: {} and step ID: {}", recipeId, stepId);
+
+    // Extract current user ID from security context
+    final UUID currentUserId = SecurityUtils.getCurrentUserId();
+
+    // Validate recipe exists and user owns it
+    final Recipe recipe =
+        recipeRepository
+            .findById(recipeId)
+            .orElseThrow(() -> ResourceNotFoundException.forEntity("Recipe", recipeId));
+
+    if (!recipe.getUserId().equals(currentUserId)) {
+      log.warn(
+          "User {} attempted to create media for recipe {} owned by {}",
+          currentUserId,
+          recipeId,
+          recipe.getUserId());
+      throw new AccessDeniedException("You don't have permission to add media to this recipe");
+    }
+
+    // Upload media to external media manager service
+    final com.recipe_manager.model.dto.external.mediamanager.response.UploadMediaResponseDto
+        uploadResponse = mediaManagerService.uploadMedia(file).join();
+
+    // Create local Media entity
+    final Media media =
+        Media.builder()
+            .userId(currentUserId)
+            .mediaType(request.getMediaType())
+            .mediaPath(uploadResponse.getUploadUrl()) // Use upload URL as media path
+            .fileSize(request.getFileSize())
+            .contentHash(request.getContentHash())
+            .originalFilename(request.getOriginalFilename())
+            .processingStatus(ProcessingStatus.INITIATED)
+            .createdAt(LocalDateTime.now())
+            .updatedAt(LocalDateTime.now())
+            .build();
+
+    final Media savedMedia = mediaRepository.save(media);
+
+    // Create step-media association
+    final StepMedia stepMedia =
+        StepMedia.builder()
+            .id(StepMediaId.builder().stepId(stepId).mediaId(savedMedia.getMediaId()).build())
+            .media(savedMedia)
+            .build();
+
+    stepMediaRepository.save(stepMedia);
+
+    // Build response
+    final CreateMediaResponse response =
+        CreateMediaResponse.builder()
+            .mediaId(savedMedia.getMediaId())
+            .uploadUrl(uploadResponse.getUploadUrl())
+            .contentHash(uploadResponse.getContentHash())
+            .build();
+
+    log.debug(
+        "Successfully created media {} for step {} in recipe {}",
+        savedMedia.getMediaId(),
+        stepId,
+        recipeId);
     return response;
   }
 

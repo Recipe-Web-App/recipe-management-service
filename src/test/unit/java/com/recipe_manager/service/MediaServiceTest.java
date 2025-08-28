@@ -586,4 +586,218 @@ class MediaServiceTest {
       assertEquals("No authenticated user found", exception.getMessage());
     }
   }
+
+  @Test
+  void createIngredientMedia_Success() {
+    // Arrange
+    MultipartFile file = new MockMultipartFile("test.jpg", "test.jpg", "image/jpeg", "test data".getBytes());
+    CreateMediaRequest request = CreateMediaRequest.builder()
+        .originalFilename("test.jpg")
+        .mediaType(MediaType.IMAGE_JPEG)
+        .fileSize(9L)
+        .contentHash("abc123")
+        .build();
+
+    UploadMediaResponseDto uploadResponse = UploadMediaResponseDto.builder()
+        .mediaId(100L)
+        .uploadUrl("/uploads/test.jpg")
+        .contentHash("def456")
+        .processingStatus(ProcessingStatus.COMPLETE)
+        .build();
+
+    Media savedMedia = Media.builder()
+        .mediaId(100L)
+        .userId(currentUserId)
+        .mediaType(MediaType.IMAGE_JPEG)
+        .mediaPath("/uploads/test.jpg")
+        .fileSize(9L)
+        .contentHash("abc123")
+        .originalFilename("test.jpg")
+        .processingStatus(ProcessingStatus.INITIATED)
+        .createdAt(LocalDateTime.now())
+        .updatedAt(LocalDateTime.now())
+        .build();
+
+    try (MockedStatic<SecurityUtils> securityUtils = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(currentUserId);
+      when(recipeRepository.findById(recipeId)).thenReturn(Optional.of(recipe));
+      when(mediaManagerService.uploadMedia(file)).thenReturn(CompletableFuture.completedFuture(uploadResponse));
+      when(mediaRepository.save(any(Media.class))).thenReturn(savedMedia);
+      when(ingredientMediaRepository.save(any(IngredientMedia.class))).thenReturn(new IngredientMedia());
+
+      // Act
+      CreateMediaResponse response = mediaService.createIngredientMedia(recipeId, ingredientId, request, file);
+
+      // Assert
+      assertNotNull(response);
+      assertEquals(100L, response.getMediaId());
+      assertEquals("/uploads/test.jpg", response.getUploadUrl());
+      assertEquals("def456", response.getContentHash());
+
+      verify(mediaManagerService).uploadMedia(file);
+      verify(mediaRepository).save(any(Media.class));
+      verify(ingredientMediaRepository).save(any(IngredientMedia.class));
+    }
+  }
+
+  @Test
+  void createIngredientMedia_RecipeNotFound() {
+    // Arrange
+    MultipartFile file = new MockMultipartFile("test.jpg", "test.jpg", "image/jpeg", "test data".getBytes());
+    CreateMediaRequest request = CreateMediaRequest.builder()
+        .originalFilename("test.jpg")
+        .mediaType(MediaType.IMAGE_JPEG)
+        .fileSize(9L)
+        .build();
+
+    try (MockedStatic<SecurityUtils> securityUtils = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(currentUserId);
+      when(recipeRepository.findById(recipeId)).thenReturn(Optional.empty());
+
+      // Act & Assert
+      ResourceNotFoundException exception =
+          assertThrows(
+              ResourceNotFoundException.class,
+              () -> mediaService.createIngredientMedia(recipeId, ingredientId, request, file));
+
+      assertEquals("Recipe with identifier '123' was not found", exception.getMessage());
+    }
+  }
+
+  @Test
+  void createIngredientMedia_AccessDenied() {
+    // Arrange
+    Recipe differentUserRecipe = Recipe.builder()
+        .recipeId(recipeId)
+        .userId(differentUserId)
+        .title("Test Recipe")
+        .build();
+
+    MultipartFile file = new MockMultipartFile("test.jpg", "test.jpg", "image/jpeg", "test data".getBytes());
+    CreateMediaRequest request = CreateMediaRequest.builder()
+        .originalFilename("test.jpg")
+        .mediaType(MediaType.IMAGE_JPEG)
+        .fileSize(9L)
+        .build();
+
+    try (MockedStatic<SecurityUtils> securityUtils = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(currentUserId);
+      when(recipeRepository.findById(recipeId)).thenReturn(Optional.of(differentUserRecipe));
+
+      // Act & Assert
+      AccessDeniedException exception =
+          assertThrows(
+              AccessDeniedException.class,
+              () -> mediaService.createIngredientMedia(recipeId, ingredientId, request, file));
+
+      assertEquals("You don't have permission to add media to this recipe", exception.getMessage());
+    }
+  }
+
+  @Test
+  void createStepMedia_Success() {
+    // Arrange
+    MultipartFile file = new MockMultipartFile("test.jpg", "test.jpg", "image/jpeg", "test data".getBytes());
+    CreateMediaRequest request = CreateMediaRequest.builder()
+        .originalFilename("test.jpg")
+        .mediaType(MediaType.IMAGE_JPEG)
+        .fileSize(9L)
+        .contentHash("abc123")
+        .build();
+
+    UploadMediaResponseDto uploadResponse = UploadMediaResponseDto.builder()
+        .mediaId(100L)
+        .uploadUrl("/uploads/test.jpg")
+        .contentHash("def456")
+        .processingStatus(ProcessingStatus.COMPLETE)
+        .build();
+
+    Media savedMedia = Media.builder()
+        .mediaId(100L)
+        .userId(currentUserId)
+        .mediaType(MediaType.IMAGE_JPEG)
+        .mediaPath("/uploads/test.jpg")
+        .fileSize(9L)
+        .contentHash("abc123")
+        .originalFilename("test.jpg")
+        .processingStatus(ProcessingStatus.INITIATED)
+        .createdAt(LocalDateTime.now())
+        .updatedAt(LocalDateTime.now())
+        .build();
+
+    try (MockedStatic<SecurityUtils> securityUtils = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(currentUserId);
+      when(recipeRepository.findById(recipeId)).thenReturn(Optional.of(recipe));
+      when(mediaManagerService.uploadMedia(file)).thenReturn(CompletableFuture.completedFuture(uploadResponse));
+      when(mediaRepository.save(any(Media.class))).thenReturn(savedMedia);
+      when(stepMediaRepository.save(any(StepMedia.class))).thenReturn(new StepMedia());
+
+      // Act
+      CreateMediaResponse response = mediaService.createStepMedia(recipeId, stepId, request, file);
+
+      // Assert
+      assertNotNull(response);
+      assertEquals(100L, response.getMediaId());
+      assertEquals("/uploads/test.jpg", response.getUploadUrl());
+      assertEquals("def456", response.getContentHash());
+
+      verify(mediaManagerService).uploadMedia(file);
+      verify(mediaRepository).save(any(Media.class));
+      verify(stepMediaRepository).save(any(StepMedia.class));
+    }
+  }
+
+  @Test
+  void createStepMedia_RecipeNotFound() {
+    // Arrange
+    MultipartFile file = new MockMultipartFile("test.jpg", "test.jpg", "image/jpeg", "test data".getBytes());
+    CreateMediaRequest request = CreateMediaRequest.builder()
+        .originalFilename("test.jpg")
+        .mediaType(MediaType.IMAGE_JPEG)
+        .fileSize(9L)
+        .build();
+
+    try (MockedStatic<SecurityUtils> securityUtils = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(currentUserId);
+      when(recipeRepository.findById(recipeId)).thenReturn(Optional.empty());
+
+      // Act & Assert
+      ResourceNotFoundException exception =
+          assertThrows(
+              ResourceNotFoundException.class,
+              () -> mediaService.createStepMedia(recipeId, stepId, request, file));
+
+      assertEquals("Recipe with identifier '123' was not found", exception.getMessage());
+    }
+  }
+
+  @Test
+  void createStepMedia_AccessDenied() {
+    // Arrange
+    Recipe differentUserRecipe = Recipe.builder()
+        .recipeId(recipeId)
+        .userId(differentUserId)
+        .title("Test Recipe")
+        .build();
+
+    MultipartFile file = new MockMultipartFile("test.jpg", "test.jpg", "image/jpeg", "test data".getBytes());
+    CreateMediaRequest request = CreateMediaRequest.builder()
+        .originalFilename("test.jpg")
+        .mediaType(MediaType.IMAGE_JPEG)
+        .fileSize(9L)
+        .build();
+
+    try (MockedStatic<SecurityUtils> securityUtils = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(currentUserId);
+      when(recipeRepository.findById(recipeId)).thenReturn(Optional.of(differentUserRecipe));
+
+      // Act & Assert
+      AccessDeniedException exception =
+          assertThrows(
+              AccessDeniedException.class,
+              () -> mediaService.createStepMedia(recipeId, stepId, request, file));
+
+      assertEquals("You don't have permission to add media to this recipe", exception.getMessage());
+    }
+  }
 }

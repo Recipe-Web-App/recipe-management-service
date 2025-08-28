@@ -505,4 +505,142 @@ class MediaControllerTest {
             .param("fileSize", "9"))
         .andExpect(status().isBadRequest());
   }
+
+  @Test
+  void createIngredientMedia_Success() throws Exception {
+    // Arrange
+    MockMultipartFile file = new MockMultipartFile("file", "test.jpg", "image/jpeg", "test data".getBytes());
+    CreateMediaResponse response = CreateMediaResponse.builder()
+        .mediaId(100L)
+        .uploadUrl("/uploads/test.jpg")
+        .contentHash("def456")
+        .build();
+
+    when(mediaService.createIngredientMedia(eq(recipeId), eq(ingredientId), any(CreateMediaRequest.class), any(MultipartFile.class)))
+        .thenReturn(response);
+
+    // Act & Assert
+    mockMvc
+        .perform(multipart("/recipe-management/recipes/{recipeId}/ingredients/{ingredientId}/media", recipeId, ingredientId)
+            .file(file)
+            .param("originalFilename", "test.jpg")
+            .param("mediaType", "IMAGE_JPEG")
+            .param("fileSize", "9")
+            .param("contentHash", "abc123"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.mediaId").value(100))
+        .andExpect(jsonPath("$.uploadUrl").value("/uploads/test.jpg"))
+        .andExpect(jsonPath("$.contentHash").value("def456"));
+
+    verify(mediaService).createIngredientMedia(eq(recipeId), eq(ingredientId), any(CreateMediaRequest.class), any(MultipartFile.class));
+  }
+
+  @Test
+  void createIngredientMedia_RecipeNotFound() throws Exception {
+    // Arrange
+    MockMultipartFile file = new MockMultipartFile("file", "test.jpg", "image/jpeg", "test data".getBytes());
+    when(mediaService.createIngredientMedia(eq(recipeId), eq(ingredientId), any(CreateMediaRequest.class), any(MultipartFile.class)))
+        .thenThrow(ResourceNotFoundException.forEntity("Recipe", recipeId));
+
+    // Act & Assert
+    mockMvc
+        .perform(multipart("/recipe-management/recipes/{recipeId}/ingredients/{ingredientId}/media", recipeId, ingredientId)
+            .file(file)
+            .param("originalFilename", "test.jpg")
+            .param("mediaType", "IMAGE_JPEG")
+            .param("fileSize", "9"))
+        .andExpect(status().isNotFound())
+        .andExpect(jsonPath("$.message").value("Recipe with identifier '123' was not found"));
+
+    verify(mediaService).createIngredientMedia(eq(recipeId), eq(ingredientId), any(CreateMediaRequest.class), any(MultipartFile.class));
+  }
+
+  @Test
+  void createIngredientMedia_AccessDenied() throws Exception {
+    // Arrange
+    MockMultipartFile file = new MockMultipartFile("file", "test.jpg", "image/jpeg", "test data".getBytes());
+    when(mediaService.createIngredientMedia(eq(recipeId), eq(ingredientId), any(CreateMediaRequest.class), any(MultipartFile.class)))
+        .thenThrow(new AccessDeniedException("You don't have permission to add media to this recipe"));
+
+    // Act & Assert
+    mockMvc
+        .perform(multipart("/recipe-management/recipes/{recipeId}/ingredients/{ingredientId}/media", recipeId, ingredientId)
+            .file(file)
+            .param("originalFilename", "test.jpg")
+            .param("mediaType", "IMAGE_JPEG")
+            .param("fileSize", "9"))
+        .andExpect(status().isForbidden())
+        .andExpect(jsonPath("$.message").value("You don't have permission to access this resource"));
+
+    verify(mediaService).createIngredientMedia(eq(recipeId), eq(ingredientId), any(CreateMediaRequest.class), any(MultipartFile.class));
+  }
+
+  @Test
+  void createStepMedia_Success() throws Exception {
+    // Arrange
+    MockMultipartFile file = new MockMultipartFile("file", "test.jpg", "image/jpeg", "test data".getBytes());
+    CreateMediaResponse response = CreateMediaResponse.builder()
+        .mediaId(100L)
+        .uploadUrl("/uploads/test.jpg")
+        .contentHash("def456")
+        .build();
+
+    when(mediaService.createStepMedia(eq(recipeId), eq(stepId), any(CreateMediaRequest.class), any(MultipartFile.class)))
+        .thenReturn(response);
+
+    // Act & Assert
+    mockMvc
+        .perform(multipart("/recipe-management/recipes/{recipeId}/steps/{stepId}/media", recipeId, stepId)
+            .file(file)
+            .param("originalFilename", "test.jpg")
+            .param("mediaType", "IMAGE_JPEG")
+            .param("fileSize", "9")
+            .param("contentHash", "abc123"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.mediaId").value(100))
+        .andExpect(jsonPath("$.uploadUrl").value("/uploads/test.jpg"))
+        .andExpect(jsonPath("$.contentHash").value("def456"));
+
+    verify(mediaService).createStepMedia(eq(recipeId), eq(stepId), any(CreateMediaRequest.class), any(MultipartFile.class));
+  }
+
+  @Test
+  void createStepMedia_RecipeNotFound() throws Exception {
+    // Arrange
+    MockMultipartFile file = new MockMultipartFile("file", "test.jpg", "image/jpeg", "test data".getBytes());
+    when(mediaService.createStepMedia(eq(recipeId), eq(stepId), any(CreateMediaRequest.class), any(MultipartFile.class)))
+        .thenThrow(ResourceNotFoundException.forEntity("Recipe", recipeId));
+
+    // Act & Assert
+    mockMvc
+        .perform(multipart("/recipe-management/recipes/{recipeId}/steps/{stepId}/media", recipeId, stepId)
+            .file(file)
+            .param("originalFilename", "test.jpg")
+            .param("mediaType", "IMAGE_JPEG")
+            .param("fileSize", "9"))
+        .andExpect(status().isNotFound())
+        .andExpect(jsonPath("$.message").value("Recipe with identifier '123' was not found"));
+
+    verify(mediaService).createStepMedia(eq(recipeId), eq(stepId), any(CreateMediaRequest.class), any(MultipartFile.class));
+  }
+
+  @Test
+  void createStepMedia_AccessDenied() throws Exception {
+    // Arrange
+    MockMultipartFile file = new MockMultipartFile("file", "test.jpg", "image/jpeg", "test data".getBytes());
+    when(mediaService.createStepMedia(eq(recipeId), eq(stepId), any(CreateMediaRequest.class), any(MultipartFile.class)))
+        .thenThrow(new AccessDeniedException("You don't have permission to add media to this recipe"));
+
+    // Act & Assert
+    mockMvc
+        .perform(multipart("/recipe-management/recipes/{recipeId}/steps/{stepId}/media", recipeId, stepId)
+            .file(file)
+            .param("originalFilename", "test.jpg")
+            .param("mediaType", "IMAGE_JPEG")
+            .param("fileSize", "9"))
+        .andExpect(status().isForbidden())
+        .andExpect(jsonPath("$.message").value("You don't have permission to access this resource"));
+
+    verify(mediaService).createStepMedia(eq(recipeId), eq(stepId), any(CreateMediaRequest.class), any(MultipartFile.class));
+  }
 }

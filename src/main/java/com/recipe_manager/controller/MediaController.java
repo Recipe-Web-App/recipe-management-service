@@ -129,4 +129,87 @@ public class MediaController {
     final CreateMediaResponse response = mediaService.createRecipeMedia(recipeId, request, file);
     return ResponseEntity.ok(response);
   }
+
+  /**
+   * Creates new media and associates it with a specific ingredient within a recipe.
+   *
+   * @param recipeId the ID of the recipe containing the ingredient
+   * @param ingredientId the ID of the ingredient to associate the media with
+   * @param file the media file to upload
+   * @param originalFilename the original filename
+   * @param mediaType the MIME type of the media
+   * @param fileSize the file size in bytes
+   * @param contentHash optional content hash for integrity checking
+   * @return the created media response
+   */
+  @PostMapping(
+      value = "/recipes/{recipeId}/ingredients/{ingredientId}/media",
+      consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
+      produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<CreateMediaResponse> createIngredientMedia(
+      @PathVariable("recipeId") final Long recipeId,
+      @PathVariable("ingredientId") final Long ingredientId,
+      @RequestParam("file") final MultipartFile file,
+      @RequestParam("originalFilename") final String originalFilename,
+      @RequestParam("mediaType") final com.recipe_manager.model.enums.MediaType mediaType,
+      @RequestParam("fileSize") final Long fileSize,
+      @RequestParam(value = "contentHash", required = false) final String contentHash) {
+
+    log.info(
+        "Request to create media for recipe ID: {} and ingredient ID: {}", recipeId, ingredientId);
+
+    // Build the request object from form parameters
+    final CreateMediaRequest request =
+        CreateMediaRequest.builder()
+            .originalFilename(originalFilename)
+            .mediaType(mediaType)
+            .fileSize(fileSize)
+            .contentHash(contentHash)
+            .build();
+
+    final CreateMediaResponse response =
+        mediaService.createIngredientMedia(recipeId, ingredientId, request, file);
+    return ResponseEntity.ok(response);
+  }
+
+  /**
+   * Creates new media and associates it with a specific step within a recipe.
+   *
+   * @param recipeId the ID of the recipe containing the step
+   * @param stepId the ID of the step to associate the media with
+   * @param file the media file to upload
+   * @param originalFilename the original filename
+   * @param mediaType the MIME type of the media
+   * @param fileSize the file size in bytes
+   * @param contentHash optional content hash for integrity checking
+   * @return the created media response
+   */
+  @PostMapping(
+      value = "/recipes/{recipeId}/steps/{stepId}/media",
+      consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
+      produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<CreateMediaResponse> createStepMedia(
+      @PathVariable("recipeId") final Long recipeId,
+      @PathVariable("stepId") final Long stepId,
+      @RequestParam("file") final MultipartFile file,
+      @RequestParam("originalFilename") final String originalFilename,
+      @RequestParam("mediaType") final com.recipe_manager.model.enums.MediaType mediaType,
+      @RequestParam("fileSize") final Long fileSize,
+      @RequestParam(value = "contentHash", required = false) final String contentHash) {
+
+    log.info("Request to create media for recipe ID: {} and step ID: {}", recipeId, stepId);
+
+    // Build the request object from form parameters
+    final CreateMediaRequest request =
+        CreateMediaRequest.builder()
+            .originalFilename(originalFilename)
+            .mediaType(mediaType)
+            .fileSize(fileSize)
+            .contentHash(contentHash)
+            .build();
+
+    final CreateMediaResponse response =
+        mediaService.createStepMedia(recipeId, stepId, request, file);
+    return ResponseEntity.ok(response);
+  }
 }

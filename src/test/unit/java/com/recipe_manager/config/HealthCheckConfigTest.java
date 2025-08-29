@@ -49,27 +49,38 @@ class HealthCheckConfigTest {
   @Tag("standard-processing")
   @DisplayName("Should create databaseHealthIndicator and return up")
   void shouldCreateDatabaseHealthIndicatorUp() {
-    JdbcTemplate jdbcTemplate = mock(JdbcTemplate.class);
-    when(jdbcTemplate.queryForObject(anyString(), eq(Integer.class))).thenReturn(1);
-    HealthIndicator indicator = new HealthCheckConfig().databaseHealthIndicator(jdbcTemplate);
+    com.recipe_manager.service.DatabaseConnectionService connectionService =
+        mock(com.recipe_manager.service.DatabaseConnectionService.class);
+    when(connectionService.isConnected()).thenReturn(true);
+    when(connectionService.getLastSuccessfulConnection()).thenReturn(java.time.LocalDateTime.now());
+    when(connectionService.getLastConnectionAttempt()).thenReturn(java.time.LocalDateTime.now());
+
+    HealthIndicator indicator = new HealthCheckConfig().databaseHealthIndicator(connectionService);
     Health health = indicator.health();
     assertEquals("connected", health.getDetails().get("status"));
     assertEquals("PostgreSQL", health.getDetails().get("database"));
+    assertEquals(true, health.getDetails().get("connectionRetryEnabled"));
     assertEquals("UP", health.getStatus().getCode());
   }
 
   @Test
   @Tag("error-processing")
-  @DisplayName("Should create databaseHealthIndicator and return down on exception")
+  @DisplayName("Should create databaseHealthIndicator and return degraded on disconnection")
   void shouldCreateDatabaseHealthIndicatorDown() {
-    JdbcTemplate jdbcTemplate = mock(JdbcTemplate.class);
-    when(jdbcTemplate.queryForObject(anyString(), eq(Integer.class))).thenThrow(new RuntimeException("Connection failed"));
-    HealthIndicator indicator = new HealthCheckConfig().databaseHealthIndicator(jdbcTemplate);
+    com.recipe_manager.service.DatabaseConnectionService connectionService =
+        mock(com.recipe_manager.service.DatabaseConnectionService.class);
+    when(connectionService.isConnected()).thenReturn(false);
+    when(connectionService.getLastConnectionAttempt()).thenReturn(java.time.LocalDateTime.now());
+    when(connectionService.getLastError()).thenReturn("Connection failed");
+
+    HealthIndicator indicator = new HealthCheckConfig().databaseHealthIndicator(connectionService);
     Health health = indicator.health();
     assertEquals("disconnected", health.getDetails().get("status"));
     assertEquals("PostgreSQL", health.getDetails().get("database"));
-    assertEquals("Connection failed", health.getDetails().get("error"));
-    assertEquals("DOWN", health.getStatus().getCode());
+    assertEquals("Connection failed", health.getDetails().get("lastError"));
+    assertEquals(true, health.getDetails().get("connectionRetryEnabled"));
+    assertEquals("Database unavailable - service degraded but operational", health.getDetails().get("message"));
+    assertEquals("DEGRADED", health.getStatus().getCode());
   }
 
   @Test

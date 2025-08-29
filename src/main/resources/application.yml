@@ -17,22 +17,33 @@ server:
 spring:
   application:
     name: recipe-manager-service
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration
+      - org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration
   datasource:
     url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_DB:recipe_db}?stringtype=unspecified
     username: ${RECIPE_MANAGEMENT_DB_USER:recipe_user}
     password: ${RECIPE_MANAGEMENT_DB_PASSWORD:your_db_password}
     schema: ${POSTGRES_SCHEMA:my_schema}
+    continue-on-error: true
     hikari:
       maximum-pool-size: 20
-      minimum-idle: 5
-      connection-timeout: 30000
+      minimum-idle: 0
+      connection-timeout: 5000
       idle-timeout: 600000
       max-lifetime: 1800000
       leak-detection-threshold: 60000
+      initialization-fail-timeout: -1
+      connection-test-query: SELECT 1
+  sql:
+    init:
+      mode: never
   jpa:
     hibernate:
       ddl-auto: none
     show-sql: false
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
     properties:
       hibernate:
         format_sql: false
@@ -43,11 +54,14 @@ spring:
         order_inserts: true
         order_updates: true
         batch_versioned_data: true
+        enable_lazy_load_no_trans: true
   flyway:
+    enabled: ${FLYWAY_ENABLED:false}
     default-schema: ${POSTGRES_SCHEMA:recipe_manager}
     schemas: ${POSTGRES_SCHEMA:recipe_manager}
     create-schemas: true
     baseline-on-migrate: true
+    validate-on-migrate: false
   security:
     user:
       name: ${ADMIN_USER:admin}
@@ -110,9 +124,20 @@ management:
       enabled: true
     memory:
       enabled: true
+    status:
+      order: DEGRADED,DOWN,OUT_OF_SERVICE,UNKNOWN,UP
+    group:
+      readiness:
+        include: readinessState,applicationHealthIndicator
+      liveness:
+        include: livenessState,db
 
 # Application-specific configuration
 app:
+  database:
+    connection-retry:
+      enabled: ${DATABASE_RETRY_ENABLED:true}
+      interval-seconds: ${DATABASE_RETRY_INTERVAL:30}
   security:
     jwt:
       secret: ${JWT_SECRET:your-secret-key-here-change-in-production}

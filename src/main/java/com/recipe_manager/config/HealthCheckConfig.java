@@ -8,7 +8,6 @@ import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
  * Configuration for custom health checks and monitoring.
@@ -41,28 +40,54 @@ public class HealthCheckConfig {
   private static final double BYTES_1024_DOUBLE = 1024.0;
 
   /**
-   * Creates a database health indicator that checks database connectivity.
+   * Creates a database health indicator that checks database connectivity with enhanced
+   * information.
    *
-   * @param jdbcTemplate The JdbcTemplate for database operations
+   * @param databaseConnectionService The service managing database connection retry logic
    * @return HealthIndicator for database connectivity
    */
   @Bean
-  public HealthIndicator databaseHealthIndicator(final JdbcTemplate jdbcTemplate) {
+  public HealthIndicator databaseHealthIndicator(
+      final com.recipe_manager.service.DatabaseConnectionService databaseConnectionService) {
     return () -> {
-      try {
-        // Simple query to check database connectivity
-        jdbcTemplate.queryForObject("SELECT 1", Integer.class);
-        return Health.up()
-            .withDetail("database", "PostgreSQL")
-            .withDetail("status", "connected")
-            .build();
-      } catch (Exception e) {
-        return Health.down()
-            .withDetail("database", "PostgreSQL")
-            .withDetail("status", "disconnected")
-            .withDetail("error", e.getMessage())
-            .build();
+      boolean isConnected = databaseConnectionService.isConnected();
+      java.time.LocalDateTime lastSuccessful =
+          databaseConnectionService.getLastSuccessfulConnection();
+      java.time.LocalDateTime lastAttempt = databaseConnectionService.getLastConnectionAttempt();
+      String lastError = databaseConnectionService.getLastError();
+
+      Health.Builder healthBuilder;
+
+      if (isConnected) {
+        healthBuilder = Health.up();
+      } else {
+        // Use DEGRADED status instead of DOWN to indicate the service can still function
+        healthBuilder = Health.status("DEGRADED");
       }
+
+      healthBuilder
+          .withDetail("database", "PostgreSQL")
+          .withDetail("status", isConnected ? "connected" : "disconnected")
+          .withDetail("connectionRetryEnabled", true);
+
+      if (lastSuccessful != null) {
+        healthBuilder.withDetail("lastSuccessfulConnection", lastSuccessful.toString());
+      }
+
+      if (lastAttempt != null) {
+        healthBuilder.withDetail("lastConnectionAttempt", lastAttempt.toString());
+      }
+
+      if (lastError != null) {
+        healthBuilder.withDetail("lastError", lastError);
+      }
+
+      if (!isConnected) {
+        healthBuilder.withDetail(
+            "message", "Database unavailable - service degraded but operational");
+      }
+
+      return healthBuilder.build();
     };
   }
 

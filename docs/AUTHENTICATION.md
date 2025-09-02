@@ -38,14 +38,18 @@ app:
 ### Environment Variables
 
 ```bash
-# JWT Secret (must match user-management-service)
+# JWT Secret (must match auth-service)
+# Only required if OAUTH2_INTROSPECTION_ENABLED=false
 JWT_SECRET=your-base64-encoded-secret-key
 
 # JWT Expiration (optional, defaults to 24 hours)
 JWT_EXPIRATION=86400000
+
+# OAuth2 Introspection (recommended)
+OAUTH2_INTROSPECTION_ENABLED=true
 ```
 
-### OAuth2 Service-to-Service Authentication
+### OAuth2 Service Configuration
 
 ```yaml
 external:
@@ -53,6 +57,7 @@ external:
     oauth2-service:
       enabled: ${OAUTH2_SERVICE_ENABLED:true}
       service-to-service-enabled: ${OAUTH2_SERVICE_TO_SERVICE_ENABLED:true}
+      introspection-enabled: ${OAUTH2_INTROSPECTION_ENABLED:true}
       client-id: ${OAUTH2_CLIENT_ID:recipe-service-client}
       client-secret: ${OAUTH2_CLIENT_SECRET:your-client-secret}
       scopes: ${OAUTH2_SCOPES:read,write}
@@ -76,12 +81,28 @@ The JWT token should contain the following claims:
 
 ### Token Validation
 
-The service validates:
+The service supports two validation methods:
 
-- **Signature**: Verifies token was signed by the trusted user-management-service
-- **Expiration**: Checks if token has expired
+#### OAuth2 Introspection (Recommended)
+
+When `OAUTH2_INTROSPECTION_ENABLED=true`:
+
+- **Introspection**: Validates tokens by calling OAuth2 service introspection endpoint
+- **No Shared Secret**: No JWT_SECRET required between services
+- **Real-time**: Always validates against current OAuth2 service state
+
+#### Local JWT Validation (Legacy)
+
+When `OAUTH2_INTROSPECTION_ENABLED=false`:
+
+- **Signature**: Verifies token was signed using shared JWT_SECRET
+- **Expiration**: Checks if token has expired locally
 - **Claims**: Extracts username, user ID, and roles
 - **Format**: Ensures proper JWT structure
+
+#### Hybrid Validation
+
+The service tries local validation first, then falls back to introspection if enabled.
 
 ## Usage Examples
 

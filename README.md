@@ -111,7 +111,7 @@ POSTGRES_SCHEMA=recipe_manager
 RECIPE_MANAGEMENT_DB_USER=recipe_user
 RECIPE_MANAGEMENT_DB_PASSWORD=your_secure_password
 
-# JWT Configuration (MUST match user-management-service)
+# JWT Configuration (only required if OAUTH2_INTROSPECTION_ENABLED=false)
 JWT_SECRET=your-very-secure-secret-key-at-least-32-characters-long
 
 # Application Configuration
@@ -186,7 +186,7 @@ If you're getting 403 errors with JWT tokens from your user-management-service:
    ```bash
    # Ensure both services use the same JWT secret
    # In your .env file:
-   JWT_SECRET=your-shared-jwt-secret-key-here
+   JWT_SECRET=your-shared-jwt-secret-key-here  # Only if introspection disabled
    ```
 
 2. **Verify Service Logs**
@@ -199,7 +199,7 @@ If you're getting 403 errors with JWT tokens from your user-management-service:
 
 3. **Common Causes**
    - Services using different JWT secret keys
-   - Missing JWT_SECRET environment variable
+   - Missing JWT_SECRET environment variable (if introspection disabled)
    - Different token signing algorithms
 
 See [Authentication Documentation](docs/AUTHENTICATION.md) for detailed setup.
@@ -411,7 +411,7 @@ docker run -p 8080:8080 \
   -e POSTGRES_DB=recipe_db \
   -e POSTGRES_USER=recipe_user \
   -e POSTGRES_PASSWORD=password \
-  -e JWT_SECRET=your-secret \
+  -e JWT_SECRET=your-secret \  # Only if introspection disabled
   recipe-manager-service:latest
 ```
 
@@ -474,8 +474,8 @@ kubectl get services -n recipe-manager
 Ensure JWT secrets match across all services:
 
 ```bash
-# Both services must use the same JWT_SECRET
-export JWT_SECRET="your-shared-secret-key"
+# JWT_SECRET only needed if OAUTH2_INTROSPECTION_ENABLED=false
+# export JWT_SECRET="your-shared-secret-key"
 ```
 
 ## Remaining Work & Recommended Enhancements

@@ -1,4 +1,4 @@
-package com.recipe_manager.unit_tests.service;
+package com.recipe_manager.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;

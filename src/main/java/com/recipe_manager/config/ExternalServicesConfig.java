@@ -97,6 +97,9 @@ public class ExternalServicesConfig {
 
     /** UserInfo endpoint path (relative to base URL). */
     @NotBlank private String userInfoPath = "/api/v1/auth/oauth2/userinfo";
+
+    /** Whether service-to-service authentication is enabled. */
+    @NotNull private Boolean serviceToServiceEnabled = true;
   }
 
   @Data

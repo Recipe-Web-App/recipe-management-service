@@ -45,15 +45,17 @@ JWT_SECRET=your-base64-encoded-secret-key
 JWT_EXPIRATION=86400000
 ```
 
-### Service-to-Service Authentication (Optional)
+### OAuth2 Service-to-Service Authentication
 
 ```yaml
-app:
-  security:
-    service:
-      auth:
-        enabled: ${SERVICE_AUTH_ENABLED:false}
-        key: ${SERVICE_AUTH_KEY:}
+external:
+  services:
+    oauth2-service:
+      enabled: ${OAUTH2_SERVICE_ENABLED:true}
+      service-to-service-enabled: ${OAUTH2_SERVICE_TO_SERVICE_ENABLED:true}
+      client-id: ${OAUTH2_CLIENT_ID:recipe-service-client}
+      client-secret: ${OAUTH2_CLIENT_SECRET:your-client-secret}
+      scopes: ${OAUTH2_SCOPES:read,write}
 ```
 
 ## JWT Token Structure
@@ -250,25 +252,46 @@ JWT_SECRET=your-shared-jwt-secret-key-here
 
 ## Service-to-Service Authentication
 
-### Internal Service Communication
+### OAuth2 Client Credentials Flow
 
-For service-to-service calls, you can use API key authentication:
+For service-to-service communication, use OAuth2 Bearer tokens obtained via
+Client Credentials Flow:
 
 ```bash
-curl -H "X-Service-Auth: your-service-key" \
+# First, acquire a service token
+curl -X POST http://localhost:8080/api/v1/auth/oauth2/token \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -u "client-id:client-secret" \
+  -d "grant_type=client_credentials" \
+  -d "scope=read write"
+
+# Then use the token for service calls
+curl -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." \
      -H "X-Service-Name: user-management-service" \
-     http://localhost:8080/api/v1/internal/health
+     http://localhost:8080/api/v1/recipes
 ```
 
-### Service Auth Configuration
+### Service Authentication Configuration
 
 ```yaml
-app:
-  security:
-    service:
-      auth:
-        enabled: true
-        key: ${SERVICE_AUTH_KEY}
+external:
+  services:
+    oauth2-service:
+      enabled: true
+      service-to-service-enabled: true
+      client-id: recipe-service-client
+      client-secret: ${OAUTH2_CLIENT_SECRET}
+      scopes: read,write
+```
+
+### Service-to-Service Environment Variables
+
+```bash
+# OAuth2 Service-to-Service Authentication
+OAUTH2_SERVICE_ENABLED=true
+OAUTH2_SERVICE_TO_SERVICE_ENABLED=true
+OAUTH2_CLIENT_ID=recipe-service-client
+OAUTH2_CLIENT_SECRET=your-service-client-secret
 ```
 
 ## Monitoring and Logging

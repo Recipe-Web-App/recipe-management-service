@@ -1,4 +1,4 @@
-package com.recipe_manager.unit_tests.model.mapper;
+package com.recipe_manager.model.mapper;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -12,17 +12,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestPropertySource;
 
+import com.recipe_manager.model.dto.media.IngredientMediaDto;
 import com.recipe_manager.model.dto.media.MediaSummaryDto;
-import com.recipe_manager.model.dto.media.StepMediaDto;
+import com.recipe_manager.model.entity.media.IngredientMedia;
+import com.recipe_manager.model.entity.media.IngredientMediaId;
 import com.recipe_manager.model.entity.media.Media;
-import com.recipe_manager.model.entity.media.StepMedia;
-import com.recipe_manager.model.entity.media.StepMediaId;
 import com.recipe_manager.model.enums.MediaType;
 import com.recipe_manager.model.enums.ProcessingStatus;
-import com.recipe_manager.model.mapper.StepMediaMapper;
+import com.recipe_manager.model.mapper.IngredientMediaMapper;
 
 @SpringBootTest(classes = {
-    com.recipe_manager.model.mapper.StepMediaMapperImpl.class,
+    com.recipe_manager.model.mapper.IngredientMediaMapperImpl.class,
     com.recipe_manager.model.mapper.MediaMapperImpl.class
 })
 @TestPropertySource(properties = {
@@ -31,13 +31,13 @@ import com.recipe_manager.model.mapper.StepMediaMapper;
     "spring.flyway.enabled=false"
 })
 @Tag("unit")
-class StepMediaMapperTest {
+class IngredientMediaMapperTest {
 
   @Autowired
-  private StepMediaMapper stepMediaMapper;
+  private IngredientMediaMapper ingredientMediaMapper;
 
-  private StepMedia testStepMedia;
-  private StepMediaDto testStepMediaDto;
+  private IngredientMedia testIngredientMedia;
+  private IngredientMediaDto testIngredientMediaDto;
   private Media testMedia;
   private UUID testUserId;
   private LocalDateTime testDateTime;
@@ -60,12 +60,13 @@ class StepMediaMapperTest {
         .updatedAt(testDateTime)
         .build();
 
-    StepMediaId id = StepMediaId.builder()
-        .stepId(20L)
+    IngredientMediaId id = IngredientMediaId.builder()
+        .recipeId(10L)
+        .ingredientId(5L)
         .mediaId(1L)
         .build();
 
-    testStepMedia = StepMedia.builder()
+    testIngredientMedia = IngredientMedia.builder()
         .id(id)
         .media(testMedia)
         .build();
@@ -78,21 +79,23 @@ class StepMediaMapperTest {
         .processingStatus(ProcessingStatus.COMPLETE)
         .build();
 
-    testStepMediaDto = StepMediaDto.builder()
+    testIngredientMediaDto = IngredientMediaDto.builder()
         .mediaId(1L)
-        .stepId(20L)
+        .recipeId(10L)
+        .ingredientId(5L)
         .media(mediaSummaryDto)
         .build();
   }
 
   @Test
-  void shouldMapStepMediaToDto() {
-    StepMediaDto result = stepMediaMapper.toDto(testStepMedia);
+  void shouldMapIngredientMediaToDto() {
+    IngredientMediaDto result = ingredientMediaMapper.toDto(testIngredientMedia);
 
     assertNotNull(result);
-    assertAll("StepMedia to DTO mapping",
-        () -> assertEquals(testStepMedia.getId().getMediaId(), result.getMediaId()),
-        () -> assertEquals(testStepMedia.getId().getStepId(), result.getStepId()),
+    assertAll("IngredientMedia to DTO mapping",
+        () -> assertEquals(testIngredientMedia.getId().getMediaId(), result.getMediaId()),
+        () -> assertEquals(testIngredientMedia.getId().getRecipeId(), result.getRecipeId()),
+        () -> assertEquals(testIngredientMedia.getId().getIngredientId(), result.getIngredientId()),
         () -> assertNotNull(result.getMedia()),
         () -> assertEquals(testMedia.getMediaId(), result.getMedia().getMediaId()),
         () -> assertEquals(testMedia.getOriginalFilename(), result.getMedia().getOriginalFilename()),
@@ -103,40 +106,42 @@ class StepMediaMapperTest {
   }
 
   @Test
-  void shouldMapDtoToStepMedia() {
-    StepMedia result = stepMediaMapper.toEntity(testStepMediaDto);
+  void shouldMapDtoToIngredientMedia() {
+    IngredientMedia result = ingredientMediaMapper.toEntity(testIngredientMediaDto);
 
     assertNotNull(result);
-    assertAll("DTO to StepMedia mapping",
+    assertAll("DTO to IngredientMedia mapping",
         () -> assertNotNull(result.getId()),
-        () -> assertEquals(testStepMediaDto.getMediaId(), result.getId().getMediaId()),
-        () -> assertEquals(testStepMediaDto.getStepId(), result.getId().getStepId()),
+        () -> assertEquals(testIngredientMediaDto.getMediaId(), result.getId().getMediaId()),
+        () -> assertEquals(testIngredientMediaDto.getRecipeId(), result.getId().getRecipeId()),
+        () -> assertEquals(testIngredientMediaDto.getIngredientId(), result.getId().getIngredientId()),
         () -> assertNull(result.getMedia()), // Should be ignored (managed by relationship)
-        () -> assertNull(result.getStep()) // Should be ignored (managed by relationship)
+        () -> assertNull(result.getIngredient()) // Should be ignored (managed by relationship)
     );
   }
 
   @Test
   void shouldHandleNullInput() {
     assertAll("Null input handling",
-        () -> assertNull(stepMediaMapper.toDto(null)),
-        () -> assertNull(stepMediaMapper.toEntity(null))
+        () -> assertNull(ingredientMediaMapper.toDto(null)),
+        () -> assertNull(ingredientMediaMapper.toEntity(null))
     );
   }
 
   @Test
-  void shouldHandleNullMediaInStepMedia() {
-    StepMedia stepMediaWithNullMedia = StepMedia.builder()
-        .id(testStepMedia.getId())
+  void shouldHandleNullMediaInIngredientMedia() {
+    IngredientMedia ingredientMediaWithNullMedia = IngredientMedia.builder()
+        .id(testIngredientMedia.getId())
         .media(null)
         .build();
 
-    StepMediaDto result = stepMediaMapper.toDto(stepMediaWithNullMedia);
+    IngredientMediaDto result = ingredientMediaMapper.toDto(ingredientMediaWithNullMedia);
 
     assertNotNull(result);
     assertAll("Null media handling",
-        () -> assertEquals(testStepMedia.getId().getMediaId(), result.getMediaId()),
-        () -> assertEquals(testStepMedia.getId().getStepId(), result.getStepId()),
+        () -> assertEquals(testIngredientMedia.getId().getMediaId(), result.getMediaId()),
+        () -> assertEquals(testIngredientMedia.getId().getRecipeId(), result.getRecipeId()),
+        () -> assertEquals(testIngredientMedia.getId().getIngredientId(), result.getIngredientId()),
         () -> assertNull(result.getMedia())
     );
   }
@@ -155,12 +160,12 @@ class StepMediaMapperTest {
           .createdAt(testMedia.getCreatedAt())
           .updatedAt(testMedia.getUpdatedAt())
           .build();
-      StepMedia stepMedia = StepMedia.builder()
-          .id(testStepMedia.getId())
+      IngredientMedia ingredientMedia = IngredientMedia.builder()
+          .id(testIngredientMedia.getId())
           .media(mediaWithType)
           .build();
 
-      StepMediaDto result = stepMediaMapper.toDto(stepMedia);
+      IngredientMediaDto result = ingredientMediaMapper.toDto(ingredientMedia);
 
       assertNotNull(result.getMedia());
       assertEquals(mediaType, result.getMedia().getMediaType());
@@ -169,16 +174,17 @@ class StepMediaMapperTest {
 
   @Test
   void shouldIgnoreRelationshipFieldsInEntityMapping() {
-    StepMediaDto dto = StepMediaDto.builder()
-        .mediaId(testStepMediaDto.getMediaId())
-        .stepId(testStepMediaDto.getStepId())
-        .media(testStepMediaDto.getMedia())
+    IngredientMediaDto dto = IngredientMediaDto.builder()
+        .mediaId(testIngredientMediaDto.getMediaId())
+        .recipeId(testIngredientMediaDto.getRecipeId())
+        .ingredientId(testIngredientMediaDto.getIngredientId())
+        .media(testIngredientMediaDto.getMedia())
         .build();
-    StepMedia result = stepMediaMapper.toEntity(dto);
+    IngredientMedia result = ingredientMediaMapper.toEntity(dto);
 
     assertAll("Relationship fields ignored",
         () -> assertNull(result.getMedia()),
-        () -> assertNull(result.getStep())
+        () -> assertNull(result.getIngredient())
     );
   }
 }

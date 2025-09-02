@@ -76,6 +76,61 @@ spec:
                 secretKeyRef:
                   name: recipe-manager-secrets
                   key: JWT_SECRET
+            - name: OAUTH2_SERVICE_BASE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: recipe-manager-config
+                  key: OAUTH2_SERVICE_BASE_URL
+            - name: OAUTH2_SERVICE_ENABLED
+              valueFrom:
+                configMapKeyRef:
+                  name: recipe-manager-config
+                  key: OAUTH2_SERVICE_ENABLED
+            - name: OAUTH2_SERVICE_TO_SERVICE_ENABLED
+              valueFrom:
+                configMapKeyRef:
+                  name: recipe-manager-config
+                  key: OAUTH2_SERVICE_TO_SERVICE_ENABLED
+            - name: OAUTH2_SERVICE_TIMEOUT
+              valueFrom:
+                configMapKeyRef:
+                  name: recipe-manager-config
+                  key: OAUTH2_SERVICE_TIMEOUT
+            - name: OAUTH2_CLIENT_ID
+              valueFrom:
+                configMapKeyRef:
+                  name: recipe-manager-config
+                  key: OAUTH2_CLIENT_ID
+            - name: OAUTH2_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: recipe-manager-secrets
+                  key: OAUTH2_CLIENT_SECRET
+            - name: OAUTH2_INTROSPECTION_ENABLED
+              valueFrom:
+                configMapKeyRef:
+                  name: recipe-manager-config
+                  key: OAUTH2_INTROSPECTION_ENABLED
+            - name: OAUTH2_SCOPES
+              valueFrom:
+                configMapKeyRef:
+                  name: recipe-manager-config
+                  key: OAUTH2_SCOPES
+            - name: OAUTH2_TOKEN_PATH
+              valueFrom:
+                configMapKeyRef:
+                  name: recipe-manager-config
+                  key: OAUTH2_TOKEN_PATH
+            - name: OAUTH2_INTROSPECTION_PATH
+              valueFrom:
+                configMapKeyRef:
+                  name: recipe-manager-config
+                  key: OAUTH2_INTROSPECTION_PATH
+            - name: OAUTH2_USERINFO_PATH
+              valueFrom:
+                configMapKeyRef:
+                  name: recipe-manager-config
+                  key: OAUTH2_USERINFO_PATH
           readinessProbe:
             httpGet:
               path: /api/v1/recipe-manager/actuator/health/readiness

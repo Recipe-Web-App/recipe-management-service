@@ -142,10 +142,6 @@ app:
     jwt:
       secret: ${JWT_SECRET:your-secret-key-here-change-in-production}
       expiration: 86400000 # 24 hours
-    service:
-      auth:
-        enabled: ${SERVICE_AUTH_ENABLED:false}
-        key: ${SERVICE_AUTH_KEY:}
   logging:
     request:
       enabled: true
@@ -182,6 +178,7 @@ external:
       token-path: ${OAUTH2_TOKEN_PATH:/api/v1/auth/oauth2/token}
       introspection-path: ${OAUTH2_INTROSPECTION_PATH:/api/v1/auth/oauth2/introspect}
       user-info-path: ${OAUTH2_USERINFO_PATH:/api/v1/auth/oauth2/userinfo}
+      service-to-service-enabled: ${OAUTH2_SERVICE_TO_SERVICE_ENABLED:true}
     common:
       connect-timeout: ${EXTERNAL_SERVICES_CONNECT_TIMEOUT:3s}
       read-timeout: ${EXTERNAL_SERVICES_READ_TIMEOUT:10s}

@@ -1,4 +1,4 @@
-package com.recipe_manager.unit_tests.model.dto.media;
+package com.recipe_manager.model.dto.media;
 
 import static org.junit.jupiter.api.Assertions.*;
 

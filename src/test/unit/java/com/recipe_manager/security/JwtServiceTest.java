@@ -6,25 +6,47 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.lenient;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
+
+import com.recipe_manager.config.ExternalServicesConfig;
 
 /**
  * Test class for JwtService.
- * Verifies that JWT service works correctly.
+ * Verifies that JWT service works correctly with OAuth2 integration.
  */
+@ExtendWith(MockitoExtension.class)
 @Tag("unit")
 class JwtServiceTest {
+
+  @Mock private OAuth2Client oauth2Client;
+
+  @Mock private ExternalServicesConfig externalServicesConfig;
+
+  @Mock private ExternalServicesConfig.OAuth2ServiceConfig oauth2ServiceConfig;
 
   private JwtService jwtService;
 
   @BeforeEach
   void setUp() {
-    jwtService = new JwtService();
+    // Setup OAuth2 service configuration mock
+    when(externalServicesConfig.getOauth2Service()).thenReturn(oauth2ServiceConfig);
+    // Only stub what we actually use
+    lenient().when(oauth2ServiceConfig.getEnabled()).thenReturn(false);
+    lenient().when(oauth2ServiceConfig.getIntrospectionEnabled()).thenReturn(false);
+
+    jwtService = new JwtService(oauth2Client, externalServicesConfig);
+
     // Set test values for JWT configuration
     ReflectionTestUtils.setField(jwtService, "secretKey", "test-secret-key-for-jwt-service-testing-very-long-key");
     ReflectionTestUtils.setField(jwtService, "jwtExpiration", 3600000L); // 1 hour in milliseconds
@@ -145,7 +167,9 @@ class JwtServiceTest {
   void shouldValidateJwtToken() {
     // Given
     String username = "testuser";
-    String token = jwtService.generateToken(username);
+    java.util.Map<String, Object> claims = new java.util.HashMap<>();
+    claims.put("type", "access_token"); // Add OAuth2 token type claim
+    String token = jwtService.generateToken(claims, username);
 
     // When
     boolean isValid = jwtService.isTokenValid(token);

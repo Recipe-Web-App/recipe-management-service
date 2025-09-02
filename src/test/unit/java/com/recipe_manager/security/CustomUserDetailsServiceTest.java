@@ -105,9 +105,11 @@ class CustomUserDetailsServiceTest {
     String token = "test-token";
     String username = "testuser";
     String[] roles = { "USER", "ADMIN" };
+    String[] scopes = { "read", "write" };
 
     when(jwtService.extractUsername(token)).thenReturn(username);
     when(jwtService.extractRoles(token)).thenReturn(roles);
+    when(jwtService.extractScopes(token)).thenReturn(scopes);
 
     // When
     UserDetails userDetails = customUserDetailsService.loadUserFromToken(token);
@@ -145,14 +147,21 @@ class CustomUserDetailsServiceTest {
   }
 
   @Test
-  @Tag("error-processing")
+  @Tag("standard-processing")
   @DisplayName("Should handle token with missing roles in loadUserFromToken")
   void shouldHandleTokenWithMissingRolesInLoadUserFromToken() {
     String token = "test-token";
     String username = "testuser";
     when(jwtService.extractUsername(token)).thenReturn(username);
     when(jwtService.extractRoles(token)).thenReturn(null);
-    assertThrows(UsernameNotFoundException.class,
-        () -> customUserDetailsService.loadUserFromToken(token));
+    when(jwtService.extractScopes(token)).thenReturn(null);
+
+    // Should create user with default ROLE_USER authority
+    UserDetails userDetails = customUserDetailsService.loadUserFromToken(token);
+
+    assertNotNull(userDetails);
+    assertEquals(username, userDetails.getUsername());
+    assertEquals(1, userDetails.getAuthorities().size());
+    assertEquals("ROLE_USER", userDetails.getAuthorities().iterator().next().getAuthority());
   }
 }

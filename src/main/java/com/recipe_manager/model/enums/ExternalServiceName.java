@@ -15,7 +15,10 @@ public enum ExternalServiceName {
   MEDIA_SERVICE("media-service"),
 
   /** Notification service for email and push notifications. */
-  NOTIFICATION_SERVICE("notification-service");
+  NOTIFICATION_SERVICE("notification-service"),
+
+  /** OAuth2 authentication service for token validation and user authentication. */
+  OAUTH2_SERVICE("oauth2-service");
 
   /** The service name identifier. */
   private final String serviceName;

@@ -19,7 +19,7 @@ class ExternalServiceNameTest {
   void shouldHaveExpectedEnumValues() {
     ExternalServiceName[] values = ExternalServiceName.values();
 
-    assertThat(values).hasSize(4);
+    assertThat(values).hasSize(5);
     assertThat(values).contains(ExternalServiceName.RECIPE_SCRAPER);
   }
 

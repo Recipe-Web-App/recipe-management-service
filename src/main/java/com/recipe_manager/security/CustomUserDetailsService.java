@@ -1,8 +1,8 @@
 package com.recipe_manager.security;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,10 +19,11 @@ import org.springframework.stereotype.Service;
  * <p>This service:
  *
  * <ul>
- *   <li>Creates UserDetails from JWT token claims
- *   <li>Extracts roles and permissions from tokens
+ *   <li>Creates UserDetails from OAuth2 JWT token claims
+ *   <li>Extracts roles and scopes from tokens
  *   <li>Does not require a local user database
- *   <li>Works with the user-management-service
+ *   <li>Works with OAuth2 authentication service
+ *   <li>Supports backward compatibility with user-management-service tokens
  * </ul>
  */
 @Service
@@ -81,6 +82,7 @@ public final class CustomUserDetailsService implements UserDetailsService {
     try {
       final String username = jwtService.extractUsername(token);
       final String[] roles = jwtService.extractRoles(token);
+      final String[] scopes = jwtService.extractScopes(token);
 
       if (username == null) {
         LOGGER.warn("No username found in JWT token");
@@ -88,19 +90,35 @@ public final class CustomUserDetailsService implements UserDetailsService {
       }
 
       // Convert roles to Spring Security authorities
-      List<SimpleGrantedAuthority> authorities =
-          Arrays.stream(roles)
-              .map(
-                  role ->
-                      new SimpleGrantedAuthority("ROLE_" + role.toUpperCase(java.util.Locale.ROOT)))
-              .collect(Collectors.toList());
+      List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+      if (roles != null) {
+        authorities.addAll(
+            Arrays.stream(roles)
+                .map(
+                    role ->
+                        new SimpleGrantedAuthority(
+                            "ROLE_" + role.toUpperCase(java.util.Locale.ROOT)))
+                .toList());
+      }
 
-      // Add default USER role if no roles found
+      // Convert OAuth2 scopes to authorities
+      if (scopes != null) {
+        List<SimpleGrantedAuthority> scopeAuthorities =
+            Arrays.stream(scopes)
+                .map(
+                    scope ->
+                        new SimpleGrantedAuthority(
+                            "SCOPE_" + scope.toUpperCase(java.util.Locale.ROOT)))
+                .toList();
+        authorities.addAll(scopeAuthorities);
+      }
+
+      // Add default USER role if no roles or scopes found
       if (authorities.isEmpty()) {
         authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
       }
 
-      LOGGER.debug("Created user details for {} with roles: {}", username, authorities);
+      LOGGER.debug("Created user details for {} with authorities: {}", username, authorities);
 
       return User.builder()
           .username(username)

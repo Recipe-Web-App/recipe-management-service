@@ -239,7 +239,7 @@ POSTGRES_SCHEMA=recipe_manager
 RECIPE_MANAGEMENT_DB_USER=recipe_user
 RECIPE_MANAGEMENT_DB_PASSWORD=secure_password
 
-# JWT Configuration (must match user-management-service)
+# JWT Configuration (only required if OAUTH2_INTROSPECTION_ENABLED=false)
 JWT_SECRET=your-very-secure-secret-key-at-least-32-characters-long
 
 # Application Configuration
@@ -393,7 +393,7 @@ services:
       - POSTGRES_DB=recipe_db
       - POSTGRES_USER=recipe_user
       - POSTGRES_PASSWORD=secure_password
-      - JWT_SECRET=your-jwt-secret
+      - JWT_SECRET=your-jwt-secret  # Only if introspection disabled
     depends_on:
       - postgres
 

@@ -1,4 +1,4 @@
-package com.recipe_manager.unit_tests.model.dto.request;
+package com.recipe_manager.model.dto.request;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;

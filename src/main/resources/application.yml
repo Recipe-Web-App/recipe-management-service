@@ -142,10 +142,6 @@ app:
     jwt:
       secret: ${JWT_SECRET:your-secret-key-here-change-in-production}
       expiration: 86400000 # 24 hours
-    service:
-      auth:
-        enabled: ${SERVICE_AUTH_ENABLED:false}
-        key: ${SERVICE_AUTH_KEY:}
   logging:
     request:
       enabled: true
@@ -171,6 +167,18 @@ external:
       base-url: ${MEDIA_MANAGER_BASE_URL:http://media-management.local/api/v1/media-management}
       enabled: ${MEDIA_MANAGER_ENABLED:true}
       timeout: ${MEDIA_MANAGER_TIMEOUT:5s}
+    oauth2-service:
+      base-url: ${OAUTH2_SERVICE_BASE_URL:http://auth-service.local}
+      enabled: ${OAUTH2_SERVICE_ENABLED:true}
+      timeout: ${OAUTH2_SERVICE_TIMEOUT:5s}
+      client-id: ${OAUTH2_CLIENT_ID:recipe-service-client}
+      client-secret: ${OAUTH2_CLIENT_SECRET:your-client-secret}
+      introspection-enabled: ${OAUTH2_INTROSPECTION_ENABLED:false}
+      scopes: ${OAUTH2_SCOPES:read,write}
+      token-path: ${OAUTH2_TOKEN_PATH:/api/v1/auth/oauth2/token}
+      introspection-path: ${OAUTH2_INTROSPECTION_PATH:/api/v1/auth/oauth2/introspect}
+      user-info-path: ${OAUTH2_USERINFO_PATH:/api/v1/auth/oauth2/userinfo}
+      service-to-service-enabled: ${OAUTH2_SERVICE_TO_SERVICE_ENABLED:true}
     common:
       connect-timeout: ${EXTERNAL_SERVICES_CONNECT_TIMEOUT:3s}
       read-timeout: ${EXTERNAL_SERVICES_READ_TIMEOUT:10s}
@@ -236,6 +244,18 @@ resilience4j:
           - feign.FeignException
         ignore-exceptions:
           - java.lang.IllegalArgumentException
+      oauth2-service:
+        failure-rate-threshold: ${CIRCUIT_BREAKER_FAILURE_RATE:50.0}
+        wait-duration-in-open-state: ${CIRCUIT_BREAKER_WAIT_DURATION:30s}
+        sliding-window-size: ${CIRCUIT_BREAKER_SLIDING_WINDOW:10}
+        minimum-number-of-calls: ${CIRCUIT_BREAKER_MIN_CALLS:5}
+        permitted-number-of-calls-in-half-open-state: ${CIRCUIT_BREAKER_HALF_OPEN_CALLS:3}
+        register-health-indicator: true
+        record-exceptions:
+          - com.recipe_manager.exception.ExternalServiceException
+          - feign.FeignException
+        ignore-exceptions:
+          - java.lang.IllegalArgumentException
   retry:
     instances:
       recipe-scraper:
@@ -266,6 +286,20 @@ resilience4j:
         ignore-exceptions:
           - feign.FeignException$BadRequest
           - feign.FeignException$NotFound
+      oauth2-service:
+        max-attempts: ${RETRY_MAX_ATTEMPTS:3}
+        wait-duration: ${RETRY_WAIT_DURATION:500ms}
+        exponential-backoff-multiplier: ${RETRY_BACKOFF_MULTIPLIER:2.0}
+        max-wait-duration: ${RETRY_MAX_WAIT_DURATION:5s}
+        retry-exceptions:
+          - com.recipe_manager.exception.ExternalServiceTimeoutException
+          - feign.FeignException$InternalServerError
+          - feign.FeignException$BadGateway
+          - feign.FeignException$ServiceUnavailable
+          - feign.FeignException$GatewayTimeout
+        ignore-exceptions:
+          - feign.FeignException$BadRequest
+          - feign.FeignException$NotFound
   timelimiter:
     instances:
       recipe-scraper:
@@ -274,11 +308,17 @@ resilience4j:
       media-manager:
         timeout-duration: ${MEDIA_MANAGER_TIMEOUT:5s}
         cancel-running-future: true
+      oauth2-service:
+        timeout-duration: ${OAUTH2_SERVICE_TIMEOUT:5s}
+        cancel-running-future: true
   bulkhead:
     instances:
       recipe-scraper:
         max-concurrent-calls: ${BULKHEAD_MAX_CALLS:5}
         max-wait-duration: ${BULKHEAD_MAX_WAIT:100ms}
       media-manager:
+        max-concurrent-calls: ${BULKHEAD_MAX_CALLS:5}
+        max-wait-duration: ${BULKHEAD_MAX_WAIT:100ms}
+      oauth2-service:
         max-concurrent-calls: ${BULKHEAD_MAX_CALLS:5}
         max-wait-duration: ${BULKHEAD_MAX_WAIT:100ms}

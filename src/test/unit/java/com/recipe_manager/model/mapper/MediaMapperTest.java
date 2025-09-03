@@ -1,4 +1,4 @@
-package com.recipe_manager.unit_tests.model.mapper;
+package com.recipe_manager.model.mapper;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;

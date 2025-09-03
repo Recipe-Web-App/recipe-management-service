@@ -76,6 +76,36 @@ spec:
                 secretKeyRef:
                   name: recipe-manager-secrets
                   key: JWT_SECRET
+            - name: OAUTH2_SERVICE_ENABLED
+              valueFrom:
+                configMapKeyRef:
+                  name: recipe-manager-config
+                  key: OAUTH2_SERVICE_ENABLED
+            - name: OAUTH2_SERVICE_TO_SERVICE_ENABLED
+              valueFrom:
+                configMapKeyRef:
+                  name: recipe-manager-config
+                  key: OAUTH2_SERVICE_TO_SERVICE_ENABLED
+            - name: OAUTH2_CLIENT_ID
+              valueFrom:
+                configMapKeyRef:
+                  name: recipe-manager-config
+                  key: OAUTH2_CLIENT_ID
+            - name: OAUTH2_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: recipe-manager-secrets
+                  key: OAUTH2_CLIENT_SECRET
+            - name: OAUTH2_INTROSPECTION_ENABLED
+              valueFrom:
+                configMapKeyRef:
+                  name: recipe-manager-config
+                  key: OAUTH2_INTROSPECTION_ENABLED
+            - name: SPRING_PROFILES_ACTIVE
+              valueFrom:
+                configMapKeyRef:
+                  name: recipe-manager-config
+                  key: SPRING_PROFILES_ACTIVE
           readinessProbe:
             httpGet:
               path: /api/v1/recipe-manager/actuator/health/readiness

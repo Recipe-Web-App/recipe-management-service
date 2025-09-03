@@ -128,14 +128,14 @@ class MyComponentTest extends AbstractComponentTest {
 
 ### JWT Integration
 
-- **Shared Secret**: Must match `user-management-service` (`JWT_SECRET` env var)
+- **Shared Secret**: JWT_SECRET only required if OAUTH2_INTROSPECTION_ENABLED=false
 - **Token Validation**: Automatic via `JwtAuthenticationFilter`
 - **User Context**: Available via `SecurityContextHolder`
 - **Authorization**: Role-based with `@PreAuthorize` annotations
 
 ### Environment Variables
 
-- `JWT_SECRET`: JWT signing key (must be shared across services)
+- `JWT_SECRET`: JWT signing key (only required if OAUTH2_INTROSPECTION_ENABLED=false)
 - `POSTGRES_HOST/PORT/DB`: Database connection
 - `RECIPE_MANAGEMENT_DB_USER/PASSWORD`: Database credentials
 - `POSTGRES_SCHEMA`: Database schema (default: recipe_manager)
@@ -221,5 +221,6 @@ class MyComponentTest extends AbstractComponentTest {
 
 - **MapStruct + Lombok**: Ensure Lombok is first in annotation processor chain
 - **Database Schema**: Use `POSTGRES_SCHEMA` environment variable consistently
-- **JWT Authentication**: Verify `JWT_SECRET` matches across all services
+- **JWT Authentication**: With OAuth2 introspection enabled, no shared
+  JWT_SECRET needed
 - **Test Containers**: May require Docker daemon for component/integration tests

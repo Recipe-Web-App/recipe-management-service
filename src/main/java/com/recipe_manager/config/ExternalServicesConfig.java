@@ -30,6 +30,9 @@ public class ExternalServicesConfig {
   /** Media manager service configuration. */
   @Valid @NotNull private MediaManagerConfig mediaManager = new MediaManagerConfig();
 
+  /** OAuth2 authentication service configuration. */
+  @Valid @NotNull private OAuth2ServiceConfig oauth2Service = new OAuth2ServiceConfig();
+
   /** Common configuration for all external services. */
   @Valid @NotNull private CommonConfig common = new CommonConfig();
 
@@ -61,6 +64,42 @@ public class ExternalServicesConfig {
 
     /** Request timeout for this service. */
     @NotNull private Duration timeout;
+  }
+
+  @Data
+  public static class OAuth2ServiceConfig {
+    /** Base URL for the OAuth2 authentication service. */
+    @NotBlank private String baseUrl;
+
+    /** Whether the OAuth2 service is enabled. */
+    @NotNull private Boolean enabled;
+
+    /** Request timeout for OAuth2 service calls. */
+    @NotNull private Duration timeout;
+
+    /** Client ID for service-to-service authentication. */
+    @NotBlank private String clientId;
+
+    /** Client secret for service-to-service authentication. */
+    @NotBlank private String clientSecret;
+
+    /** Whether to use token introspection for validation. */
+    @NotNull private Boolean introspectionEnabled;
+
+    /** Scopes to request for service-to-service authentication. */
+    private String scopes;
+
+    /** Token endpoint path (relative to base URL). */
+    @NotBlank private String tokenPath = "/api/v1/auth/oauth2/token";
+
+    /** Token introspection endpoint path (relative to base URL). */
+    @NotBlank private String introspectionPath = "/api/v1/auth/oauth2/introspect";
+
+    /** UserInfo endpoint path (relative to base URL). */
+    @NotBlank private String userInfoPath = "/api/v1/auth/oauth2/userinfo";
+
+    /** Whether service-to-service authentication is enabled. */
+    @NotNull private Boolean serviceToServiceEnabled = true;
   }
 
   @Data

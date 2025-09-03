@@ -9,6 +9,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.recipe_manager.security.JwtAuthenticationFilter;
+import com.recipe_manager.security.ServiceAuthenticationFilter;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -35,8 +36,9 @@ class SecurityConfigTest {
     SecurityConfig config = new SecurityConfig();
     HttpSecurity http = mock(HttpSecurity.class, RETURNS_DEEP_STUBS);
     JwtAuthenticationFilter jwtFilter = mock(JwtAuthenticationFilter.class);
+    ServiceAuthenticationFilter serviceFilter = mock(ServiceAuthenticationFilter.class);
 
-    assertNotNull(config.filterChain(http, jwtFilter));
+    assertNotNull(config.filterChain(http, jwtFilter, serviceFilter));
   }
 
   @Test
@@ -108,11 +110,12 @@ class SecurityConfigTest {
     SecurityConfig config = new SecurityConfig();
     HttpSecurity http = mock(HttpSecurity.class, RETURNS_DEEP_STUBS);
     JwtAuthenticationFilter jwtFilter = mock(JwtAuthenticationFilter.class);
+    ServiceAuthenticationFilter serviceFilter = mock(ServiceAuthenticationFilter.class);
     DefaultSecurityFilterChain filterChain = mock(DefaultSecurityFilterChain.class);
 
     when(http.build()).thenReturn(filterChain);
 
-    SecurityFilterChain result = config.filterChain(http, jwtFilter);
+    SecurityFilterChain result = config.filterChain(http, jwtFilter, serviceFilter);
     assertNotNull(result);
     verify(http).build();
   }
@@ -124,10 +127,11 @@ class SecurityConfigTest {
     SecurityConfig config = new SecurityConfig();
     HttpSecurity http = mock(HttpSecurity.class, RETURNS_DEEP_STUBS);
     JwtAuthenticationFilter jwtFilter = mock(JwtAuthenticationFilter.class);
+    ServiceAuthenticationFilter serviceFilter = mock(ServiceAuthenticationFilter.class);
 
     when(http.build()).thenReturn(mock(DefaultSecurityFilterChain.class));
 
-    SecurityFilterChain result = config.filterChain(http, jwtFilter);
+    SecurityFilterChain result = config.filterChain(http, jwtFilter, serviceFilter);
     assertNotNull(result);
 
     // Verify that build was called at the end

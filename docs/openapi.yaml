@@ -23,11 +23,12 @@ info:
     name: Recipe Web App Team
   license:
     name: MIT
+    url: https://opensource.org/licenses/MIT
 
 servers:
-  - url: http://localhost:8080/api/v1/recipe-manager
+  - url: http://localhost:8080/api/v1/recipe-management
     description: Local development server
-  - url: http://recipe-manager.local/api/v1/recipe-manager
+  - url: http://recipe-manager.local/api/v1/recipe-management
     description: Kubernetes deployment
 
 security:
@@ -50,9 +51,13 @@ tags:
     description: Change history tracking
   - name: search
     description: Recipe search and filtering
+  - name: health
+    description: Health checks and monitoring endpoints
+  - name: monitoring
+    description: Application metrics and observability
 
 paths:
-  /recipe-management/recipes:
+  /recipes:
     get:
       tags: [recipes]
       summary: Get all recipes
@@ -106,7 +111,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /recipe-management/recipes/{recipeId}:
+  /recipes/{recipeId}:
     get:
       tags: [recipes]
       summary: Get recipe by ID
@@ -187,7 +192,55 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /recipe-management/recipes/search:
+  /recipes/{recipeId}/description:
+    get:
+      tags: [recipes]
+      summary: Get recipe description
+      description: |
+        Retrieves the description of a specific recipe.
+      operationId: getRecipeDescription
+      parameters:
+        - $ref: '#/components/parameters/RecipeIdParam'
+      responses:
+        '200':
+          description: Recipe description retrieved successfully
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "Classic homemade chocolate chip cookies"
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /recipes/{recipeId}/history:
+    get:
+      tags: [recipes]
+      summary: Get recipe history
+      description: |
+        Retrieves the history/timeline of changes for a specific recipe.
+      operationId: getRecipeHistory
+      parameters:
+        - $ref: '#/components/parameters/RecipeIdParam'
+      responses:
+        '200':
+          description: Recipe history retrieved successfully
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "Recipe history placeholder"
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /recipes/search:
     post:
       tags: [search]
       summary: Search recipes
@@ -220,7 +273,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /recipe-management/recipes/{recipeId}/ingredients:
+  /recipes/{recipeId}/ingredients:
     get:
       tags: [ingredients]
       summary: Get recipe ingredients
@@ -244,7 +297,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /recipe-management/recipes/{recipeId}/ingredients/scale:
+  /recipes/{recipeId}/ingredients/scale:
     get:
       tags: [ingredients]
       summary: Scale recipe ingredients
@@ -262,7 +315,6 @@ paths:
             type: number
             format: float
             minimum: 0
-            exclusiveMinimum: true
             example: 1.5
       responses:
         '200':
@@ -280,7 +332,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /recipe-management/recipes/{recipeId}/ingredients/shopping-list:
+  /recipes/{recipeId}/ingredients/shopping-list:
     get:
       tags: [ingredients]
       summary: Generate shopping list
@@ -304,7 +356,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /recipe-management/recipes/{recipeId}/ingredients/{ingredientId}/comment:
+  /recipes/{recipeId}/ingredients/{ingredientId}/comment:
     post:
       tags: [ingredients]
       summary: Add ingredient comment
@@ -408,7 +460,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /recipe-management/recipes/{recipeId}/steps:
+  /recipes/{recipeId}/steps:
     get:
       tags: [steps]
       summary: Get recipe steps
@@ -432,7 +484,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /recipe-management/recipes/{recipeId}/steps/{stepId}/comment:
+  /recipes/{recipeId}/steps/{stepId}/comment:
     get:
       tags: [steps]
       summary: Get step comments
@@ -555,7 +607,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /recipe-management/recipes/{recipeId}/tags:
+  /recipes/{recipeId}/tags:
     get:
       tags: [tags]
       summary: Get recipe tags
@@ -643,7 +695,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /recipe-management/recipes/{recipeId}/review:
+  /recipes/{recipeId}/review:
     get:
       tags: [reviews]
       summary: Get recipe reviews
@@ -703,7 +755,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /recipe-management/recipes/{recipeId}/review/{reviewId}:
+  /recipes/{recipeId}/review/{reviewId}:
     put:
       tags: [reviews]
       summary: Edit recipe review
@@ -761,7 +813,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /recipe-management/recipes/{recipeId}/revisions:
+  /recipes/{recipeId}/revisions:
     get:
       tags: [revisions]
       summary: Get recipe revisions
@@ -785,7 +837,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /recipe-management/recipes/{recipeId}/steps/{stepId}/revisions:
+  /recipes/{recipeId}/steps/{stepId}/revisions:
     get:
       tags: [revisions]
       summary: Get step revisions
@@ -809,7 +861,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /recipe-management/recipes/{recipeId}/ingredients/{ingredientId}/revisions:
+  /recipes/{recipeId}/ingredients/{ingredientId}/revisions:
     get:
       tags: [revisions]
       summary: Get ingredient revisions
@@ -833,7 +885,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /recipe-management/recipes/{recipeId}/media:
+  /recipes/{recipeId}/media:
     get:
       tags: [media]
       summary: Get recipe media
@@ -851,21 +903,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  content:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/MediaDto'
-                  totalElements:
-                    type: integer
-                    format: int64
-                  totalPages:
-                    type: integer
-                  first:
-                    type: boolean
-                  last:
-                    type: boolean
+                $ref: '#/components/schemas/PageMediaDto'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '404':
@@ -909,7 +947,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /recipe-management/recipes/{recipeId}/media/{mediaId}:
+  /recipes/{recipeId}/media/{mediaId}:
     delete:
       tags: [media]
       summary: Delete recipe media
@@ -936,7 +974,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /recipe-management/recipes/{recipeId}/ingredients/{ingredientId}/media:
+  /recipes/{recipeId}/ingredients/{ingredientId}/media:
     get:
       tags: [media]
       summary: Get ingredient media
@@ -954,12 +992,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  content:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/MediaDto'
+                $ref: '#/components/schemas/PageMediaDto'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '404':
@@ -999,7 +1032,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /recipe-management/recipes/{recipeId}/ingredients/{ingredientId}/media/{mediaId}:
+  /recipes/{recipeId}/ingredients/{ingredientId}/media/{mediaId}:
     delete:
       tags: [media]
       summary: Delete ingredient media
@@ -1026,7 +1059,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /recipe-management/recipes/{recipeId}/steps/{stepId}/media:
+  /recipes/{recipeId}/steps/{stepId}/media:
     get:
       tags: [media]
       summary: Get step media
@@ -1044,12 +1077,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  content:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/MediaDto'
+                $ref: '#/components/schemas/PageMediaDto'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '404':
@@ -1089,7 +1117,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /recipe-management/recipes/{recipeId}/steps/{stepId}/media/{mediaId}:
+  /recipes/{recipeId}/steps/{stepId}/media/{mediaId}:
     delete:
       tags: [media]
       summary: Delete step media
@@ -1115,6 +1143,217 @@ paths:
           $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/InternalServerError'
+
+  /actuator/health:
+    get:
+      tags: [health]
+      summary: Get application health status
+      description: |
+        Comprehensive health check endpoint that monitors all application components
+        including database connectivity, disk space, memory usage, and external services.
+
+        Includes custom health indicators for:
+        - Database connection with retry logic
+        - Disk space monitoring with thresholds
+        - JVM memory usage monitoring
+        - Recipe scraper service availability
+        - Circuit breaker states
+      operationId: getHealth
+      responses:
+        '200':
+          description: Health status retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+        '503':
+          description: Service unavailable - health check failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+  /actuator/health/readiness:
+    get:
+      tags: [health]
+      summary: Get application readiness status
+      description: |
+        Readiness probe for Kubernetes deployments. Indicates whether the application
+        is ready to receive traffic.
+      operationId: getReadiness
+      responses:
+        '200':
+          description: Application is ready
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+        '503':
+          description: Application is not ready
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+  /actuator/health/liveness:
+    get:
+      tags: [health]
+      summary: Get application liveness status
+      description: |
+        Liveness probe for Kubernetes deployments. Indicates whether the application
+        is alive and should not be restarted.
+      operationId: getLiveness
+      responses:
+        '200':
+          description: Application is alive
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+        '503':
+          description: Application is not responding
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+  /actuator/info:
+    get:
+      tags: [monitoring]
+      summary: Get application information
+      description: |
+        Provides application metadata including version, build info, and configuration.
+      operationId: getInfo
+      responses:
+        '200':
+          description: Application info retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InfoResponse'
+
+  /actuator/metrics:
+    get:
+      tags: [monitoring]
+      summary: Get available metrics
+      description: |
+        Lists all available application metrics that can be queried.
+      operationId: getMetrics
+      responses:
+        '200':
+          description: Metrics list retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MetricsResponse'
+
+  /actuator/metrics/{metricName}:
+    get:
+      tags: [monitoring]
+      summary: Get specific metric value
+      description: |
+        Retrieves the current value and statistics for a specific metric.
+      operationId: getMetric
+      parameters:
+        - name: metricName
+          in: path
+          description: Name of the metric to retrieve
+          required: true
+          schema:
+            type: string
+            example: "jvm.memory.used"
+      responses:
+        '200':
+          description: Metric value retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MetricResponse'
+        '404':
+          description: Metric not found
+
+  /actuator/prometheus:
+    get:
+      tags: [monitoring]
+      summary: Get Prometheus metrics
+      description: |
+        Provides all metrics in Prometheus format for scraping by monitoring systems.
+      operationId: getPrometheusMetrics
+      responses:
+        '200':
+          description: Prometheus metrics retrieved successfully
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: Metrics in Prometheus exposition format
+                example: |
+                  # HELP jvm_memory_used_bytes The amount of used memory
+                  # TYPE jvm_memory_used_bytes gauge
+                  jvm_memory_used_bytes{area="heap",id="PS Eden Space",} 1.234567E8
+
+  /actuator/env:
+    get:
+      tags: [monitoring]
+      summary: Get environment properties
+      description: |
+        Provides access to environment properties and configuration values.
+        Sensitive values are masked for security.
+
+        **Security Note:** This endpoint may expose configuration details.
+        Access should be restricted in production environments.
+      operationId: getEnvironment
+      responses:
+        '200':
+          description: Environment properties retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnvironmentResponse'
+
+  /actuator/env/{propertyName}:
+    get:
+      tags: [monitoring]
+      summary: Get specific environment property
+      description: |
+        Retrieves the value of a specific environment property or configuration setting.
+      operationId: getEnvironmentProperty
+      parameters:
+        - name: propertyName
+          in: path
+          description: Name of the property to retrieve
+          required: true
+          schema:
+            type: string
+            example: "spring.application.name"
+      responses:
+        '200':
+          description: Property retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PropertyResponse'
+        '404':
+          description: Property not found
+
+  /actuator/configprops:
+    get:
+      tags: [monitoring]
+      summary: Get configuration properties
+      description: |
+        Provides access to all configuration properties bound to @ConfigurationProperties beans.
+        Shows the actual configuration values used by the application.
+
+        **Security Note:** Sensitive properties are masked for security.
+        Access should be restricted in production environments.
+      operationId: getConfigurationProperties
+      responses:
+        '200':
+          description: Configuration properties retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConfigPropsResponse'
 
 components:
   securitySchemes:
@@ -1165,8 +1404,9 @@ components:
       description: Recipe identifier
       required: true
       schema:
-        type: string
-        example: "123"
+        type: integer
+        format: int64
+        example: 123
 
     IngredientIdParam:
       name: ingredientId
@@ -1174,8 +1414,9 @@ components:
       description: Ingredient identifier
       required: true
       schema:
-        type: string
-        example: "456"
+        type: integer
+        format: int64
+        example: 456
 
     StepIdParam:
       name: stepId
@@ -1215,13 +1456,18 @@ components:
         - title
         - servings
         - createdAt
-        - createdBy
+        - userId
       properties:
         recipeId:
           type: integer
           format: int64
           description: Unique recipe identifier
           example: 123
+        userId:
+          type: string
+          format: uuid
+          description: UUID of the user who created the recipe
+          example: "123e4567-e89b-12d3-a456-426614174000"
         title:
           type: string
           minLength: 1
@@ -1233,27 +1479,26 @@ components:
           maxLength: 2000
           description: Recipe description
           example: "Classic homemade chocolate chip cookies"
+        originUrl:
+          type: string
+          description: The origin URL of the recipe
+          example: "https://example.com/recipe/123"
         servings:
-          type: integer
-          minimum: 1
-          maximum: 1000
-          description: Number of servings
-          example: 24
-        prepTime:
+          type: number
+          format: decimal
+          minimum: 0
+          description: Number of servings as decimal
+          example: 4.5
+        preparationTime:
           type: integer
           minimum: 0
           description: Preparation time in minutes
           example: 15
-        cookTime:
+        cookingTime:
           type: integer
           minimum: 0
           description: Cooking time in minutes
           example: 12
-        totalTime:
-          type: integer
-          minimum: 0
-          description: Total time (prep + cook) in minutes
-          example: 27
         difficulty:
           $ref: '#/components/schemas/DifficultyLevel'
         createdAt:
@@ -1266,23 +1511,6 @@ components:
           format: date-time
           description: Last update timestamp
           example: "2024-08-28T10:30:00Z"
-        createdBy:
-          type: integer
-          format: int64
-          description: User ID who created the recipe
-          example: 456
-        averageRating:
-          type: number
-          format: double
-          minimum: 0
-          maximum: 5
-          description: Average user rating
-          example: 4.5
-        reviewCount:
-          type: integer
-          minimum: 0
-          description: Number of reviews
-          example: 12
         ingredients:
           type: array
           items:
@@ -1295,22 +1523,34 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/RecipeTagDto'
+        revisions:
+          type: array
+          items:
+            $ref: '#/components/schemas/RecipeRevisionDto'
+        favorites:
+          type: array
+          items:
+            $ref: '#/components/schemas/RecipeFavoriteDto'
 
     RecipeIngredientDto:
       type: object
       required:
         - ingredientId
-        - name
+        - ingredientName
         - quantity
         - unit
-        - order
       properties:
+        recipeId:
+          type: integer
+          format: int64
+          description: Recipe identifier
+          example: 123
         ingredientId:
           type: integer
           format: int64
           description: Ingredient identifier
           example: 789
-        name:
+        ingredientName:
           type: string
           minLength: 1
           maxLength: 100
@@ -1318,23 +1558,22 @@ components:
           example: "All-purpose flour"
         quantity:
           type: number
-          format: double
+          format: decimal
           minimum: 0
           exclusiveMinimum: true
-          description: Ingredient quantity
+          description: Ingredient quantity as decimal
           example: 2.25
         unit:
           $ref: '#/components/schemas/IngredientUnit'
-        notes:
-          type: string
-          maxLength: 500
-          description: Special notes or instructions
-          example: "Sifted"
-        order:
-          type: integer
-          minimum: 1
-          description: Display order
-          example: 1
+        isOptional:
+          type: boolean
+          description: Whether the ingredient is optional
+          example: false
+        comments:
+          type: array
+          description: Comments associated with this ingredient
+          items:
+            $ref: '#/components/schemas/IngredientCommentDto'
 
     RecipeStepDto:
       type: object
@@ -1408,25 +1647,26 @@ components:
       type: object
       required:
         - mediaId
-        - originalFilename
+        - userId
         - mediaType
-        - fileSize
         - processingStatus
-        - uploadedAt
       properties:
         mediaId:
           type: integer
           format: int64
           description: Media identifier
           example: 701
+        userId:
+          type: string
+          format: uuid
+          description: UUID of the user who owns the media
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        mediaType:
+          $ref: '#/components/schemas/MediaType'
         originalFilename:
           type: string
           description: Original filename
           example: "cookies.jpg"
-        mediaType:
-          $ref: '#/components/schemas/MediaType'
-        mediaFormat:
-          $ref: '#/components/schemas/MediaFormat'
         fileSize:
           type: integer
           format: int64
@@ -1435,16 +1675,506 @@ components:
           example: 1048576
         contentHash:
           type: string
-          pattern: "^[a-f0-9]{64}$"
-          description: SHA-256 content hash
+          description: Content hash for integrity checking
           example: "abc123def456"
         processingStatus:
           $ref: '#/components/schemas/ProcessingStatus'
-        uploadedAt:
+        createdAt:
           type: string
           format: date-time
-          description: Upload timestamp
+          description: Creation timestamp
           example: "2024-08-28T11:05:00Z"
+        updatedAt:
+          type: string
+          format: date-time
+          description: Last update timestamp
+          example: "2024-08-28T11:05:00Z"
+
+    PageMediaDto:
+      type: object
+      description: Paginated media response matching Spring Page structure
+      properties:
+        content:
+          type: array
+          description: Media items for current page
+          items:
+            $ref: '#/components/schemas/MediaDto'
+        pageable:
+          type: object
+          description: Pagination information
+          properties:
+            pageNumber:
+              type: integer
+              description: Current page number (0-based)
+            pageSize:
+              type: integer
+              description: Size of the page
+            sort:
+              type: object
+              description: Sort information
+              properties:
+                sorted:
+                  type: boolean
+                unsorted:
+                  type: boolean
+                empty:
+                  type: boolean
+            offset:
+              type: integer
+              format: int64
+              description: Offset of the first item
+            paged:
+              type: boolean
+              description: Whether pagination is enabled
+            unpaged:
+              type: boolean
+              description: Whether pagination is disabled
+        totalElements:
+          type: integer
+          format: int64
+          description: Total number of elements
+        totalPages:
+          type: integer
+          description: Total number of pages
+        last:
+          type: boolean
+          description: Whether this is the last page
+        first:
+          type: boolean
+          description: Whether this is the first page
+        numberOfElements:
+          type: integer
+          description: Number of elements in current page
+        size:
+          type: integer
+          description: Size of the page
+        number:
+          type: integer
+          description: Current page number (0-based)
+        sort:
+          type: object
+          description: Sort information
+          properties:
+            sorted:
+              type: boolean
+            unsorted:
+              type: boolean
+            empty:
+              type: boolean
+        empty:
+          type: boolean
+          description: Whether the page is empty
+
+    HealthResponse:
+      type: object
+      description: Spring Boot Actuator health response
+      properties:
+        status:
+          type: string
+          enum: [UP, DOWN, DEGRADED, WARNING, OUT_OF_SERVICE, UNKNOWN]
+          description: Overall health status
+          example: UP
+        components:
+          type: object
+          description: Individual component health details
+          additionalProperties:
+            type: object
+            properties:
+              status:
+                type: string
+                enum: [UP, DOWN, DEGRADED, WARNING, OUT_OF_SERVICE, UNKNOWN]
+              details:
+                type: object
+                additionalProperties: true
+                description: Component-specific health details
+          example:
+            databaseHealthIndicator:
+              status: UP
+              details:
+                database: PostgreSQL
+                status: connected
+                connectionRetryEnabled: true
+                lastSuccessfulConnection: "2024-08-28T10:30:00"
+            diskSpaceHealthIndicator:
+              status: UP
+              details:
+                disk.usage.percentage: "45.67%"
+                disk.free.space: "120.45 GB"
+                disk.total.space: "220.00 GB"
+            memoryHealthIndicator:
+              status: UP
+              details:
+                memory.heap.usage.percentage: "67.23%"
+                memory.heap.used: "512.34 MB"
+                memory.heap.max: "762.00 MB"
+            recipeScraperHealth:
+              status: UP
+              details:
+                status: available
+                responseTime: "245ms"
+                baseUrl: "http://recipe.local"
+        groups:
+          type: object
+          description: Health indicator groups
+          properties:
+            liveness:
+              type: object
+              properties:
+                status:
+                  type: string
+                components:
+                  type: object
+                  additionalProperties: true
+            readiness:
+              type: object
+              properties:
+                status:
+                  type: string
+                components:
+                  type: object
+                  additionalProperties: true
+
+    InfoResponse:
+      type: object
+      description: Application information response
+      properties:
+        app:
+          type: object
+          properties:
+            name:
+              type: string
+              example: "recipe-manager-service"
+            version:
+              type: string
+              example: "1.0.0"
+            description:
+              type: string
+              example: "Recipe Management Service API"
+        build:
+          type: object
+          properties:
+            version:
+              type: string
+            time:
+              type: string
+              format: date-time
+            artifact:
+              type: string
+            name:
+              type: string
+            group:
+              type: string
+        java:
+          type: object
+          properties:
+            version:
+              type: string
+              example: "21.0.2"
+            vendor:
+              type: string
+              example: "Eclipse Adoptium"
+        os:
+          type: object
+          properties:
+            name:
+              type: string
+            version:
+              type: string
+            arch:
+              type: string
+
+    MetricsResponse:
+      type: object
+      description: Available metrics list
+      properties:
+        names:
+          type: array
+          items:
+            type: string
+          example:
+            - "jvm.memory.used"
+            - "jvm.memory.max"
+            - "http.server.requests"
+            - "system.cpu.usage"
+            - "jdbc.connections.active"
+            - "external.service.calls"
+            - "external.service.failures"
+            - "external.service.response.time"
+            - "shopping.list.generations"
+            - "shopping.list.with.pricing"
+
+    MetricResponse:
+      type: object
+      description: Specific metric details
+      properties:
+        name:
+          type: string
+          description: Metric name
+          example: "jvm.memory.used"
+        description:
+          type: string
+          description: Metric description
+          example: "The amount of used memory"
+        baseUnit:
+          type: string
+          description: Base unit of measurement
+          example: "bytes"
+        measurements:
+          type: array
+          items:
+            type: object
+            properties:
+              statistic:
+                type: string
+                example: "VALUE"
+              value:
+                type: number
+                example: 1234567890
+        availableTags:
+          type: array
+          items:
+            type: object
+            properties:
+              tag:
+                type: string
+                example: "area"
+              values:
+                type: array
+                items:
+                  type: string
+                example: ["heap", "nonheap"]
+
+    EnvironmentResponse:
+      type: object
+      description: Environment properties response
+      properties:
+        activeProfiles:
+          type: array
+          items:
+            type: string
+          example: ["default"]
+        propertySources:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+                example: "applicationConfig: [classpath:/application.yml]"
+              properties:
+                type: object
+                additionalProperties:
+                  type: object
+                  properties:
+                    value:
+                      type: string
+                    origin:
+                      type: string
+                    sensitive:
+                      type: boolean
+                example:
+                  spring.application.name:
+                    value: "recipe-manager-service"
+                    origin: "class path resource [application.yml] - 19:7"
+                    sensitive: false
+                  server.port:
+                    value: "8080"
+                    origin: "class path resource [application.yml] - 4:8"
+                    sensitive: false
+                  POSTGRES_PASSWORD:
+                    value: "******"
+                    origin: "System Environment"
+                    sensitive: true
+
+    PropertyResponse:
+      type: object
+      description: Single property response
+      properties:
+        property:
+          type: object
+          properties:
+            source:
+              type: string
+              example: "applicationConfig: [classpath:/application.yml]"
+            value:
+              type: string
+              example: "recipe-manager-service"
+        activeProfiles:
+          type: array
+          items:
+            type: string
+        propertySources:
+          type: array
+          items:
+            type: string
+
+    ConfigPropsResponse:
+      type: object
+      description: Configuration properties response
+      properties:
+        contexts:
+          type: object
+          additionalProperties:
+            type: object
+            properties:
+              beans:
+                type: object
+                additionalProperties:
+                  type: object
+                  properties:
+                    prefix:
+                      type: string
+                      example: "server"
+                    properties:
+                      type: object
+                      additionalProperties: true
+                      example:
+                        port: 8080
+                        error:
+                          include-message: "always"
+                          include-binding-errors: "always"
+                        servlet:
+                          context-path: "/api/v1/recipe-manager"
+              parentId:
+                type: string
+                nullable: true
+          example:
+            application:
+              beans:
+                server:
+                  prefix: "server"
+                  properties:
+                    port: 8080
+                    servlet:
+                      context-path: "/api/v1/recipe-manager"
+                management:
+                  prefix: "management"
+                  properties:
+                    endpoints:
+                      web:
+                        exposure:
+                          include: ["health", "info", "prometheus", "metrics"]
+                        base-path: "/actuator"
+                spring.application:
+                  prefix: "spring.application"
+                  properties:
+                    name: "recipe-manager-service"
+              parentId: null
+
+    IngredientCommentDto:
+      type: object
+      required:
+        - commentId
+        - recipeId
+        - userId
+        - commentText
+        - createdAt
+      properties:
+        commentId:
+          type: integer
+          format: int64
+          description: Comment identifier
+          example: 301
+        recipeId:
+          type: integer
+          format: int64
+          description: Recipe identifier
+          example: 123
+        userId:
+          type: string
+          format: uuid
+          description: UUID of user who wrote the comment
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        commentText:
+          type: string
+          minLength: 1
+          maxLength: 1000
+          description: Comment text content
+          example: "Make sure to sift for best results"
+        isPublic:
+          type: boolean
+          description: Whether comment is public or private
+          example: true
+        createdAt:
+          type: string
+          format: date-time
+          description: Comment creation timestamp
+          example: "2024-08-28T10:35:00Z"
+        updatedAt:
+          type: string
+          format: date-time
+          description: Last update timestamp
+          example: "2024-08-28T10:35:00Z"
+
+    RecipeFavoriteDto:
+      type: object
+      required:
+        - recipeId
+        - userId
+        - favoritedAt
+      properties:
+        recipeId:
+          type: integer
+          format: int64
+          description: Recipe identifier
+          example: 123
+        userId:
+          type: string
+          format: uuid
+          description: UUID of user who favorited the recipe
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        favoritedAt:
+          type: string
+          format: date-time
+          description: Timestamp when recipe was favorited
+          example: "2024-08-28T10:35:00Z"
+
+    RecipeRevisionDto:
+      type: object
+      required:
+        - revisionId
+        - recipeId
+        - userId
+        - revisionCategory
+        - revisionType
+        - createdAt
+      properties:
+        revisionId:
+          type: integer
+          format: int64
+          description: Revision identifier
+          example: 501
+        recipeId:
+          type: integer
+          format: int64
+          description: Recipe identifier
+          example: 123
+        userId:
+          type: string
+          format: uuid
+          description: UUID of user who made the revision
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        revisionCategory:
+          $ref: '#/components/schemas/RevisionCategory'
+        revisionType:
+          $ref: '#/components/schemas/RevisionType'
+        previousData:
+          type: string
+          description: Previous data before revision
+          example: "Original recipe data"
+        newData:
+          type: string
+          description: New data after revision
+          example: "Updated recipe data"
+        changeComment:
+          type: string
+          description: Comment describing the change
+          example: "Updated serving size"
+        createdAt:
+          type: string
+          format: date-time
+          description: Revision creation timestamp
+          example: "2024-08-28T10:35:00Z"
 
     ReviewDto:
       type: object
@@ -1756,41 +2486,6 @@ components:
                     type: array
                     items:
                       $ref: '#/components/schemas/IngredientCommentDto'
-
-    IngredientCommentDto:
-      type: object
-      required:
-        - commentId
-        - userId
-        - comment
-        - createdAt
-      properties:
-        commentId:
-          type: integer
-          format: int64
-          description: Comment identifier
-          example: 301
-        userId:
-          type: integer
-          format: int64
-          description: User who wrote the comment
-          example: 456
-        comment:
-          type: string
-          minLength: 1
-          maxLength: 1000
-          description: Comment text
-          example: "Make sure to sift for best results"
-        createdAt:
-          type: string
-          format: date-time
-          description: Comment creation timestamp
-          example: "2024-08-28T10:35:00Z"
-        updatedAt:
-          type: string
-          format: date-time
-          description: Last update timestamp
-          example: "2024-08-28T10:35:00Z"
 
     ShoppingListResponse:
       type: object
@@ -2253,35 +2948,50 @@ components:
 
     DifficultyLevel:
       type: string
-      enum: [EASY, MEDIUM, HARD, EXPERT]
+      enum: [BEGINNER, EASY, MEDIUM, HARD, EXPERT]
       description: Recipe difficulty level
       example: EASY
 
     IngredientUnit:
       type: string
       enum:
-        - CUPS
-        - TABLESPOONS
-        - TEASPOONS
-        - POUNDS
-        - OUNCES
-        - GRAMS
-        - KILOGRAMS
-        - LITERS
-        - MILLILITERS
-        - FLUID_OUNCES
-        - PIECES
-        - CLOVES
+        - G
+        - KG
+        - OZ
+        - LB
+        - ML
+        - L
+        - CUP
+        - TBSP
+        - TSP
+        - PIECE
+        - CLOVE
+        - SLICE
         - PINCH
-        - DASH
+        - CAN
+        - BOTTLE
+        - PACKET
+        - UNIT
       description: Ingredient measurement unit
-      example: CUPS
+      example: CUP
 
     MediaType:
       type: string
-      enum: [IMAGE, VIDEO, AUDIO]
-      description: Type of media content
-      example: IMAGE
+      enum:
+        - IMAGE_JPEG
+        - IMAGE_PNG
+        - IMAGE_GIF
+        - IMAGE_WEBP
+        - IMAGE_AVIF
+        - IMAGE_SVG_XML
+        - IMAGE_HEIC
+        - IMAGE_TIFF
+        - VIDEO_MP4
+        - VIDEO_WEBM
+        - VIDEO_OGG
+        - VIDEO_QUICKTIME
+      description: Media MIME type
+      example: IMAGE_JPEG
 
     MediaFormat:
       type: string
@@ -2297,15 +3007,15 @@ components:
 
     RevisionType:
       type: string
-      enum: [CREATE, UPDATE, DELETE]
+      enum: [ADD, UPDATE, DELETE]
       description: Type of revision change
       example: UPDATE
 
     RevisionCategory:
       type: string
-      enum: [RECIPE, INGREDIENT, STEP]
+      enum: [INGREDIENT, STEP]
       description: Category of revised entity
-      example: RECIPE
+      example: INGREDIENT
 
     ErrorResponse:
       type: object
@@ -2331,7 +3041,7 @@ components:
         path:
           type: string
           description: Request path
-          example: "/recipe-management/recipes/123"
+          example: "/recipes/123"
         details:
           type: object
           additionalProperties: true
@@ -2348,7 +3058,7 @@ components:
             error: "Bad Request"
             message: "Invalid request parameters"
             timestamp: "2024-08-28T10:30:00Z"
-            path: "/recipe-management/recipes"
+            path: "/recipes"
 
     Unauthorized:
       description: Missing or invalid authentication
@@ -2360,7 +3070,7 @@ components:
             error: "Unauthorized"
             message: "JWT token is missing or invalid"
             timestamp: "2024-08-28T10:30:00Z"
-            path: "/recipe-management/recipes"
+            path: "/recipes"
 
     Forbidden:
       description: Insufficient permissions
@@ -2372,7 +3082,7 @@ components:
             error: "Forbidden"
             message: "You don't have permission to access this resource"
             timestamp: "2024-08-28T10:30:00Z"
-            path: "/recipe-management/recipes/123"
+            path: "/recipes/123"
 
     NotFound:
       description: Resource not found
@@ -2384,7 +3094,7 @@ components:
             error: "Not Found"
             message: "Recipe with ID 123 not found"
             timestamp: "2024-08-28T10:30:00Z"
-            path: "/recipe-management/recipes/123"
+            path: "/recipes/123"
 
     Conflict:
       description: Resource already exists or conflicts with current state
@@ -2396,7 +3106,7 @@ components:
             error: "Conflict"
             message: "User has already reviewed this recipe"
             timestamp: "2024-08-28T10:30:00Z"
-            path: "/recipe-management/recipes/123/review"
+            path: "/recipes/123/review"
 
     ValidationError:
       description: Request validation failed
@@ -2408,7 +3118,7 @@ components:
             error: "Validation Error"
             message: "Request validation failed"
             timestamp: "2024-08-28T10:30:00Z"
-            path: "/recipe-management/recipes"
+            path: "/recipes"
             details:
               title: "Title is required"
               servings: "Servings must be positive"
@@ -2423,7 +3133,7 @@ components:
             error: "Payload Too Large"
             message: "File size exceeds maximum limit of 10MB"
             timestamp: "2024-08-28T10:30:00Z"
-            path: "/recipe-management/recipes/123/media"
+            path: "/recipes/123/media"
 
     UnsupportedMediaType:
       description: Unsupported media type
@@ -2435,7 +3145,7 @@ components:
             error: "Unsupported Media Type"
             message: "Media type not supported"
             timestamp: "2024-08-28T10:30:00Z"
-            path: "/recipe-management/recipes/123/media"
+            path: "/recipes/123/media"
 
     InternalServerError:
       description: Unexpected server error
@@ -2447,7 +3157,7 @@ components:
             error: "Internal Server Error"
             message: "An unexpected error occurred"
             timestamp: "2024-08-28T10:30:00Z"
-            path: "/recipe-management/recipes"
+            path: "/recipes"
 
 externalDocs:
   description: Recipe Management Service Documentation

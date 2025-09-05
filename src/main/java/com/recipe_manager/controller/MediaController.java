@@ -26,7 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 /** REST controller for media management operations. */
 @Slf4j
 @RestController
-@RequestMapping("/recipe-management")
+@RequestMapping("")
 @RequiredArgsConstructor
 public class MediaController {
 

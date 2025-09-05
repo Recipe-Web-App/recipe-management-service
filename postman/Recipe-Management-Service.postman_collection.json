@@ -1,0 +1,1388 @@
+{
+  "info": {
+    "name": "Recipe Management Service API",
+    "description": "Complete API collection for Recipe Management Service - Generated from accurate OpenAPI specification with all 46 endpoints",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "2.0.0"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{accessToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "testRecipeId",
+      "value": "1",
+      "type": "string",
+      "description": "Sample recipe ID for testing"
+    },
+    {
+      "key": "testIngredientId",
+      "value": "1",
+      "type": "string",
+      "description": "Sample ingredient ID for testing"
+    },
+    {
+      "key": "testStepId",
+      "value": "1",
+      "type": "string",
+      "description": "Sample step ID for testing"
+    },
+    {
+      "key": "testReviewId",
+      "value": "1",
+      "type": "string",
+      "description": "Sample review ID for testing"
+    },
+    {
+      "key": "testTagName",
+      "value": "vegetarian",
+      "type": "string",
+      "description": "Sample tag name for testing"
+    },
+    {
+      "key": "testMediaId",
+      "value": "1",
+      "type": "string",
+      "description": "Sample media ID for testing"
+    }
+  ],
+  "item": [
+    {
+      "name": "Recipe Management",
+      "item": [
+        {
+          "name": "Get All Recipes",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/recipes?page=0&size=20&sortBy=createdAt&sortDirection=desc",
+              "host": ["{{baseUrl}}"],
+              "path": ["recipes"],
+              "query": [
+                {"key": "page", "value": "0", "description": "Page number (0-based)"},
+                {"key": "size", "value": "20", "description": "Number of items per page"},
+                {"key": "sortBy", "value": "createdAt", "description": "Field to sort by"},
+                {"key": "sortDirection", "value": "desc", "description": "Sort direction (asc/desc)"}
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response is JSON', function () {",
+                  "    pm.response.to.be.json;",
+                  "});",
+                  "",
+                  "pm.test('Response has pageable structure', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson).to.have.property('content');",
+                  "    pm.expect(responseJson).to.have.property('pageable');",
+                  "    pm.expect(responseJson).to.have.property('totalElements');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Recipe by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/recipes/{{testRecipeId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["recipes", "{{testRecipeId}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Recipe has required fields', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson).to.have.property('recipeId');",
+                  "    pm.expect(responseJson).to.have.property('userId');",
+                  "    pm.expect(responseJson).to.have.property('title');",
+                  "    pm.expect(responseJson).to.have.property('description');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create Recipe",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Test Recipe\",\n  \"description\": \"A test recipe created via Postman\",\n  \"servings\": 4,\n  \"preparationTime\": 15,\n  \"cookingTime\": 30,\n  \"difficulty\": \"EASY\",\n  \"cuisine\": \"AMERICAN\",\n  \"ingredients\": [\n    {\n      \"ingredientName\": \"Flour\",\n      \"quantity\": 2.0,\n      \"unit\": \"CUPS\",\n      \"isOptional\": false\n    }\n  ],\n  \"steps\": [\n    {\n      \"stepNumber\": 1,\n      \"instruction\": \"Mix all ingredients\",\n      \"estimatedTime\": 5\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/recipes",
+              "host": ["{{baseUrl}}"],
+              "path": ["recipes"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Extract recipe ID', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    if (responseJson.recipeId) {",
+                  "        pm.collectionVariables.set('createdRecipeId', responseJson.recipeId);",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update Recipe",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Updated Test Recipe\",\n  \"description\": \"An updated test recipe\",\n  \"servings\": 6,\n  \"preparationTime\": 20,\n  \"cookingTime\": 45,\n  \"difficulty\": \"MEDIUM\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/recipes/{{testRecipeId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["recipes", "{{testRecipeId}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Recipe",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/recipes/{{testRecipeId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["recipes", "{{testRecipeId}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Recipe Description",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/recipes/{{testRecipeId}}/description",
+              "host": ["{{baseUrl}}"],
+              "path": ["recipes", "{{testRecipeId}}", "description"]
+            }
+          }
+        },
+        {
+          "name": "Update Recipe Description",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"This is an updated detailed description of the recipe with cooking tips and variations.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/recipes/{{testRecipeId}}/description",
+              "host": ["{{baseUrl}}"],
+              "path": ["recipes", "{{testRecipeId}}", "description"]
+            }
+          }
+        },
+        {
+          "name": "Get Recipe History",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/recipes/{{testRecipeId}}/history?page=0&size=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["recipes", "{{testRecipeId}}", "history"],
+              "query": [
+                {"key": "page", "value": "0"},
+                {"key": "size", "value": "20"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Search Recipes",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/recipes/search?query=pasta&tags=italian,easy&difficulty=EASY&cuisine=ITALIAN&page=0&size=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["recipes", "search"],
+              "query": [
+                {"key": "query", "value": "pasta", "description": "Search term"},
+                {"key": "tags", "value": "italian,easy", "description": "Comma-separated tags"},
+                {"key": "difficulty", "value": "EASY", "description": "Recipe difficulty"},
+                {"key": "cuisine", "value": "ITALIAN", "description": "Cuisine type"},
+                {"key": "page", "value": "0"},
+                {"key": "size", "value": "20"}
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Ingredients",
+      "item": [
+        {
+          "name": "Get Recipe Ingredients",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/recipes/{{testRecipeId}}/ingredients?page=0&size=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["recipes", "{{testRecipeId}}", "ingredients"],
+              "query": [
+                {"key": "page", "value": "0"},
+                {"key": "size", "value": "20"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Add Recipe Ingredient",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ingredientName\": \"Olive Oil\",\n  \"quantity\": 2.0,\n  \"unit\": \"TABLESPOONS\",\n  \"isOptional\": false,\n  \"preparation\": \"Extra virgin\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/recipes/{{testRecipeId}}/ingredients",
+              "host": ["{{baseUrl}}"],
+              "path": ["recipes", "{{testRecipeId}}", "ingredients"]
+            }
+          }
+        },
+        {
+          "name": "Update Recipe Ingredient",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ingredientName\": \"Extra Virgin Olive Oil\",\n  \"quantity\": 3.0,\n  \"unit\": \"TABLESPOONS\",\n  \"isOptional\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/recipes/{{testRecipeId}}/ingredients/{{testIngredientId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["recipes", "{{testRecipeId}}", "ingredients", "{{testIngredientId}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Recipe Ingredient",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/recipes/{{testRecipeId}}/ingredients/{{testIngredientId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["recipes", "{{testRecipeId}}", "ingredients", "{{testIngredientId}}"]
+            }
+          }
+        },
+        {
+          "name": "Scale Recipe Ingredients",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/recipes/{{testRecipeId}}/ingredients/scale?servings=8",
+              "host": ["{{baseUrl}}"],
+              "path": ["recipes", "{{testRecipeId}}", "ingredients", "scale"],
+              "query": [
+                {"key": "servings", "value": "8", "description": "Target number of servings"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Generate Shopping List",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"recipeIds\": [{{testRecipeId}}],\n  \"servings\": 4\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/recipes/shopping-list",
+              "host": ["{{baseUrl}}"],
+              "path": ["recipes", "shopping-list"]
+            }
+          }
+        },
+        {
+          "name": "Get Ingredient Comments",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/recipes/{{testRecipeId}}/ingredients/{{testIngredientId}}/comments?page=0&size=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["recipes", "{{testRecipeId}}", "ingredients", "{{testIngredientId}}", "comments"],
+              "query": [
+                {"key": "page", "value": "0"},
+                {"key": "size", "value": "20"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Add Ingredient Comment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"comment\": \"Make sure to use fresh ingredients for best flavor\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/recipes/{{testRecipeId}}/ingredients/{{testIngredientId}}/comments",
+              "host": ["{{baseUrl}}"],
+              "path": ["recipes", "{{testRecipeId}}", "ingredients", "{{testIngredientId}}", "comments"]
+            }
+          }
+        },
+        {
+          "name": "Update Ingredient Comment",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"comment\": \"Updated comment: Use organic ingredients when possible\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/recipes/{{testRecipeId}}/ingredients/{{testIngredientId}}/comments/{{commentId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["recipes", "{{testRecipeId}}", "ingredients", "{{testIngredientId}}", "comments", "{{commentId}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Ingredient Comment",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/recipes/{{testRecipeId}}/ingredients/{{testIngredientId}}/comments/{{commentId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["recipes", "{{testRecipeId}}", "ingredients", "{{testIngredientId}}", "comments", "{{commentId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Steps",
+      "item": [
+        {
+          "name": "Get Recipe Steps",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/recipes/{{testRecipeId}}/steps?page=0&size=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["recipes", "{{testRecipeId}}", "steps"],
+              "query": [
+                {"key": "page", "value": "0"},
+                {"key": "size", "value": "20"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Add Recipe Step",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"stepNumber\": 2,\n  \"instruction\": \"Heat oil in a large pan over medium heat\",\n  \"estimatedTime\": 3,\n  \"temperature\": \"350°F\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/recipes/{{testRecipeId}}/steps",
+              "host": ["{{baseUrl}}"],
+              "path": ["recipes", "{{testRecipeId}}", "steps"]
+            }
+          }
+        },
+        {
+          "name": "Update Recipe Step",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"stepNumber\": 2,\n  \"instruction\": \"Heat olive oil in a large pan over medium-high heat\",\n  \"estimatedTime\": 5,\n  \"temperature\": \"375°F\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/recipes/{{testRecipeId}}/steps/{{testStepId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["recipes", "{{testRecipeId}}", "steps", "{{testStepId}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Recipe Step",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/recipes/{{testRecipeId}}/steps/{{testStepId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["recipes", "{{testRecipeId}}", "steps", "{{testStepId}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Step Comments",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/recipes/{{testRecipeId}}/steps/{{testStepId}}/comments?page=0&size=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["recipes", "{{testRecipeId}}", "steps", "{{testStepId}}", "comments"],
+              "query": [
+                {"key": "page", "value": "0"},
+                {"key": "size", "value": "20"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Add Step Comment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"comment\": \"Be careful not to overheat the oil\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/recipes/{{testRecipeId}}/steps/{{testStepId}}/comments",
+              "host": ["{{baseUrl}}"],
+              "path": ["recipes", "{{testRecipeId}}", "steps", "{{testStepId}}", "comments"]
+            }
+          }
+        },
+        {
+          "name": "Update Step Comment",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"comment\": \"Watch the oil temperature carefully to avoid burning\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/recipes/{{testRecipeId}}/steps/{{testStepId}}/comments/{{commentId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["recipes", "{{testRecipeId}}", "steps", "{{testStepId}}", "comments", "{{commentId}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Step Comment",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/recipes/{{testRecipeId}}/steps/{{testStepId}}/comments/{{commentId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["recipes", "{{testRecipeId}}", "steps", "{{testStepId}}", "comments", "{{commentId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Media",
+      "item": [
+        {
+          "name": "Recipe Media",
+          "item": [
+            {
+              "name": "Get Recipe Media",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/recipes/{{testRecipeId}}/media?page=0&size=20",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["recipes", "{{testRecipeId}}", "media"],
+                  "query": [
+                    {"key": "page", "value": "0"},
+                    {"key": "size", "value": "20"}
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Create Recipe Media",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "file",
+                      "type": "file",
+                      "src": []
+                    },
+                    {
+                      "key": "originalFilename",
+                      "value": "recipe-image.jpg",
+                      "type": "text"
+                    },
+                    {
+                      "key": "mediaType",
+                      "value": "IMAGE",
+                      "type": "text"
+                    },
+                    {
+                      "key": "fileSize",
+                      "value": "204800",
+                      "type": "text"
+                    },
+                    {
+                      "key": "contentHash",
+                      "value": "abc123hash",
+                      "type": "text"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/recipes/{{testRecipeId}}/media",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["recipes", "{{testRecipeId}}", "media"]
+                }
+              }
+            },
+            {
+              "name": "Delete Recipe Media",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/recipes/{{testRecipeId}}/media/{{testMediaId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["recipes", "{{testRecipeId}}", "media", "{{testMediaId}}"]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Ingredient Media",
+          "item": [
+            {
+              "name": "Get Ingredient Media",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/recipes/{{testRecipeId}}/ingredients/{{testIngredientId}}/media?page=0&size=20",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["recipes", "{{testRecipeId}}", "ingredients", "{{testIngredientId}}", "media"],
+                  "query": [
+                    {"key": "page", "value": "0"},
+                    {"key": "size", "value": "20"}
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Create Ingredient Media",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "file",
+                      "type": "file",
+                      "src": []
+                    },
+                    {
+                      "key": "originalFilename",
+                      "value": "ingredient-image.jpg",
+                      "type": "text"
+                    },
+                    {
+                      "key": "mediaType",
+                      "value": "IMAGE",
+                      "type": "text"
+                    },
+                    {
+                      "key": "fileSize",
+                      "value": "153600",
+                      "type": "text"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/recipes/{{testRecipeId}}/ingredients/{{testIngredientId}}/media",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["recipes", "{{testRecipeId}}", "ingredients", "{{testIngredientId}}", "media"]
+                }
+              }
+            },
+            {
+              "name": "Delete Ingredient Media",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/recipes/{{testRecipeId}}/ingredients/{{testIngredientId}}/media/{{testMediaId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["recipes", "{{testRecipeId}}", "ingredients", "{{testIngredientId}}", "media", "{{testMediaId}}"]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Step Media",
+          "item": [
+            {
+              "name": "Get Step Media",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/recipes/{{testRecipeId}}/steps/{{testStepId}}/media?page=0&size=20",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["recipes", "{{testRecipeId}}", "steps", "{{testStepId}}", "media"],
+                  "query": [
+                    {"key": "page", "value": "0"},
+                    {"key": "size", "value": "20"}
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Create Step Media",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "file",
+                      "type": "file",
+                      "src": []
+                    },
+                    {
+                      "key": "originalFilename",
+                      "value": "step-video.mp4",
+                      "type": "text"
+                    },
+                    {
+                      "key": "mediaType",
+                      "value": "VIDEO",
+                      "type": "text"
+                    },
+                    {
+                      "key": "fileSize",
+                      "value": "2048000",
+                      "type": "text"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/recipes/{{testRecipeId}}/steps/{{testStepId}}/media",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["recipes", "{{testRecipeId}}", "steps", "{{testStepId}}", "media"]
+                }
+              }
+            },
+            {
+              "name": "Delete Step Media",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/recipes/{{testRecipeId}}/steps/{{testStepId}}/media/{{testMediaId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["recipes", "{{testRecipeId}}", "steps", "{{testStepId}}", "media", "{{testMediaId}}"]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Reviews",
+      "item": [
+        {
+          "name": "Get Recipe Reviews",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/recipes/{{testRecipeId}}/reviews?page=0&size=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["recipes", "{{testRecipeId}}", "reviews"],
+              "query": [
+                {"key": "page", "value": "0"},
+                {"key": "size", "value": "20"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Add Recipe Review",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rating\": 5,\n  \"comment\": \"Excellent recipe! Easy to follow and delicious results.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/recipes/{{testRecipeId}}/reviews",
+              "host": ["{{baseUrl}}"],
+              "path": ["recipes", "{{testRecipeId}}", "reviews"]
+            }
+          }
+        },
+        {
+          "name": "Update Recipe Review",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rating\": 4,\n  \"comment\": \"Good recipe, but could use more seasoning.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/recipes/{{testRecipeId}}/reviews/{{testReviewId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["recipes", "{{testRecipeId}}", "reviews", "{{testReviewId}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Recipe Review",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/recipes/{{testRecipeId}}/reviews/{{testReviewId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["recipes", "{{testRecipeId}}", "reviews", "{{testReviewId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Tags",
+      "item": [
+        {
+          "name": "Get All Tags",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/tags?page=0&size=50",
+              "host": ["{{baseUrl}}"],
+              "path": ["tags"],
+              "query": [
+                {"key": "page", "value": "0"},
+                {"key": "size", "value": "50"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Popular Tags",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/tags/popular?limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["tags", "popular"],
+              "query": [
+                {"key": "limit", "value": "10"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Search Tags",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/tags/search?query=veg",
+              "host": ["{{baseUrl}}"],
+              "path": ["tags", "search"],
+              "query": [
+                {"key": "query", "value": "veg", "description": "Search term for tag names"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Tags by Category",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/tags/category/DIETARY",
+              "host": ["{{baseUrl}}"],
+              "path": ["tags", "category", "DIETARY"]
+            }
+          }
+        },
+        {
+          "name": "Get Recipe Tags",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/recipes/{{testRecipeId}}/tags",
+              "host": ["{{baseUrl}}"],
+              "path": ["recipes", "{{testRecipeId}}", "tags"]
+            }
+          }
+        },
+        {
+          "name": "Add Recipe Tag",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tagName\": \"{{testTagName}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/recipes/{{testRecipeId}}/tags",
+              "host": ["{{baseUrl}}"],
+              "path": ["recipes", "{{testRecipeId}}", "tags"]
+            }
+          }
+        },
+        {
+          "name": "Remove Recipe Tag",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/recipes/{{testRecipeId}}/tags/{{testTagName}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["recipes", "{{testRecipeId}}", "tags", "{{testTagName}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Actuator - Health & Monitoring",
+      "item": [
+        {
+          "name": "Application Health",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/actuator/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["actuator", "health"]
+            }
+          }
+        },
+        {
+          "name": "Readiness Health Check",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/actuator/health/readiness",
+              "host": ["{{baseUrl}}"],
+              "path": ["actuator", "health", "readiness"]
+            }
+          }
+        },
+        {
+          "name": "Liveness Health Check",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/actuator/health/liveness",
+              "host": ["{{baseUrl}}"],
+              "path": ["actuator", "health", "liveness"]
+            }
+          }
+        },
+        {
+          "name": "Application Info",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/actuator/info",
+              "host": ["{{baseUrl}}"],
+              "path": ["actuator", "info"]
+            }
+          }
+        },
+        {
+          "name": "Application Metrics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/actuator/metrics",
+              "host": ["{{baseUrl}}"],
+              "path": ["actuator", "metrics"]
+            }
+          }
+        },
+        {
+          "name": "Prometheus Metrics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "text/plain"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/actuator/prometheus",
+              "host": ["{{baseUrl}}"],
+              "path": ["actuator", "prometheus"]
+            }
+          }
+        },
+        {
+          "name": "Application Environment",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/actuator/env",
+              "host": ["{{baseUrl}}"],
+              "path": ["actuator", "env"]
+            }
+          }
+        },
+        {
+          "name": "Configuration Properties",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/actuator/configprops",
+              "host": ["{{baseUrl}}"],
+              "path": ["actuator", "configprops"]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Set request ID for tracking",
+          "if (!pm.request.headers.has('X-Request-ID')) {",
+          "    pm.request.addHeader({",
+          "        key: 'X-Request-ID',",
+          "        value: pm.variables.replaceIn('{{$randomUUID}}').substring(0, 8)",
+          "    });",
+          "}"
+        ]
+      }
+    }
+  ]
+}

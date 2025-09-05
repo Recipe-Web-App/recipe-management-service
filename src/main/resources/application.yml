@@ -8,7 +8,7 @@ server:
     include-stacktrace: never
     include-exception: false
   servlet:
-    context-path: /api/v1/recipe-manager
+    context-path: /api/v1/recipe-management
   compression:
     enabled: true
     mime-types: text/html,text/xml,text/plain,text/css,text/javascript,application/javascript,application/json

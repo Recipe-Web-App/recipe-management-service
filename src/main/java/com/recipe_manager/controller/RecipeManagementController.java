@@ -58,7 +58,7 @@ import jakarta.validation.constraints.Min;
  * <p>All methods are placeholders and should be implemented.
  */
 @RestController
-@RequestMapping("/recipe-management/recipes")
+@RequestMapping("/recipes")
 public class RecipeManagementController {
 
   /** Default page size for pagination. */

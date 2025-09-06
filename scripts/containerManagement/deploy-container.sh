@@ -3,10 +3,10 @@
 
 set -euo pipefail
 
-NAMESPACE="recipe-manager"
+NAMESPACE="recipe-management"
 CONFIG_DIR="k8s"
-SECRET_NAME="recipe-manager-secrets"
-IMAGE_NAME="recipe-manager-service"
+SECRET_NAME="recipe-management-secrets"
+IMAGE_NAME="recipe-management-service"
 IMAGE_TAG="latest"
 FULL_IMAGE_NAME="${IMAGE_NAME}:${IMAGE_TAG}"
 
@@ -117,13 +117,13 @@ kubectl delete secret "$SECRET_NAME" -n "$NAMESPACE" --ignore-not-found
 envsubst < "${CONFIG_DIR}/secret-template.yaml" | kubectl apply -f -
 
 print_separator "="
-echo "📦 Deploying Recipe Manager Service container..."
+echo "📦 Deploying Recipe Management Service container..."
 print_separator "-"
 
 kubectl apply -f "${CONFIG_DIR}/deployment.yaml"
 
 print_separator "="
-echo "🌐 Exposing Recipe Manager Service via ClusterIP Service..."
+echo "🌐 Exposing Recipe Management Service via ClusterIP Service..."
 print_separator "-"
 
 kubectl apply -f "${CONFIG_DIR}/service.yaml"
@@ -147,36 +147,36 @@ print_separator "-"
 kubectl apply -f "${CONFIG_DIR}/ingress.yaml"
 
 print_separator "="
-echo "⏳ Waiting for Recipe Manager Service pod to be ready..."
+echo "⏳ Waiting for Recipe Management Service pod to be ready..."
 print_separator "-"
 
 kubectl wait --namespace="$NAMESPACE" \
   --for=condition=Ready pod \
-  --selector=app=recipe-manager-service \
+  --selector=app=recipe-management-service \
   --timeout=90s
 
 print_separator "-"
-echo "✅ Recipe Manager Service is up and running in namespace '$NAMESPACE'."
+echo "✅ Recipe Management Service is up and running in namespace '$NAMESPACE'.'"
 
 print_separator "="
-echo "🔗 Setting up /etc/hosts for recipe-manager.local..."
+echo "🔗 Setting up /etc/hosts for recipe-management.local..."
 print_separator "-"
 
 MINIKUBE_IP=$(minikube ip)
-if grep -q "recipe-manager.local" /etc/hosts; then
-  echo "🔄 Updating /etc/hosts for recipe-manager.local..."
-  sed -i "/recipe-manager.local/d" /etc/hosts
+if grep -q "recipe-management.local" /etc/hosts; then
+  echo "🔄 Updating /etc/hosts for recipe-management.local..."
+  sed -i "/recipe-management.local/d" /etc/hosts
 else
-  echo "➕ Adding recipe-manager.local to /etc/hosts..."
+  echo "➕ Adding recipe-management.local to /etc/hosts..."
 fi
-echo "$MINIKUBE_IP recipe-manager.local" >> /etc/hosts
-echo "✅ /etc/hosts updated with recipe-manager.local pointing to $MINIKUBE_IP"
+echo "$MINIKUBE_IP recipe-management.local" >> /etc/hosts
+echo "✅ /etc/hosts updated with recipe-management.local pointing to $MINIKUBE_IP"
 
 print_separator "="
-echo "🌍 You can now access your app at: http://recipe-manager.local/actuator/health"
+echo "🌍 You can now access your app at: http://recipe-management.local/actuator/health"
 
-POD_NAME=$(kubectl get pods -n "$NAMESPACE" -l app=recipe-manager-service -o jsonpath="{.items[0].metadata.name}")
-SERVICE_JSON=$(kubectl get svc recipe-manager-service -n "$NAMESPACE" -o json)
+POD_NAME=$(kubectl get pods -n "$NAMESPACE" -l app=recipe-management-service -o jsonpath="{.items[0].metadata.name}")
+SERVICE_JSON=$(kubectl get svc recipe-management-service -n "$NAMESPACE" -o json)
 SERVICE_IP=$(echo "$SERVICE_JSON" | jq -r '.spec.clusterIP')
 SERVICE_PORT=$(echo "$SERVICE_JSON" | jq -r '.spec.ports[0].port')
 INGRESS_HOSTS=$(kubectl get ingress -n "$NAMESPACE" -o jsonpath='{.items[*].spec.rules[*].host}' | tr ' ' '\n' | sort -u | paste -sd ',' -)
@@ -186,5 +186,5 @@ echo "🛰️  Access info:"
 echo "  Pod: $POD_NAME"
 echo "  Service: $SERVICE_IP:$SERVICE_PORT"
 echo "  Ingress Hosts: $INGRESS_HOSTS"
-echo "  Health Check: http://recipe-manager.local/actuator/health"
+echo "  Health Check: http://recipe-management.local/actuator/health"
 print_separator "="

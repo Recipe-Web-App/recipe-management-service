@@ -49,7 +49,7 @@ class ExternalServiceAuthConfigTest {
     assertThat(template.headers().get("X-API-Key")).contains("test-api-key");
     assertThat(template.headers()).containsKey("X-Correlation-ID");
     assertThat(template.headers()).containsKey("X-Service-Name");
-    assertThat(template.headers().get("X-Service-Name")).contains("recipe-manager-service");
+    assertThat(template.headers().get("X-Service-Name")).contains("recipe-management-service");
   }
 
   @Test

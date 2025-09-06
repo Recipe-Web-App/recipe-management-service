@@ -39,7 +39,7 @@ public class ExternalServiceAuthConfig {
       requestTemplate.header("X-Correlation-ID", correlationId);
 
       // Add service identification
-      requestTemplate.header("X-Service-Name", "recipe-manager-service");
+      requestTemplate.header("X-Service-Name", "recipe-management-service");
     };
   }
 }

@@ -55,6 +55,397 @@
   ],
   "item": [
     {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Create User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{$randomUserName}}\",\n  \"email\": \"{{$randomEmail}}\",\n  \"password\": \"Test@123456\",\n  \"firstName\": \"{{$randomFirstName}}\",\n  \"lastName\": \"{{$randomLastName}}\"\n}"
+            },
+            "url": {
+              "raw": "{{authServiceBaseUrl}}/auth/register",
+              "host": ["{{authServiceBaseUrl}}"],
+              "path": ["auth", "register"]
+            },
+            "description": "Register a new user account"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Response has user details', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson).to.have.property('userId');",
+                  "    pm.expect(responseJson).to.have.property('username');",
+                  "    pm.expect(responseJson).to.have.property('email');",
+                  "    ",
+                  "    // Save user ID for later use",
+                  "    if (responseJson.userId) {",
+                  "        pm.environment.set('createdUserId', responseJson.userId);",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{testUserUsername}}\",\n  \"password\": \"{{testUserPassword}}\"\n}"
+            },
+            "url": {
+              "raw": "{{authServiceBaseUrl}}/auth/login",
+              "host": ["{{authServiceBaseUrl}}"],
+              "path": ["auth", "login"]
+            },
+            "description": "Login with username and password to get access and refresh tokens"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has tokens', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson).to.have.property('accessToken');",
+                  "    pm.expect(responseJson).to.have.property('refreshToken');",
+                  "    pm.expect(responseJson).to.have.property('tokenType', 'Bearer');",
+                  "    ",
+                  "    // Save tokens to environment for use in other requests",
+                  "    if (responseJson.accessToken) {",
+                  "        pm.environment.set('accessToken', responseJson.accessToken);",
+                  "    }",
+                  "    if (responseJson.refreshToken) {",
+                  "        pm.environment.set('refreshToken', responseJson.refreshToken);",
+                  "    }",
+                  "    if (responseJson.userId) {",
+                  "        pm.environment.set('userId', responseJson.userId);",
+                  "    }",
+                  "});",
+                  "",
+                  "pm.test('Response has user details', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson).to.have.property('userId');",
+                  "    pm.expect(responseJson).to.have.property('username');",
+                  "    pm.expect(responseJson).to.have.property('email');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// Ensure password is set",
+                  "if (!pm.environment.get('testUserPassword') || pm.environment.get('testUserPassword') === 'REPLACE_WITH_YOUR_TEST_USER_PASSWORD') {",
+                  "    console.log('Warning: testUserPassword not set. Please set it in your environment.');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{adminUserUsername}}\",\n  \"password\": \"{{adminUserPassword}}\"\n}"
+            },
+            "url": {
+              "raw": "{{authServiceBaseUrl}}/auth/login",
+              "host": ["{{authServiceBaseUrl}}"],
+              "path": ["auth", "login"]
+            },
+            "description": "Login as admin user to get admin access and refresh tokens"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has tokens', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson).to.have.property('accessToken');",
+                  "    pm.expect(responseJson).to.have.property('refreshToken');",
+                  "    ",
+                  "    // Save admin tokens to environment",
+                  "    if (responseJson.accessToken) {",
+                  "        pm.environment.set('adminAccessToken', responseJson.accessToken);",
+                  "        // Also set as current access token for immediate use",
+                  "        pm.environment.set('accessToken', responseJson.accessToken);",
+                  "    }",
+                  "    if (responseJson.refreshToken) {",
+                  "        pm.environment.set('adminRefreshToken', responseJson.refreshToken);",
+                  "        pm.environment.set('refreshToken', responseJson.refreshToken);",
+                  "    }",
+                  "    if (responseJson.userId) {",
+                  "        pm.environment.set('adminUserId', responseJson.userId);",
+                  "        pm.environment.set('userId', responseJson.userId);",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// Ensure admin password is set",
+                  "if (!pm.environment.get('adminUserPassword') || pm.environment.get('adminUserPassword') === 'REPLACE_WITH_YOUR_ADMIN_USER_PASSWORD') {",
+                  "    console.log('Warning: adminUserPassword not set. Please set it in your environment.');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+            },
+            "url": {
+              "raw": "{{authServiceBaseUrl}}/auth/refresh",
+              "host": ["{{authServiceBaseUrl}}"],
+              "path": ["auth", "refresh"]
+            },
+            "description": "Refresh the access token using a valid refresh token"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has new tokens', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson).to.have.property('accessToken');",
+                  "    pm.expect(responseJson).to.have.property('refreshToken');",
+                  "    ",
+                  "    // Update tokens in environment",
+                  "    if (responseJson.accessToken) {",
+                  "        pm.environment.set('accessToken', responseJson.accessToken);",
+                  "    }",
+                  "    if (responseJson.refreshToken) {",
+                  "        pm.environment.set('refreshToken', responseJson.refreshToken);",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// Check if refresh token is available",
+                  "if (!pm.environment.get('refreshToken')) {",
+                  "    console.log('Warning: No refresh token available. Please login first.');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{authServiceBaseUrl}}/auth/logout",
+              "host": ["{{authServiceBaseUrl}}"],
+              "path": ["auth", "logout"]
+            },
+            "description": "Logout the current user and invalidate tokens"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 or 204', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 204]);",
+                  "});",
+                  "",
+                  "// Clear tokens from environment after logout",
+                  "pm.environment.unset('accessToken');",
+                  "pm.environment.unset('refreshToken');",
+                  "pm.environment.unset('userId');",
+                  "",
+                  "console.log('User logged out successfully. Tokens cleared.');"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// Check if tokens are available",
+                  "if (!pm.environment.get('accessToken')) {",
+                  "    console.log('Warning: No access token available. User may not be logged in.');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Current User",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{authServiceBaseUrl}}/users/me",
+              "host": ["{{authServiceBaseUrl}}"],
+              "path": ["users", "me"]
+            },
+            "description": "Get details of the currently authenticated user"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has user details', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson).to.have.property('userId');",
+                  "    pm.expect(responseJson).to.have.property('username');",
+                  "    pm.expect(responseJson).to.have.property('email');",
+                  "    pm.expect(responseJson).to.have.property('roles');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ],
+      "description": "Authentication endpoints for user registration, login, token refresh, and logout",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// This folder contains authentication-related requests",
+              "// Make sure to set testUserPassword and adminUserPassword in your environment",
+              "// After successful login, the accessToken will be automatically used in all other requests"
+            ]
+          }
+        }
+      ]
+    },
+    {
       "name": "Recipe Management",
       "item": [
         {
@@ -1380,7 +1771,37 @@
           "        key: 'X-Request-ID',",
           "        value: pm.variables.replaceIn('{{$randomUUID}}').substring(0, 8)",
           "    });",
-          "}"
+          "}",
+          "",
+          "// Auto-refresh token if needed (optional - can be enabled if desired)",
+          "// Uncomment the following lines to enable automatic token refresh",
+          "/*",
+          "const accessToken = pm.environment.get('accessToken');",
+          "const refreshToken = pm.environment.get('refreshToken');",
+          "",
+          "if (accessToken) {",
+          "    // Parse JWT to check expiration",
+          "    try {",
+          "        const tokenParts = accessToken.split('.');",
+          "        const payload = JSON.parse(atob(tokenParts[1]));",
+          "        const expirationTime = payload.exp * 1000; // Convert to milliseconds",
+          "        const currentTime = Date.now();",
+          "        const timeUntilExpiry = expirationTime - currentTime;",
+          "        ",
+          "        // If token expires in less than 5 minutes, refresh it",
+          "        if (timeUntilExpiry < 300000 && refreshToken) {",
+          "            console.log('Token expiring soon, refreshing...');",
+          "            ",
+          "            // Note: This would require sending a synchronous request",
+          "            // which is complex in Postman. For now, users should manually",
+          "            // run the Refresh Token request when needed.",
+          "            console.log('Please run the Refresh Token request to get a new access token.');",
+          "        }",
+          "    } catch (e) {",
+          "        console.log('Could not parse access token:', e.message);",
+          "    }",
+          "}",
+          "*/"
         ]
       }
     }

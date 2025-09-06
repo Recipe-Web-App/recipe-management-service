@@ -61,7 +61,8 @@ public class HealthCheckConfig {
       if (isConnected) {
         healthBuilder = Health.up();
       } else {
-        // Use DEGRADED status instead of DOWN to indicate the service can still function
+        // Use DEGRADED status instead of DOWN to indicate the service can still
+        // function
         healthBuilder = Health.status("DEGRADED");
       }
 
@@ -182,7 +183,7 @@ public class HealthCheckConfig {
       // For example, check if required services are available
 
       return Health.up()
-          .withDetail("application", "Recipe Manager Service")
+          .withDetail("application", "Recipe Management Service")
           .withDetail("version", "0.1.0")
           .withDetail("status", "running")
           .build();

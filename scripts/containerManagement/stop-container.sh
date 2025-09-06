@@ -3,8 +3,8 @@
 
 set -euo pipefail
 
-NAMESPACE="recipe-manager"
-DEPLOYMENT="recipe-manager-service"
+NAMESPACE="recipe-management"
+DEPLOYMENT="recipe-management-service"
 
 COLUMNS=$(tput cols 2>/dev/null || echo 80)
 

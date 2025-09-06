@@ -1,4 +1,4 @@
-# Recipe Manager Service - Architecture Overview
+# Recipe Management Service - Architecture Overview
 
 ## Tech Stack
 

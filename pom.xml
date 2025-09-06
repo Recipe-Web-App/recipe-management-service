@@ -9,13 +9,13 @@
     <relativePath />
   </parent>
 
-  <groupId>recipe-manager</groupId>
-  <artifactId>recipe-manager-service</artifactId>
+  <groupId>recipe-management</groupId>
+  <artifactId>recipe-management-service</artifactId>
   <version>0.1.0</version>
   <packaging>jar</packaging>
-  <name>Recipe Manager Service</name>
+  <name>Recipe Management Service</name>
   <description>Recipe management service built with Spring Boot</description>
-  <url>https://github.com/Recipe-Web-App/recipe-manager-service</url>
+  <url>https://github.com/Recipe-Web-App/recipe-management-service</url>
 
   <properties>
     <checkstyle.version>3.6.0</checkstyle.version>

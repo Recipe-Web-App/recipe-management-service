@@ -3,12 +3,12 @@
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
-  name: recipe-manager-service-pdb
-  namespace: recipe-manager
+  name: recipe-management-service-pdb
+  namespace: recipe-management
   labels:
-    app: recipe-manager-service
+    app: recipe-management-service
 spec:
   minAvailable: 1
   selector:
     matchLabels:
-      app: recipe-manager-service
+      app: recipe-management-service

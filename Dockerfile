@@ -19,7 +19,7 @@ RUN apt-get update \
 RUN useradd -m spring && mkdir -p /app && chown -R spring:spring /app
 
 # Copy the built jar from the build stage
-COPY --from=build /app/target/recipe-manager-service-*.jar app.jar
+COPY --from=build /app/target/recipe-management-service-*.jar app.jar
 
 # Use a non-root user
 USER spring

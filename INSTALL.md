@@ -1,7 +1,7 @@
-# Installation Guide - Recipe Manager Service
+# Installation Guide - Recipe Management Service
 
 This guide provides step-by-step instructions for setting up the Recipe
-Manager Service in different environments.
+Management Service in different environments.
 
 ## System Requirements
 
@@ -32,8 +32,8 @@ Manager Service in different environments.
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/your-org/recipe-manager-service.git
-cd recipe-manager-service
+git clone https://github.com/your-org/recipe-management-service.git
+cd recipe-management-service
 
 # 2. Set up environment
 cp .env.example .env
@@ -50,8 +50,8 @@ curl http://localhost:8080/actuator/health
 
 ```bash
 # 1. Clone and setup
-git clone https://github.com/your-org/recipe-manager-service.git
-cd recipe-manager-service
+git clone https://github.com/your-org/recipe-management-service.git
+cd recipe-management-service
 cp .env.example .env
 
 # 2. Start PostgreSQL
@@ -64,7 +64,7 @@ docker run --name recipe-postgres \
 
 # 3. Build and run
 mvn clean install
-java -jar target/recipe-manager-service-*.jar
+java -jar target/recipe-management-service-*.jar
 
 # 4. Verify
 curl http://localhost:8080/actuator/health
@@ -168,7 +168,7 @@ docker run --name recipe-postgres \
   -e POSTGRES_DB=recipe_db \
   -e POSTGRES_USER=recipe_user \
   -e POSTGRES_PASSWORD=secure_password \
-  -e POSTGRES_SCHEMA=recipe_manager \
+  -e POSTGRES_SCHEMA=recipe_management \
   -p 5432:5432 \
   -v recipe_postgres_data:/var/lib/postgresql/data \
   -d postgres:15
@@ -214,8 +214,8 @@ GRANT ALL PRIVILEGES ON DATABASE recipe_db TO recipe_user;
 #### Clone Repository
 
 ```bash
-git clone https://github.com/your-org/recipe-manager-service.git
-cd recipe-manager-service
+git clone https://github.com/your-org/recipe-management-service.git
+cd recipe-management-service
 ```
 
 #### Environment Configuration
@@ -235,7 +235,7 @@ nano .env  # or your preferred editor
 POSTGRES_HOST=localhost
 POSTGRES_PORT=5432
 POSTGRES_DB=recipe_db
-POSTGRES_SCHEMA=recipe_manager
+POSTGRES_SCHEMA=recipe_management
 RECIPE_MANAGEMENT_DB_USER=recipe_user
 RECIPE_MANAGEMENT_DB_PASSWORD=secure_password
 
@@ -276,10 +276,10 @@ mvn flyway:migrate
 mvn spring-boot:run
 
 # Method 2: Using JAR file
-java -jar target/recipe-manager-service-*.jar
+java -jar target/recipe-management-service-*.jar
 
 # Method 3: With custom JVM options
-java -Xmx2g -Xms1g -jar target/recipe-manager-service-*.jar
+java -Xmx2g -Xms1g -jar target/recipe-management-service-*.jar
 ```
 
 #### Production Deployment
@@ -292,7 +292,7 @@ export SPRING_PROFILES_ACTIVE=prod
 java -jar \
   -Dspring.profiles.active=prod \
   -Xmx4g -Xms2g \
-  target/recipe-manager-service-*.jar
+  target/recipe-management-service-*.jar
 ```
 
 ### Step 5: Verification
@@ -312,7 +312,7 @@ curl http://localhost:8080/actuator/health
 ```bash
 # Test API endpoint (requires authentication)
 curl -H "Authorization: Bearer YOUR_JWT_TOKEN" \
-     http://localhost:8080/api/v1/recipe-manager/recipes
+     http://localhost:8080/api/v1/recipe-management/recipes
 ```
 
 #### Database Connection
@@ -369,13 +369,13 @@ open target/site/jacoco/index.html
 
 ```bash
 # Build image
-docker build -t recipe-manager-service:latest .
+docker build -t recipe-management-service:latest .
 
 # Tag for registry
-docker tag recipe-manager-service:latest your-registry/recipe-manager-service:v1.0.0
+docker tag recipe-management-service:latest your-registry/recipe-management-service:v1.0.0
 
 # Push to registry
-docker push your-registry/recipe-manager-service:v1.0.0
+docker push your-registry/recipe-management-service:v1.0.0
 ```
 
 ### Docker Compose Deployment
@@ -384,8 +384,8 @@ docker push your-registry/recipe-manager-service:v1.0.0
 # docker-compose.yml
 version: '3.8'
 services:
-  recipe-manager:
-    image: recipe-manager-service:latest
+  recipe-management:
+    image: recipe-management-service:latest
     ports:
       - "8080:8080"
     environment:
@@ -417,7 +417,7 @@ volumes:
 docker-compose up -d
 
 # View logs
-docker-compose logs -f recipe-manager
+docker-compose logs -f recipe-management
 
 # Stop services
 docker-compose down
@@ -435,23 +435,23 @@ docker-compose down
 
 ```bash
 # 1. Create namespace
-kubectl create namespace recipe-manager
+kubectl create namespace recipe-management
 
 # 2. Create secrets
-kubectl create secret generic recipe-manager-secrets \
+kubectl create secret generic recipe-management-secrets \
   --from-literal=postgres-password=secure_password \
   --from-literal=jwt-secret=your-jwt-secret \
-  -n recipe-manager
+  -n recipe-management
 
 # 3. Deploy using provided manifests
-kubectl apply -f k8s/ -n recipe-manager
+kubectl apply -f k8s/ -n recipe-management
 
 # 4. Check deployment status
-kubectl get pods -n recipe-manager
-kubectl get services -n recipe-manager
+kubectl get pods -n recipe-management
+kubectl get services -n recipe-management
 
 # 5. Access application
-kubectl port-forward service/recipe-manager-service 8080:8080 -n recipe-manager
+kubectl port-forward service/recipe-management-service 8080:8080 -n recipe-management
 ```
 
 ## Troubleshooting
@@ -500,7 +500,7 @@ export SERVER_PORT=8081
 ```bash
 # Increase JVM memory
 export JAVA_OPTS="-Xmx4g -Xms2g"
-java $JAVA_OPTS -jar target/recipe-manager-service-*.jar
+java $JAVA_OPTS -jar target/recipe-management-service-*.jar
 
 # Or set in application.yml
 server:
@@ -525,13 +525,13 @@ newgrp docker
 
 ```bash
 # Application logs
-tail -f logs/recipe-manager-service.log
+tail -f logs/recipe-management-service.log
 
 # Docker logs
-docker logs -f recipe-manager-service
+docker logs -f recipe-management-service
 
 # Kubernetes logs
-kubectl logs -f deployment/recipe-manager-service -n recipe-manager
+kubectl logs -f deployment/recipe-management-service -n recipe-management
 ```
 
 ### Performance Tuning
@@ -542,7 +542,7 @@ java -server \
   -Xmx4g -Xms2g \
   -XX:+UseG1GC \
   -XX:MaxGCPauseMillis=200 \
-  -jar target/recipe-manager-service-*.jar
+  -jar target/recipe-management-service-*.jar
 ```
 
 ## Environment-Specific Configuration
@@ -648,4 +648,4 @@ After successful installation:
 
 ---
 
-**Installation complete!** Your Recipe Manager Service should now be running successfully.
+**Installation complete!** Your Recipe Management Service should now be running successfully.

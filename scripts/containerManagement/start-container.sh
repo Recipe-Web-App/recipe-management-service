@@ -3,8 +3,8 @@
 
 set -euo pipefail
 
-NAMESPACE="recipe-manager"
-DEPLOYMENT="recipe-manager-service"
+NAMESPACE="recipe-management"
+DEPLOYMENT="recipe-management-service"
 
 COLUMNS=$(tput cols 2>/dev/null || echo 80)
 
@@ -33,7 +33,7 @@ print_separator "-"
 
 kubectl wait --namespace="$NAMESPACE" \
   --for=condition=Ready pod \
-  --selector=app=recipe-manager-service \
+  --selector=app=recipe-management-service \
   --timeout=90s
 
 print_separator "="

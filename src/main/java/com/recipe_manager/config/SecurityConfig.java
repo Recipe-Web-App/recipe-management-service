@@ -22,7 +22,7 @@ import com.recipe_manager.security.JwtAuthenticationFilter;
 import com.recipe_manager.security.ServiceAuthenticationFilter;
 
 /**
- * Security configuration for the Recipe Manager Service.
+ * Security configuration for the Recipe Management Service.
  *
  * <p>This configuration provides:
  *

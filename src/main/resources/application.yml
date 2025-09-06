@@ -16,7 +16,7 @@ server:
 
 spring:
   application:
-    name: recipe-manager-service
+    name: recipe-management-service
   autoconfigure:
     exclude:
       - org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration

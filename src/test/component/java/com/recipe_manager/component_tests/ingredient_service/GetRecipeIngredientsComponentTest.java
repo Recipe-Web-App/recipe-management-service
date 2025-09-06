@@ -88,7 +88,7 @@ class GetRecipeIngredientsComponentTest extends AbstractComponentTest {
   @Tag("standard-processing")
   @DisplayName("Should return ingredients for a valid recipe ID")
   void shouldGetRecipeIngredients() throws Exception {
-    mockMvc.perform(get("/recipe-management/recipes/123/ingredients")
+    mockMvc.perform(get("/recipes/123/ingredients")
         .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -101,7 +101,7 @@ class GetRecipeIngredientsComponentTest extends AbstractComponentTest {
   void shouldHandleNotFoundForNonExistentRecipeIngredients() throws Exception {
     when(ingredientService.getIngredients("nonexistent"))
         .thenThrow(new com.recipe_manager.exception.ResourceNotFoundException("Recipe not found"));
-    mockMvc.perform(get("/recipe-management/recipes/nonexistent/ingredients")
+    mockMvc.perform(get("/recipes/nonexistent/ingredients")
         .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isNotFound())
         .andExpect(header().exists("X-Request-ID"));
@@ -111,7 +111,7 @@ class GetRecipeIngredientsComponentTest extends AbstractComponentTest {
   @Tag("standard-processing")
   @DisplayName("Should return ingredients with comments")
   void shouldReturnIngredientsWithComments() throws Exception {
-    mockMvc.perform(get("/recipe-management/recipes/123/ingredients")
+    mockMvc.perform(get("/recipes/123/ingredients")
         .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))

@@ -104,7 +104,7 @@ class UpdateRecipeComponentTest extends AbstractComponentTest {
     try (MockedStatic<SecurityUtils> mockedSecurity = Mockito.mockStatic(SecurityUtils.class)) {
       mockedSecurity.when(SecurityUtils::getCurrentUserId).thenReturn(currentUserId);
 
-      mockMvc.perform(put("/recipe-management/recipes/123")
+      mockMvc.perform(put("/recipes/123")
           .contentType(MediaType.APPLICATION_JSON)
           .content(updateRequestJson))
           .andExpect(status().isOk())
@@ -141,7 +141,7 @@ class UpdateRecipeComponentTest extends AbstractComponentTest {
     try (MockedStatic<SecurityUtils> mockedSecurity = Mockito.mockStatic(SecurityUtils.class)) {
       mockedSecurity.when(SecurityUtils::getCurrentUserId).thenReturn(differentUserId);
 
-      mockMvc.perform(put("/recipe-management/recipes/456")
+      mockMvc.perform(put("/recipes/456")
           .contentType(MediaType.APPLICATION_JSON)
           .content(updateRequestJson))
           .andExpect(status().isForbidden())
@@ -160,7 +160,7 @@ class UpdateRecipeComponentTest extends AbstractComponentTest {
     try (MockedStatic<SecurityUtils> mockedSecurity = Mockito.mockStatic(SecurityUtils.class)) {
       mockedSecurity.when(SecurityUtils::getCurrentUserId).thenReturn(currentUserId);
 
-      mockMvc.perform(put("/recipe-management/recipes/999")
+      mockMvc.perform(put("/recipes/999")
           .contentType(MediaType.APPLICATION_JSON)
           .content(updateRequestJson))
           .andExpect(status().isNotFound())

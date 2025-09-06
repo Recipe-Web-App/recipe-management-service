@@ -119,7 +119,7 @@ class EditStepCommentComponentTest extends AbstractComponentTest {
     try (MockedStatic<SecurityUtils> mockedSecurity = Mockito.mockStatic(SecurityUtils.class)) {
       mockedSecurity.when(SecurityUtils::getCurrentUserId).thenReturn(currentUserId);
 
-      mockMvc.perform(put("/recipe-management/recipes/123/steps/1/comment")
+      mockMvc.perform(put("/recipes/123/steps/1/comment")
           .contentType(MediaType.APPLICATION_JSON)
           .content(requestBody))
           .andExpect(status().isOk())
@@ -169,7 +169,7 @@ class EditStepCommentComponentTest extends AbstractComponentTest {
     try (MockedStatic<SecurityUtils> mockedSecurity = Mockito.mockStatic(SecurityUtils.class)) {
       mockedSecurity.when(SecurityUtils::getCurrentUserId).thenReturn(currentUserId);
 
-      mockMvc.perform(put("/recipe-management/recipes/123/steps/1/comment")
+      mockMvc.perform(put("/recipes/123/steps/1/comment")
           .contentType(MediaType.APPLICATION_JSON)
           .content(requestBody))
           .andExpect(status().isOk())
@@ -206,7 +206,7 @@ class EditStepCommentComponentTest extends AbstractComponentTest {
     try (MockedStatic<SecurityUtils> mockedSecurity = Mockito.mockStatic(SecurityUtils.class)) {
       mockedSecurity.when(SecurityUtils::getCurrentUserId).thenReturn(currentUserId);
 
-      mockMvc.perform(put("/recipe-management/recipes/123/steps/1/comment")
+      mockMvc.perform(put("/recipes/123/steps/1/comment")
           .contentType(MediaType.APPLICATION_JSON)
           .content(requestBody))
           .andExpect(status().isNotFound())
@@ -237,7 +237,7 @@ class EditStepCommentComponentTest extends AbstractComponentTest {
     try (MockedStatic<SecurityUtils> mockedSecurity = Mockito.mockStatic(SecurityUtils.class)) {
       mockedSecurity.when(SecurityUtils::getCurrentUserId).thenReturn(differentUserId);
 
-      mockMvc.perform(put("/recipe-management/recipes/123/steps/1/comment")
+      mockMvc.perform(put("/recipes/123/steps/1/comment")
           .contentType(MediaType.APPLICATION_JSON)
           .content(requestBody))
           .andExpect(status().isForbidden())

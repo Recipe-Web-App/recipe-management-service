@@ -79,7 +79,7 @@ class EditIngredientCommentComponentTest extends AbstractComponentTest {
         .thenReturn(java.util.Collections.emptyList());
 
     // When & Then
-    mockMvc.perform(put("/recipe-management/recipes/123/ingredients/456/comment")
+    mockMvc.perform(put("/recipes/123/ingredients/456/comment")
         .contentType(MediaType.APPLICATION_JSON)
         .content("{\"commentId\":1,\"comment\":\"Updated comment\"}"))
         .andExpect(status().isOk())
@@ -112,7 +112,7 @@ class EditIngredientCommentComponentTest extends AbstractComponentTest {
     when(recipeIngredientRepository.findByRecipeRecipeIdAndIngredientIngredientId(123L, 456L))
         .thenReturn(Optional.of(recipeIngredient));
 
-    mockMvc.perform(put("/recipe-management/recipes/123/ingredients/456/comment")
+    mockMvc.perform(put("/recipes/123/ingredients/456/comment")
         .contentType(MediaType.APPLICATION_JSON)
         .content("{\"commentId\":5,\"comment\":\"Updated comment\"}"))
         .andExpect(status().isBadRequest())
@@ -141,7 +141,7 @@ class EditIngredientCommentComponentTest extends AbstractComponentTest {
     when(recipeIngredientRepository.findByRecipeRecipeIdAndIngredientIngredientId(123L, 456L))
         .thenReturn(Optional.of(recipeIngredient));
 
-    mockMvc.perform(put("/recipe-management/recipes/123/ingredients/456/comment")
+    mockMvc.perform(put("/recipes/123/ingredients/456/comment")
         .contentType(MediaType.APPLICATION_JSON)
         .content("{\"commentId\":-1,\"comment\":\"Updated comment\"}"))
         .andExpect(status().isBadRequest())
@@ -152,7 +152,7 @@ class EditIngredientCommentComponentTest extends AbstractComponentTest {
   @Tag("error-processing")
   @DisplayName("Should return 400 for empty comment")
   void shouldReturn400ForEmptyComment() throws Exception {
-    mockMvc.perform(put("/recipe-management/recipes/123/ingredients/456/comment")
+    mockMvc.perform(put("/recipes/123/ingredients/456/comment")
         .contentType(MediaType.APPLICATION_JSON)
         .content("{\"commentId\":1,\"comment\":\"\"}"))
         .andExpect(status().isBadRequest())
@@ -163,7 +163,7 @@ class EditIngredientCommentComponentTest extends AbstractComponentTest {
   @Tag("error-processing")
   @DisplayName("Should return 400 for invalid recipe ID format")
   void shouldReturn400ForInvalidRecipeIdFormat() throws Exception {
-    mockMvc.perform(put("/recipe-management/recipes/invalid/ingredients/456/comment")
+    mockMvc.perform(put("/recipes/invalid/ingredients/456/comment")
         .contentType(MediaType.APPLICATION_JSON)
         .content("{\"commentId\":1,\"comment\":\"Updated comment\"}"))
         .andExpect(status().isBadRequest())
@@ -174,7 +174,7 @@ class EditIngredientCommentComponentTest extends AbstractComponentTest {
   @Tag("error-processing")
   @DisplayName("Should return 400 for invalid ingredient ID format")
   void shouldReturn400ForInvalidIngredientIdFormat() throws Exception {
-    mockMvc.perform(put("/recipe-management/recipes/123/ingredients/invalid/comment")
+    mockMvc.perform(put("/recipes/123/ingredients/invalid/comment")
         .contentType(MediaType.APPLICATION_JSON)
         .content("{\"commentId\":1,\"comment\":\"Updated comment\"}"))
         .andExpect(status().isBadRequest())
@@ -188,7 +188,7 @@ class EditIngredientCommentComponentTest extends AbstractComponentTest {
     when(recipeIngredientRepository.findByRecipeRecipeIdAndIngredientIngredientId(999L, 888L))
         .thenReturn(Optional.empty());
 
-    mockMvc.perform(put("/recipe-management/recipes/999/ingredients/888/comment")
+    mockMvc.perform(put("/recipes/999/ingredients/888/comment")
         .contentType(MediaType.APPLICATION_JSON)
         .content("{\"commentId\":1,\"comment\":\"Updated comment\"}"))
         .andExpect(status().isBadRequest())

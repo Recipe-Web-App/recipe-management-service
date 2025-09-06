@@ -117,7 +117,7 @@ class SearchRecipesComponentTest extends AbstractComponentTest {
         .thenReturn(recipePage);
 
     // When & Then
-    mockMvc.perform(post("/recipe-management/recipes/search")
+    mockMvc.perform(post("/recipes/search")
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(searchRequest))
         .header("Authorization", "Bearer valid-token"))
@@ -167,7 +167,7 @@ class SearchRecipesComponentTest extends AbstractComponentTest {
         .thenReturn(recipePage);
 
     // When & Then
-    mockMvc.perform(post("/recipe-management/recipes/search")
+    mockMvc.perform(post("/recipes/search")
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(searchRequest))
         .header("Authorization", "Bearer valid-token"))
@@ -199,7 +199,7 @@ class SearchRecipesComponentTest extends AbstractComponentTest {
         .thenReturn(emptyPage);
 
     // When & Then
-    mockMvc.perform(post("/recipe-management/recipes/search")
+    mockMvc.perform(post("/recipes/search")
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(searchRequest))
         .header("Authorization", "Bearer valid-token"))
@@ -231,7 +231,7 @@ class SearchRecipesComponentTest extends AbstractComponentTest {
         .thenReturn(paginatedPage);
 
     // When & Then
-    mockMvc.perform(post("/recipe-management/recipes/search?page=1&size=1")
+    mockMvc.perform(post("/recipes/search?page=1&size=1")
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(searchRequest))
         .header("Authorization", "Bearer valid-token"))
@@ -265,7 +265,7 @@ class SearchRecipesComponentTest extends AbstractComponentTest {
         .thenReturn(allRecipes);
 
     // When & Then
-    mockMvc.perform(post("/recipe-management/recipes/search")
+    mockMvc.perform(post("/recipes/search")
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(searchRequest))
         .header("Authorization", "Bearer valid-token"))

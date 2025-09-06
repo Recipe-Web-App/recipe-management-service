@@ -111,7 +111,7 @@ class CreateRecipeComponentTest extends AbstractComponentTest {
     try (MockedStatic<SecurityUtils> mockedSecurity = Mockito.mockStatic(SecurityUtils.class)) {
       mockedSecurity.when(SecurityUtils::getCurrentUserId).thenReturn(currentUserId);
 
-      mockMvc.perform(post("/recipe-management/recipes")
+      mockMvc.perform(post("/recipes")
           .contentType(MediaType.APPLICATION_JSON)
           .content(validRequestJson))
           .andExpect(status().isOk())
@@ -169,7 +169,7 @@ class CreateRecipeComponentTest extends AbstractComponentTest {
     try (MockedStatic<SecurityUtils> mockedSecurity = Mockito.mockStatic(SecurityUtils.class)) {
       mockedSecurity.when(SecurityUtils::getCurrentUserId).thenReturn(currentUserId);
 
-      mockMvc.perform(post("/recipe-management/recipes")
+      mockMvc.perform(post("/recipes")
           .contentType(MediaType.APPLICATION_JSON)
           .content(validRequestJson))
           .andExpect(status().isOk())

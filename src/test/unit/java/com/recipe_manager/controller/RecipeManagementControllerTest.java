@@ -120,7 +120,7 @@ class RecipeManagementControllerTest {
         "\"ingredientMatchMode\":\"AND\"" +
         "}";
 
-    mockMvc.perform(post("/recipe-management/recipes/search")
+    mockMvc.perform(post("/recipes/search")
         .contentType(MediaType.APPLICATION_JSON)
         .content(validSearchRequestJson))
         .andExpect(status().isOk());
@@ -141,7 +141,7 @@ class RecipeManagementControllerTest {
         .build();
     when(ingredientService.getIngredients("1")).thenReturn(ResponseEntity.ok(mockResponse));
 
-    mockMvc.perform(get("/recipe-management/recipes/1/ingredients")
+    mockMvc.perform(get("/recipes/1/ingredients")
         .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk());
   }
@@ -159,7 +159,7 @@ class RecipeManagementControllerTest {
         .build();
     when(stepService.getSteps(1L)).thenReturn(mockResponse);
 
-    mockMvc.perform(get("/recipe-management/recipes/1/steps")
+    mockMvc.perform(get("/recipes/1/steps")
         .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk());
   }
@@ -192,7 +192,7 @@ class RecipeManagementControllerTest {
     when(recipeService.createRecipe(ArgumentMatchers.any(CreateRecipeRequest.class)))
         .thenReturn(ResponseEntity.ok(RecipeDto.builder().build()));
 
-    mockMvc.perform(post("/recipe-management/recipes")
+    mockMvc.perform(post("/recipes")
         .contentType(MediaType.APPLICATION_JSON)
         .content(validRequestJson))
         .andExpect(status().isOk());
@@ -208,7 +208,7 @@ class RecipeManagementControllerTest {
     when(recipeService.updateRecipe(eq("1"), any(UpdateRecipeRequest.class)))
         .thenReturn(ResponseEntity.ok(RecipeDto.builder().build()));
 
-    mockMvc.perform(put("/recipe-management/recipes/1")
+    mockMvc.perform(put("/recipes/1")
         .contentType(MediaType.APPLICATION_JSON)
         .content("{}"))
         .andExpect(status().isOk());
@@ -223,7 +223,7 @@ class RecipeManagementControllerTest {
   void shouldHandleDeleteRecipes() throws Exception {
     when(recipeService.deleteRecipe("1")).thenReturn(ResponseEntity.noContent().build());
 
-    mockMvc.perform(delete("/recipe-management/recipes/1")
+    mockMvc.perform(delete("/recipes/1")
         .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isNoContent());
   }
@@ -252,7 +252,7 @@ class RecipeManagementControllerTest {
     when(ingredientService.addComment(eq("1"), eq("2"), any(AddIngredientCommentRequest.class)))
         .thenReturn(ResponseEntity.ok(response));
 
-    mockMvc.perform(post("/recipe-management/recipes/1/ingredients/2/comment")
+    mockMvc.perform(post("/recipes/1/ingredients/2/comment")
         .contentType(MediaType.APPLICATION_JSON)
         .content("{\"comment\":\"Test comment\"}"))
         .andExpect(status().isOk());
@@ -282,7 +282,7 @@ class RecipeManagementControllerTest {
     when(ingredientService.editComment(eq("1"), eq("2"), any(EditIngredientCommentRequest.class)))
         .thenReturn(ResponseEntity.ok(response));
 
-    mockMvc.perform(put("/recipe-management/recipes/1/ingredients/2/comment")
+    mockMvc.perform(put("/recipes/1/ingredients/2/comment")
         .contentType(MediaType.APPLICATION_JSON)
         .content("{\"commentId\":1,\"comment\":\"Updated comment\"}"))
         .andExpect(status().isOk());
@@ -305,7 +305,7 @@ class RecipeManagementControllerTest {
     when(ingredientService.deleteComment(eq("1"), eq("2"), any(DeleteIngredientCommentRequest.class)))
         .thenReturn(ResponseEntity.ok(response));
 
-    mockMvc.perform(delete("/recipe-management/recipes/1/ingredients/2/comment")
+    mockMvc.perform(delete("/recipes/1/ingredients/2/comment")
         .contentType(MediaType.APPLICATION_JSON)
         .content("{\"commentId\":1}"))
         .andExpect(status().isOk());
@@ -329,7 +329,7 @@ class RecipeManagementControllerTest {
         .build();
     when(stepService.addComment(eq(1L), eq(2L), any(AddStepCommentRequest.class))).thenReturn(mockComment);
 
-    mockMvc.perform(post("/recipe-management/recipes/1/steps/2/comment")
+    mockMvc.perform(post("/recipes/1/steps/2/comment")
         .contentType(MediaType.APPLICATION_JSON)
         .content("{\"comment\":\"Test comment\"}"))
         .andExpect(status().isCreated());
@@ -353,7 +353,7 @@ class RecipeManagementControllerTest {
         .build();
     when(stepService.editComment(eq(1L), eq(2L), any(EditStepCommentRequest.class))).thenReturn(mockComment);
 
-    mockMvc.perform(put("/recipe-management/recipes/1/steps/2/comment")
+    mockMvc.perform(put("/recipes/1/steps/2/comment")
         .contentType(MediaType.APPLICATION_JSON)
         .content("{\"commentId\":1,\"comment\":\"Updated comment\"}"))
         .andExpect(status().isOk());
@@ -369,7 +369,7 @@ class RecipeManagementControllerTest {
   void shouldHandleDeleteCommentFromStep() throws Exception {
     // deleteComment returns void, so we don't need to mock a return value
 
-    mockMvc.perform(delete("/recipe-management/recipes/1/steps/2/comment")
+    mockMvc.perform(delete("/recipes/1/steps/2/comment")
         .contentType(MediaType.APPLICATION_JSON)
         .content("{\"commentId\":1}"))
         .andExpect(status().isNoContent());
@@ -388,7 +388,7 @@ class RecipeManagementControllerTest {
         .build();
     when(reviewService.getReviews(1L)).thenReturn(response);
 
-    mockMvc.perform(get("/recipe-management/recipes/1/review")
+    mockMvc.perform(get("/recipes/1/review")
         .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk());
   }
@@ -410,7 +410,7 @@ class RecipeManagementControllerTest {
         .build();
     when(reviewService.addReview(eq(1L), any(AddReviewRequest.class))).thenReturn(reviewDto);
 
-    mockMvc.perform(post("/recipe-management/recipes/1/review")
+    mockMvc.perform(post("/recipes/1/review")
         .contentType(MediaType.APPLICATION_JSON)
         .content("{\"rating\":4.5,\"comment\":\"Great recipe!\"}"))
         .andExpect(status().isOk());
@@ -433,7 +433,7 @@ class RecipeManagementControllerTest {
         .build();
     when(reviewService.editReview(eq(1L), eq(1L), any(EditReviewRequest.class))).thenReturn(reviewDto);
 
-    mockMvc.perform(put("/recipe-management/recipes/1/review/1")
+    mockMvc.perform(put("/recipes/1/review/1")
         .contentType(MediaType.APPLICATION_JSON)
         .content("{\"rating\":4.0,\"comment\":\"Updated comment\"}"))
         .andExpect(status().isOk());
@@ -446,7 +446,7 @@ class RecipeManagementControllerTest {
   @Tag("standard-processing")
   @DisplayName("Should handle DELETE /recipe-management/recipes/{recipeId}/review/{reviewId}")
   void shouldHandleDeleteRecipeReview() throws Exception {
-    mockMvc.perform(delete("/recipe-management/recipes/1/review/1")
+    mockMvc.perform(delete("/recipes/1/review/1")
         .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isNoContent());
   }

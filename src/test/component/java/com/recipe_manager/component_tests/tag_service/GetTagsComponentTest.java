@@ -73,7 +73,7 @@ class GetTagsComponentTest extends AbstractComponentTest {
     when(recipeRepository.findById(123L)).thenReturn(Optional.of(testRecipe));
 
     // When & Then
-    mockMvc.perform(get("/recipe-management/recipes/123/tags"))
+    mockMvc.perform(get("/recipes/123/tags"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.recipeId").value(123))
         .andExpect(jsonPath("$.tags").isArray())
@@ -100,7 +100,7 @@ class GetTagsComponentTest extends AbstractComponentTest {
     when(recipeRepository.findById(456L)).thenReturn(Optional.of(recipeWithoutTags));
 
     // When & Then
-    mockMvc.perform(get("/recipe-management/recipes/456/tags"))
+    mockMvc.perform(get("/recipes/456/tags"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.recipeId").value(456))
         .andExpect(jsonPath("$.tags").isArray())
@@ -116,7 +116,7 @@ class GetTagsComponentTest extends AbstractComponentTest {
     when(recipeRepository.findById(999L)).thenReturn(Optional.empty());
 
     // When & Then
-    mockMvc.perform(get("/recipe-management/recipes/999/tags"))
+    mockMvc.perform(get("/recipes/999/tags"))
         .andExpect(status().isNotFound())
         .andExpect(header().exists("X-Request-ID"));
   }
@@ -136,7 +136,7 @@ class GetTagsComponentTest extends AbstractComponentTest {
     when(recipeRepository.findById(789L)).thenReturn(Optional.of(recipeWithSingleTag));
 
     // When & Then
-    mockMvc.perform(get("/recipe-management/recipes/789/tags"))
+    mockMvc.perform(get("/recipes/789/tags"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.recipeId").value(789))
         .andExpect(jsonPath("$.tags").isArray())

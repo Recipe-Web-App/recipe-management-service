@@ -91,7 +91,7 @@ class GetRecipeStepsComponentTest extends AbstractComponentTest {
     // When & Then
     try (MockedStatic<SecurityUtils> mockedSecurity = Mockito.mockStatic(SecurityUtils.class)) {
       mockedSecurity.when(SecurityUtils::getCurrentUserId).thenReturn(testRecipe.getUserId());
-      mockMvc.perform(get("/recipe-management/recipes/123/steps")
+      mockMvc.perform(get("/recipes/123/steps")
           .contentType(MediaType.APPLICATION_JSON))
           .andExpect(status().isOk())
           .andExpect(jsonPath("$.recipeId").value(123))
@@ -118,7 +118,7 @@ class GetRecipeStepsComponentTest extends AbstractComponentTest {
     // When & Then
     try (MockedStatic<SecurityUtils> mockedSecurity = Mockito.mockStatic(SecurityUtils.class)) {
       mockedSecurity.when(SecurityUtils::getCurrentUserId).thenReturn(testRecipe.getUserId());
-      mockMvc.perform(get("/recipe-management/recipes/123/steps")
+      mockMvc.perform(get("/recipes/123/steps")
           .contentType(MediaType.APPLICATION_JSON))
           .andExpect(status().isOk())
           .andExpect(jsonPath("$.recipeId").value(123))
@@ -138,7 +138,7 @@ class GetRecipeStepsComponentTest extends AbstractComponentTest {
     // When & Then
     try (MockedStatic<SecurityUtils> mockedSecurity = Mockito.mockStatic(SecurityUtils.class)) {
       mockedSecurity.when(SecurityUtils::getCurrentUserId).thenReturn(UUID.randomUUID());
-      mockMvc.perform(get("/recipe-management/recipes/999/steps")
+      mockMvc.perform(get("/recipes/999/steps")
           .contentType(MediaType.APPLICATION_JSON))
           .andExpect(status().isNotFound())
           .andExpect(header().exists("X-Request-ID"));
@@ -164,7 +164,7 @@ class GetRecipeStepsComponentTest extends AbstractComponentTest {
     // When & Then
     try (MockedStatic<SecurityUtils> mockedSecurity = Mockito.mockStatic(SecurityUtils.class)) {
       mockedSecurity.when(SecurityUtils::getCurrentUserId).thenReturn(testRecipe.getUserId());
-      mockMvc.perform(get("/recipe-management/recipes/123/steps")
+      mockMvc.perform(get("/recipes/123/steps")
           .contentType(MediaType.APPLICATION_JSON))
           .andExpect(status().isOk())
           .andExpect(jsonPath("$.recipeId").value(123))

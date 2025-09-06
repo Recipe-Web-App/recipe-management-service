@@ -116,7 +116,7 @@ class MediaControllerTest {
 
     // Act & Assert
     mockMvc
-        .perform(get("/recipe-management/recipes/{recipeId}/media", recipeId))
+        .perform(get("/recipes/{recipeId}/media", recipeId))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.content").isArray())
         .andExpect(jsonPath("$.content[0].mediaId").value(1))
@@ -141,7 +141,7 @@ class MediaControllerTest {
 
     // Act & Assert
     mockMvc
-        .perform(get("/recipe-management/recipes/{recipeId}/media", recipeId))
+        .perform(get("/recipes/{recipeId}/media", recipeId))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.content").isArray())
         .andExpect(jsonPath("$.content").isEmpty())
@@ -158,7 +158,7 @@ class MediaControllerTest {
 
     // Act & Assert
     mockMvc
-        .perform(get("/recipe-management/recipes/{recipeId}/media", recipeId))
+        .perform(get("/recipes/{recipeId}/media", recipeId))
         .andExpect(status().isNotFound())
         .andExpect(jsonPath("$.message").value("Recipe with identifier '123' was not found"));
 
@@ -173,7 +173,7 @@ class MediaControllerTest {
 
     // Act & Assert
     mockMvc
-        .perform(get("/recipe-management/recipes/{recipeId}/media", recipeId))
+        .perform(get("/recipes/{recipeId}/media", recipeId))
         .andExpect(status().isForbidden())
         .andExpect(jsonPath("$.message").value("You don't have permission to access this resource"));
 
@@ -188,7 +188,7 @@ class MediaControllerTest {
 
     // Act & Assert
     mockMvc
-        .perform(get("/recipe-management/recipes/{recipeId}/media", recipeId)
+        .perform(get("/recipes/{recipeId}/media", recipeId)
             .param("page", "0")
             .param("size", "10")
             .param("sort", "mediaId,desc"))
@@ -210,7 +210,7 @@ class MediaControllerTest {
     mockMvc
         .perform(
             get(
-                "/recipe-management/recipes/{recipeId}/ingredients/{ingredientId}/media",
+                "/recipes/{recipeId}/ingredients/{ingredientId}/media",
                 recipeId,
                 ingredientId))
         .andExpect(status().isOk())
@@ -237,7 +237,7 @@ class MediaControllerTest {
     mockMvc
         .perform(
             get(
-                "/recipe-management/recipes/{recipeId}/ingredients/{ingredientId}/media",
+                "/recipes/{recipeId}/ingredients/{ingredientId}/media",
                 recipeId,
                 ingredientId))
         .andExpect(status().isOk())
@@ -260,7 +260,7 @@ class MediaControllerTest {
     mockMvc
         .perform(
             get(
-                "/recipe-management/recipes/{recipeId}/ingredients/{ingredientId}/media",
+                "/recipes/{recipeId}/ingredients/{ingredientId}/media",
                 recipeId,
                 ingredientId))
         .andExpect(status().isNotFound())
@@ -278,7 +278,7 @@ class MediaControllerTest {
     mockMvc
         .perform(
             get(
-                "/recipe-management/recipes/{recipeId}/ingredients/{ingredientId}/media",
+                "/recipes/{recipeId}/ingredients/{ingredientId}/media",
                 recipeId,
                 ingredientId))
         .andExpect(status().isForbidden())
@@ -295,7 +295,7 @@ class MediaControllerTest {
     mockMvc
         .perform(
             get(
-                "/recipe-management/recipes/{recipeId}/steps/{stepId}/media",
+                "/recipes/{recipeId}/steps/{stepId}/media",
                 recipeId,
                 stepId))
         .andExpect(status().isOk())
@@ -320,7 +320,7 @@ class MediaControllerTest {
     mockMvc
         .perform(
             get(
-                "/recipe-management/recipes/{recipeId}/steps/{stepId}/media",
+                "/recipes/{recipeId}/steps/{stepId}/media",
                 recipeId,
                 stepId))
         .andExpect(status().isOk())
@@ -341,7 +341,7 @@ class MediaControllerTest {
     mockMvc
         .perform(
             get(
-                "/recipe-management/recipes/{recipeId}/steps/{stepId}/media",
+                "/recipes/{recipeId}/steps/{stepId}/media",
                 recipeId,
                 stepId))
         .andExpect(status().isNotFound())
@@ -358,7 +358,7 @@ class MediaControllerTest {
     mockMvc
         .perform(
             get(
-                "/recipe-management/recipes/{recipeId}/steps/{stepId}/media",
+                "/recipes/{recipeId}/steps/{stepId}/media",
                 recipeId,
                 stepId))
         .andExpect(status().isForbidden())
@@ -374,7 +374,7 @@ class MediaControllerTest {
     // Act & Assert
     mockMvc
         .perform(
-            get("/recipe-management/recipes/{recipeId}/steps/{stepId}/media", recipeId, stepId)
+            get("/recipes/{recipeId}/steps/{stepId}/media", recipeId, stepId)
                 .param("page", "0")
                 .param("size", "5")
                 .param("sort", "mediaId,asc"))
@@ -389,7 +389,7 @@ class MediaControllerTest {
   void getRecipeMedia_InvalidRecipeId() throws Exception {
     // Act & Assert
     mockMvc
-        .perform(get("/recipe-management/recipes/invalid/media"))
+        .perform(get("/recipes/invalid/media"))
         .andExpect(status().isBadRequest());
   }
 
@@ -397,7 +397,7 @@ class MediaControllerTest {
   void getIngredientMedia_InvalidIds() throws Exception {
     // Act & Assert
     mockMvc
-        .perform(get("/recipe-management/recipes/invalid/ingredients/invalid/media"))
+        .perform(get("/recipes/invalid/ingredients/invalid/media"))
         .andExpect(status().isBadRequest());
   }
 
@@ -405,7 +405,7 @@ class MediaControllerTest {
   void getStepMedia_InvalidIds() throws Exception {
     // Act & Assert
     mockMvc
-        .perform(get("/recipe-management/recipes/invalid/steps/invalid/media"))
+        .perform(get("/recipes/invalid/steps/invalid/media"))
         .andExpect(status().isBadRequest());
   }
 
@@ -424,7 +424,7 @@ class MediaControllerTest {
 
     // Act & Assert
     mockMvc
-        .perform(multipart("/recipe-management/recipes/{recipeId}/media", recipeId)
+        .perform(multipart("/recipes/{recipeId}/media", recipeId)
             .file(file)
             .param("originalFilename", "test.jpg")
             .param("mediaType", "IMAGE_JPEG")
@@ -447,7 +447,7 @@ class MediaControllerTest {
 
     // Act & Assert
     mockMvc
-        .perform(multipart("/recipe-management/recipes/{recipeId}/media", recipeId)
+        .perform(multipart("/recipes/{recipeId}/media", recipeId)
             .file(file)
             .param("originalFilename", "test.jpg")
             .param("mediaType", "IMAGE_JPEG")
@@ -467,7 +467,7 @@ class MediaControllerTest {
 
     // Act & Assert
     mockMvc
-        .perform(multipart("/recipe-management/recipes/{recipeId}/media", recipeId)
+        .perform(multipart("/recipes/{recipeId}/media", recipeId)
             .file(file)
             .param("originalFilename", "test.jpg")
             .param("mediaType", "IMAGE_JPEG")
@@ -485,7 +485,7 @@ class MediaControllerTest {
 
     // Act & Assert
     mockMvc
-        .perform(multipart("/recipe-management/recipes/invalid/media")
+        .perform(multipart("/recipes/invalid/media")
             .file(file)
             .param("originalFilename", "test.jpg")
             .param("mediaType", "IMAGE_JPEG")
@@ -501,7 +501,7 @@ class MediaControllerTest {
 
     // Act & Assert - Missing originalFilename
     mockMvc
-        .perform(multipart("/recipe-management/recipes/{recipeId}/media", recipeId)
+        .perform(multipart("/recipes/{recipeId}/media", recipeId)
             .file(file)
             .param("mediaType", "IMAGE_JPEG")
             .param("fileSize", "9"))
@@ -523,7 +523,7 @@ class MediaControllerTest {
 
     // Act & Assert
     mockMvc
-        .perform(multipart("/recipe-management/recipes/{recipeId}/ingredients/{ingredientId}/media", recipeId, ingredientId)
+        .perform(multipart("/recipes/{recipeId}/ingredients/{ingredientId}/media", recipeId, ingredientId)
             .file(file)
             .param("originalFilename", "test.jpg")
             .param("mediaType", "IMAGE_JPEG")
@@ -546,7 +546,7 @@ class MediaControllerTest {
 
     // Act & Assert
     mockMvc
-        .perform(multipart("/recipe-management/recipes/{recipeId}/ingredients/{ingredientId}/media", recipeId, ingredientId)
+        .perform(multipart("/recipes/{recipeId}/ingredients/{ingredientId}/media", recipeId, ingredientId)
             .file(file)
             .param("originalFilename", "test.jpg")
             .param("mediaType", "IMAGE_JPEG")
@@ -566,7 +566,7 @@ class MediaControllerTest {
 
     // Act & Assert
     mockMvc
-        .perform(multipart("/recipe-management/recipes/{recipeId}/ingredients/{ingredientId}/media", recipeId, ingredientId)
+        .perform(multipart("/recipes/{recipeId}/ingredients/{ingredientId}/media", recipeId, ingredientId)
             .file(file)
             .param("originalFilename", "test.jpg")
             .param("mediaType", "IMAGE_JPEG")
@@ -592,7 +592,7 @@ class MediaControllerTest {
 
     // Act & Assert
     mockMvc
-        .perform(multipart("/recipe-management/recipes/{recipeId}/steps/{stepId}/media", recipeId, stepId)
+        .perform(multipart("/recipes/{recipeId}/steps/{stepId}/media", recipeId, stepId)
             .file(file)
             .param("originalFilename", "test.jpg")
             .param("mediaType", "IMAGE_JPEG")
@@ -615,7 +615,7 @@ class MediaControllerTest {
 
     // Act & Assert
     mockMvc
-        .perform(multipart("/recipe-management/recipes/{recipeId}/steps/{stepId}/media", recipeId, stepId)
+        .perform(multipart("/recipes/{recipeId}/steps/{stepId}/media", recipeId, stepId)
             .file(file)
             .param("originalFilename", "test.jpg")
             .param("mediaType", "IMAGE_JPEG")
@@ -635,7 +635,7 @@ class MediaControllerTest {
 
     // Act & Assert
     mockMvc
-        .perform(multipart("/recipe-management/recipes/{recipeId}/steps/{stepId}/media", recipeId, stepId)
+        .perform(multipart("/recipes/{recipeId}/steps/{stepId}/media", recipeId, stepId)
             .file(file)
             .param("originalFilename", "test.jpg")
             .param("mediaType", "IMAGE_JPEG")
@@ -660,7 +660,7 @@ class MediaControllerTest {
 
     // Act & Assert
     mockMvc
-        .perform(delete("/recipe-management/recipes/{recipeId}/media/{mediaId}", recipeId, mediaId))
+        .perform(delete("/recipes/{recipeId}/media/{mediaId}", recipeId, mediaId))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.success").value(true))
         .andExpect(jsonPath("$.message").value("Media successfully deleted from recipe"))
@@ -678,7 +678,7 @@ class MediaControllerTest {
 
     // Act & Assert
     mockMvc
-        .perform(delete("/recipe-management/recipes/{recipeId}/media/{mediaId}", recipeId, mediaId))
+        .perform(delete("/recipes/{recipeId}/media/{mediaId}", recipeId, mediaId))
         .andExpect(status().isNotFound())
         .andExpect(jsonPath("$.message").value("Recipe with identifier '123' was not found"));
 
@@ -694,7 +694,7 @@ class MediaControllerTest {
 
     // Act & Assert
     mockMvc
-        .perform(delete("/recipe-management/recipes/{recipeId}/media/{mediaId}", recipeId, mediaId))
+        .perform(delete("/recipes/{recipeId}/media/{mediaId}", recipeId, mediaId))
         .andExpect(status().isForbidden())
         .andExpect(jsonPath("$.message").value("You don't have permission to access this resource"));
 
@@ -715,7 +715,7 @@ class MediaControllerTest {
 
     // Act & Assert
     mockMvc
-        .perform(delete("/recipe-management/recipes/{recipeId}/ingredients/{ingredientId}/media/{mediaId}",
+        .perform(delete("/recipes/{recipeId}/ingredients/{ingredientId}/media/{mediaId}",
                  recipeId, ingredientId, mediaId))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.success").value(true))
@@ -734,7 +734,7 @@ class MediaControllerTest {
 
     // Act & Assert
     mockMvc
-        .perform(delete("/recipe-management/recipes/{recipeId}/ingredients/{ingredientId}/media/{mediaId}",
+        .perform(delete("/recipes/{recipeId}/ingredients/{ingredientId}/media/{mediaId}",
                  recipeId, ingredientId, mediaId))
         .andExpect(status().isNotFound())
         .andExpect(jsonPath("$.message").value("Recipe with identifier '123' was not found"));
@@ -756,7 +756,7 @@ class MediaControllerTest {
 
     // Act & Assert
     mockMvc
-        .perform(delete("/recipe-management/recipes/{recipeId}/steps/{stepId}/media/{mediaId}",
+        .perform(delete("/recipes/{recipeId}/steps/{stepId}/media/{mediaId}",
                  recipeId, stepId, mediaId))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.success").value(true))
@@ -775,7 +775,7 @@ class MediaControllerTest {
 
     // Act & Assert
     mockMvc
-        .perform(delete("/recipe-management/recipes/{recipeId}/steps/{stepId}/media/{mediaId}",
+        .perform(delete("/recipes/{recipeId}/steps/{stepId}/media/{mediaId}",
                  recipeId, stepId, mediaId))
         .andExpect(status().isForbidden())
         .andExpect(jsonPath("$.message").value("You don't have permission to access this resource"));

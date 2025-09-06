@@ -78,7 +78,7 @@ class DeleteIngredientCommentComponentTest extends AbstractComponentTest {
         .thenReturn(java.util.Collections.emptyList());
 
     // When & Then - Delete comment with ID 1
-    mockMvc.perform(delete("/recipe-management/recipes/123/ingredients/456/comment")
+    mockMvc.perform(delete("/recipes/123/ingredients/456/comment")
         .contentType(MediaType.APPLICATION_JSON)
         .content("{\"commentId\":1}"))
         .andExpect(status().isOk())
@@ -117,7 +117,7 @@ class DeleteIngredientCommentComponentTest extends AbstractComponentTest {
         .thenReturn(java.util.Collections.emptyList());
 
     // When & Then
-    mockMvc.perform(delete("/recipe-management/recipes/123/ingredients/456/comment")
+    mockMvc.perform(delete("/recipes/123/ingredients/456/comment")
         .contentType(MediaType.APPLICATION_JSON)
         .content("{\"commentId\":1}"))
         .andExpect(status().isOk())
@@ -150,7 +150,7 @@ class DeleteIngredientCommentComponentTest extends AbstractComponentTest {
     when(recipeIngredientRepository.findByRecipeRecipeIdAndIngredientIngredientId(123L, 456L))
         .thenReturn(Optional.of(recipeIngredient));
 
-    mockMvc.perform(delete("/recipe-management/recipes/123/ingredients/456/comment")
+    mockMvc.perform(delete("/recipes/123/ingredients/456/comment")
         .contentType(MediaType.APPLICATION_JSON)
         .content("{\"commentId\":999}"))
         .andExpect(status().isBadRequest())
@@ -179,7 +179,7 @@ class DeleteIngredientCommentComponentTest extends AbstractComponentTest {
     when(recipeIngredientRepository.findByRecipeRecipeIdAndIngredientIngredientId(123L, 456L))
         .thenReturn(Optional.of(recipeIngredient));
 
-    mockMvc.perform(delete("/recipe-management/recipes/123/ingredients/456/comment")
+    mockMvc.perform(delete("/recipes/123/ingredients/456/comment")
         .contentType(MediaType.APPLICATION_JSON)
         .content("{\"commentId\":null}"))
         .andExpect(status().isBadRequest())
@@ -190,7 +190,7 @@ class DeleteIngredientCommentComponentTest extends AbstractComponentTest {
   @Tag("error-processing")
   @DisplayName("Should return 400 for invalid recipe ID format")
   void shouldReturn400ForInvalidRecipeIdFormat() throws Exception {
-    mockMvc.perform(delete("/recipe-management/recipes/invalid/ingredients/456/comment")
+    mockMvc.perform(delete("/recipes/invalid/ingredients/456/comment")
         .contentType(MediaType.APPLICATION_JSON)
         .content("{\"commentId\":1}"))
         .andExpect(status().isBadRequest())
@@ -201,7 +201,7 @@ class DeleteIngredientCommentComponentTest extends AbstractComponentTest {
   @Tag("error-processing")
   @DisplayName("Should return 400 for invalid ingredient ID format")
   void shouldReturn400ForInvalidIngredientIdFormat() throws Exception {
-    mockMvc.perform(delete("/recipe-management/recipes/123/ingredients/invalid/comment")
+    mockMvc.perform(delete("/recipes/123/ingredients/invalid/comment")
         .contentType(MediaType.APPLICATION_JSON)
         .content("{\"commentId\":1}"))
         .andExpect(status().isBadRequest())
@@ -215,7 +215,7 @@ class DeleteIngredientCommentComponentTest extends AbstractComponentTest {
     when(recipeIngredientRepository.findByRecipeRecipeIdAndIngredientIngredientId(999L, 888L))
         .thenReturn(Optional.empty());
 
-    mockMvc.perform(delete("/recipe-management/recipes/999/ingredients/888/comment")
+    mockMvc.perform(delete("/recipes/999/ingredients/888/comment")
         .contentType(MediaType.APPLICATION_JSON)
         .content("{\"commentId\":1}"))
         .andExpect(status().isBadRequest())

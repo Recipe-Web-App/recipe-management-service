@@ -204,7 +204,7 @@ class GetRecipeMediaComponentTest extends AbstractComponentTest {
 
       // Act & Assert
       mockMvc
-          .perform(get("/recipe-management/recipes/{recipeId}/media", recipeId))
+          .perform(get("/recipes/{recipeId}/media", recipeId))
           .andExpect(status().isOk())
           .andExpect(jsonPath("$.content").isArray())
           .andExpect(jsonPath("$.content[0].mediaId").value(1))
@@ -235,7 +235,7 @@ class GetRecipeMediaComponentTest extends AbstractComponentTest {
 
       // Act & Assert
       mockMvc
-          .perform(get("/recipe-management/recipes/{recipeId}/media", recipeId))
+          .perform(get("/recipes/{recipeId}/media", recipeId))
           .andExpect(status().isOk())
           .andExpect(jsonPath("$.content").isArray())
           .andExpect(jsonPath("$.content").isEmpty())
@@ -252,7 +252,7 @@ class GetRecipeMediaComponentTest extends AbstractComponentTest {
 
       // Act & Assert
       mockMvc
-          .perform(get("/recipe-management/recipes/{recipeId}/media", recipeId))
+          .perform(get("/recipes/{recipeId}/media", recipeId))
           .andExpect(status().isNotFound())
           .andExpect(jsonPath("$.message").value("Recipe with identifier '123' was not found"));
     }
@@ -269,7 +269,7 @@ class GetRecipeMediaComponentTest extends AbstractComponentTest {
 
       // Act & Assert
       mockMvc
-          .perform(get("/recipe-management/recipes/{recipeId}/media", recipeId))
+          .perform(get("/recipes/{recipeId}/media", recipeId))
           .andExpect(status().isForbidden())
           .andExpect(
               jsonPath("$.message")
@@ -294,7 +294,7 @@ class GetRecipeMediaComponentTest extends AbstractComponentTest {
       mockMvc
           .perform(
               get(
-                  "/recipe-management/recipes/{recipeId}/ingredients/{ingredientId}/media",
+                  "/recipes/{recipeId}/ingredients/{ingredientId}/media",
                   recipeId,
                   ingredientId))
           .andExpect(status().isOk())
@@ -322,7 +322,7 @@ class GetRecipeMediaComponentTest extends AbstractComponentTest {
       mockMvc
           .perform(
               get(
-                  "/recipe-management/recipes/{recipeId}/steps/{stepId}/media",
+                  "/recipes/{recipeId}/steps/{stepId}/media",
                   recipeId,
                   stepId))
           .andExpect(status().isOk())
@@ -349,7 +349,7 @@ class GetRecipeMediaComponentTest extends AbstractComponentTest {
       // Act & Assert
       mockMvc
           .perform(
-              get("/recipe-management/recipes/{recipeId}/media", recipeId)
+              get("/recipes/{recipeId}/media", recipeId)
                   .param("page", "0")
                   .param("size", "1")
                   .param("sort", "mediaId,asc"))
@@ -373,7 +373,7 @@ class GetRecipeMediaComponentTest extends AbstractComponentTest {
 
       // Act & Assert
       mockMvc
-          .perform(get("/recipe-management/recipes/{recipeId}/media", recipeId))
+          .perform(get("/recipes/{recipeId}/media", recipeId))
           .andExpect(status().isInternalServerError())
           .andExpect(jsonPath("$.message").value("An unexpected error occurred"));
     }
@@ -414,7 +414,7 @@ class GetRecipeMediaComponentTest extends AbstractComponentTest {
 
       // Act & Assert
       mockMvc
-          .perform(multipart("/recipe-management/recipes/{recipeId}/media", recipeId)
+          .perform(multipart("/recipes/{recipeId}/media", recipeId)
               .file(file)
               .param("originalFilename", "test.jpg")
               .param("mediaType", "IMAGE_JPEG")
@@ -438,7 +438,7 @@ class GetRecipeMediaComponentTest extends AbstractComponentTest {
 
       // Act & Assert
       mockMvc
-          .perform(multipart("/recipe-management/recipes/{recipeId}/media", recipeId)
+          .perform(multipart("/recipes/{recipeId}/media", recipeId)
               .file(file)
               .param("originalFilename", "test.jpg")
               .param("mediaType", "IMAGE_JPEG")
@@ -460,7 +460,7 @@ class GetRecipeMediaComponentTest extends AbstractComponentTest {
 
       // Act & Assert
       mockMvc
-          .perform(multipart("/recipe-management/recipes/{recipeId}/media", recipeId)
+          .perform(multipart("/recipes/{recipeId}/media", recipeId)
               .file(file)
               .param("originalFilename", "test.jpg")
               .param("mediaType", "IMAGE_JPEG")

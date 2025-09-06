@@ -23,15 +23,25 @@ import org.springframework.stereotype.Service;
     name = "app.database.connection-retry.enabled",
     havingValue = "true",
     matchIfMissing = true)
-public class DatabaseConnectionService {
+public final class DatabaseConnectionService {
 
-  private static final Logger logger = LoggerFactory.getLogger(DatabaseConnectionService.class);
+  /** Logger for database connection monitoring. */
+  private static final Logger LOGGER = LoggerFactory.getLogger(DatabaseConnectionService.class);
 
+  /** The JdbcTemplate used for database connectivity checks. */
   private final JdbcTemplate jdbcTemplate;
+
+  /** Tracks whether the database is currently connected. */
   private final AtomicBoolean isConnected = new AtomicBoolean(false);
+
+  /** Timestamp of the last successful database connection. */
   private final AtomicReference<LocalDateTime> lastSuccessfulConnection =
       new AtomicReference<>(null);
+
+  /** Timestamp of the last connection attempt. */
   private final AtomicReference<LocalDateTime> lastConnectionAttempt = new AtomicReference<>(null);
+
+  /** The last error message encountered during connection attempts. */
   private final AtomicReference<String> lastError = new AtomicReference<>(null);
 
   /**
@@ -50,7 +60,13 @@ public class DatabaseConnectionService {
    * <p>This method runs every 30 seconds and attempts to execute a simple query to verify database
    * connectivity. Connection status is updated accordingly.
    */
-  @Scheduled(fixedDelay = 30000, initialDelay = 5000)
+  /** Database connection check interval in milliseconds. */
+  private static final int CONNECTION_CHECK_INTERVAL_MS = 30000;
+
+  /** Initial delay before first connection check in milliseconds. */
+  private static final int INITIAL_DELAY_MS = 5000;
+
+  @Scheduled(fixedDelay = CONNECTION_CHECK_INTERVAL_MS, initialDelay = INITIAL_DELAY_MS)
   public void checkDatabaseConnection() {
     lastConnectionAttempt.set(LocalDateTime.now());
 
@@ -62,9 +78,9 @@ public class DatabaseConnectionService {
       lastError.set(null);
 
       if (wasDisconnected) {
-        logger.info("Database connection restored successfully");
+        LOGGER.info("Database connection restored successfully");
       } else {
-        logger.debug("Database connection health check passed");
+        LOGGER.debug("Database connection health check passed");
       }
 
     } catch (Exception e) {
@@ -73,9 +89,9 @@ public class DatabaseConnectionService {
       lastError.set(e.getMessage());
 
       if (wasConnected) {
-        logger.warn("Database connection lost: {}", e.getMessage());
+        LOGGER.warn("Database connection lost: {}", e.getMessage());
       } else {
-        logger.debug("Database connection attempt failed: {}", e.getMessage());
+        LOGGER.debug("Database connection attempt failed: {}", e.getMessage());
       }
     }
   }

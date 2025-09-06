@@ -184,7 +184,7 @@ class CreateMediaComponentTest extends AbstractComponentTest {
       // Act & Assert
       mockMvc
           .perform(
-              multipart("/recipe-management/recipes/{recipeId}/media", recipeId)
+              multipart("/recipes/{recipeId}/media", recipeId)
                   .file(mockFile)
                   .param("originalFilename", "test.jpg")
                   .param("mediaType", "IMAGE_JPEG")
@@ -207,7 +207,7 @@ class CreateMediaComponentTest extends AbstractComponentTest {
       // Act & Assert
       mockMvc
           .perform(
-              multipart("/recipe-management/recipes/{recipeId}/media", recipeId)
+              multipart("/recipes/{recipeId}/media", recipeId)
                   .file(mockFile)
                   .param("originalFilename", "test.jpg")
                   .param("mediaType", "IMAGE_JPEG")
@@ -233,7 +233,7 @@ class CreateMediaComponentTest extends AbstractComponentTest {
       // Act & Assert
       mockMvc
           .perform(
-              multipart("/recipe-management/recipes/{recipeId}/media", recipeId)
+              multipart("/recipes/{recipeId}/media", recipeId)
                   .file(mockFile)
                   .param("originalFilename", "test.jpg")
                   .param("mediaType", "IMAGE_JPEG")
@@ -256,7 +256,7 @@ class CreateMediaComponentTest extends AbstractComponentTest {
       // Act & Assert
       mockMvc
           .perform(
-              multipart("/recipe-management/recipes/{recipeId}/ingredients/{ingredientId}/media", recipeId, ingredientId)
+              multipart("/recipes/{recipeId}/ingredients/{ingredientId}/media", recipeId, ingredientId)
                   .file(mockFile)
                   .param("originalFilename", "test.jpg")
                   .param("mediaType", "IMAGE_JPEG")
@@ -279,7 +279,7 @@ class CreateMediaComponentTest extends AbstractComponentTest {
       // Act & Assert
       mockMvc
           .perform(
-              multipart("/recipe-management/recipes/{recipeId}/ingredients/{ingredientId}/media", recipeId, ingredientId)
+              multipart("/recipes/{recipeId}/ingredients/{ingredientId}/media", recipeId, ingredientId)
                   .file(mockFile)
                   .param("originalFilename", "test.jpg")
                   .param("mediaType", "IMAGE_JPEG")
@@ -305,7 +305,7 @@ class CreateMediaComponentTest extends AbstractComponentTest {
       // Act & Assert
       mockMvc
           .perform(
-              multipart("/recipe-management/recipes/{recipeId}/ingredients/{ingredientId}/media", recipeId, ingredientId)
+              multipart("/recipes/{recipeId}/ingredients/{ingredientId}/media", recipeId, ingredientId)
                   .file(mockFile)
                   .param("originalFilename", "test.jpg")
                   .param("mediaType", "IMAGE_JPEG")
@@ -328,7 +328,7 @@ class CreateMediaComponentTest extends AbstractComponentTest {
       // Act & Assert
       mockMvc
           .perform(
-              multipart("/recipe-management/recipes/{recipeId}/steps/{stepId}/media", recipeId, stepId)
+              multipart("/recipes/{recipeId}/steps/{stepId}/media", recipeId, stepId)
                   .file(mockFile)
                   .param("originalFilename", "test.jpg")
                   .param("mediaType", "IMAGE_JPEG")
@@ -351,7 +351,7 @@ class CreateMediaComponentTest extends AbstractComponentTest {
       // Act & Assert
       mockMvc
           .perform(
-              multipart("/recipe-management/recipes/{recipeId}/steps/{stepId}/media", recipeId, stepId)
+              multipart("/recipes/{recipeId}/steps/{stepId}/media", recipeId, stepId)
                   .file(mockFile)
                   .param("originalFilename", "test.jpg")
                   .param("mediaType", "IMAGE_JPEG")
@@ -377,7 +377,7 @@ class CreateMediaComponentTest extends AbstractComponentTest {
       // Act & Assert
       mockMvc
           .perform(
-              multipart("/recipe-management/recipes/{recipeId}/steps/{stepId}/media", recipeId, stepId)
+              multipart("/recipes/{recipeId}/steps/{stepId}/media", recipeId, stepId)
                   .file(mockFile)
                   .param("originalFilename", "test.jpg")
                   .param("mediaType", "IMAGE_JPEG")
@@ -403,7 +403,7 @@ class CreateMediaComponentTest extends AbstractComponentTest {
 
       // Act & Assert
       mockMvc
-          .perform(delete("/recipe-management/recipes/{recipeId}/media/{mediaId}", recipeId, mediaId))
+          .perform(delete("/recipes/{recipeId}/media/{mediaId}", recipeId, mediaId))
           .andExpect(status().isOk())
           .andExpect(jsonPath("$.success").value(true))
           .andExpect(jsonPath("$.message").value("Media successfully deleted from recipe"))
@@ -429,7 +429,7 @@ class CreateMediaComponentTest extends AbstractComponentTest {
 
       // Act & Assert
       mockMvc
-          .perform(delete("/recipe-management/recipes/{recipeId}/ingredients/{ingredientId}/media/{mediaId}",
+          .perform(delete("/recipes/{recipeId}/ingredients/{ingredientId}/media/{mediaId}",
                    recipeId, ingredientId, mediaId))
           .andExpect(status().isOk())
           .andExpect(jsonPath("$.success").value(true))
@@ -456,7 +456,7 @@ class CreateMediaComponentTest extends AbstractComponentTest {
 
       // Act & Assert
       mockMvc
-          .perform(delete("/recipe-management/recipes/{recipeId}/steps/{stepId}/media/{mediaId}",
+          .perform(delete("/recipes/{recipeId}/steps/{stepId}/media/{mediaId}",
                    recipeId, stepId, mediaId))
           .andExpect(status().isOk())
           .andExpect(jsonPath("$.success").value(true))
@@ -476,7 +476,7 @@ class CreateMediaComponentTest extends AbstractComponentTest {
 
       // Act & Assert
       mockMvc
-          .perform(delete("/recipe-management/recipes/{recipeId}/media/{mediaId}", recipeId, mediaId))
+          .perform(delete("/recipes/{recipeId}/media/{mediaId}", recipeId, mediaId))
           .andExpect(status().isNotFound())
           .andExpect(jsonPath("$.message").value("Recipe with identifier '123' was not found"));
     }

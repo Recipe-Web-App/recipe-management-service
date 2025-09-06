@@ -88,12 +88,20 @@
       <groupId>io.opentelemetry</groupId>
       <artifactId>opentelemetry-api</artifactId>
     </dependency>
+    <dependency>
+      <groupId>javax.cache</groupId>
+      <artifactId>cache-api</artifactId>
+    </dependency>
 
     <!-- Logging Dependencies -->
     <dependency>
       <groupId>net.logstash.logback</groupId>
       <artifactId>logstash-logback-encoder</artifactId>
       <version>8.1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.ehcache</groupId>
+      <artifactId>ehcache</artifactId>
     </dependency>
 
     <!-- Database -->
@@ -104,6 +112,11 @@
     <dependency>
       <groupId>org.flywaydb</groupId>
       <artifactId>flyway-database-postgresql</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.hibernate.orm</groupId>
+      <artifactId>hibernate-jcache</artifactId>
+      <version>6.6.26.Final</version>
     </dependency>
 
     <!-- Utilities -->

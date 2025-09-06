@@ -108,7 +108,7 @@ spec:
                   key: SPRING_PROFILES_ACTIVE
           readinessProbe:
             httpGet:
-              path: /api/v1/recipe-manager/actuator/health/readiness
+              path: /api/v1/recipe-management/actuator/health/readiness
               port: 8080
             initialDelaySeconds: 15
             periodSeconds: 30
@@ -116,7 +116,7 @@ spec:
             failureThreshold: 3
           livenessProbe:
             httpGet:
-              path: /api/v1/recipe-manager/actuator/health/liveness
+              path: /api/v1/recipe-management/actuator/health/liveness
               port: 8080
             initialDelaySeconds: 30
             periodSeconds: 60

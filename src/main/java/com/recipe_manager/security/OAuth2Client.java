@@ -45,7 +45,7 @@ import lombok.NoArgsConstructor;
  * </ul>
  */
 @Service
-public final class OAuth2Client {
+public class OAuth2Client {
 
   /** Logger for this class. */
   private static final Logger LOGGER = LoggerFactory.getLogger(OAuth2Client.class);

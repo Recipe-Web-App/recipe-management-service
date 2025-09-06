@@ -471,7 +471,9 @@ public class MediaService {
   private record MediaCreationResult(
       Media savedMedia,
       com.recipe_manager.model.dto.external.mediamanager.response.UploadMediaResponseDto
-          uploadResponse) {}
+          uploadResponse) {
+    // Intentionally left blank
+  }
 
   /**
    * Helper method to validate media ownership and return the media entity.

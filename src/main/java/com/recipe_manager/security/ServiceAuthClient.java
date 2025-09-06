@@ -189,15 +189,19 @@ public class ServiceAuthClient {
   @NoArgsConstructor
   @Builder
   static class TokenResponse {
+    /** The OAuth2 access token. */
     @JsonProperty("access_token")
     private String accessToken;
 
+    /** The token type (typically "Bearer"). */
     @JsonProperty("token_type")
     private String tokenType;
 
+    /** Token expiration time in seconds. */
     @JsonProperty("expires_in")
     private Integer expiresIn;
 
+    /** The scope of the access token. */
     @JsonProperty("scope")
     private String scope;
   }
@@ -208,10 +212,19 @@ public class ServiceAuthClient {
   @NoArgsConstructor
   @Builder
   private static class ServiceToken {
+    /** The cached access token. */
     private String accessToken;
+
+    /** The cached token type. */
     private String tokenType;
+
+    /** The cached token expiration time in seconds. */
     private Integer expiresIn;
+
+    /** The cached token scope. */
     private String scope;
+
+    /** When this token was acquired. */
     private LocalDateTime acquiredAt;
   }
 }

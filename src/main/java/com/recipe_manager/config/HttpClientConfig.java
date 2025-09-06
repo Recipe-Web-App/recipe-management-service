@@ -24,8 +24,8 @@ public class HttpClientConfig {
     ExternalServicesConfig.CommonConfig commonConfig = externalServicesConfig.getCommon();
 
     return new RestTemplateBuilder()
-        .setConnectTimeout(commonConfig.getConnectTimeout())
-        .setReadTimeout(commonConfig.getReadTimeout())
+        .connectTimeout(commonConfig.getConnectTimeout())
+        .readTimeout(commonConfig.getReadTimeout())
         .build();
   }
 }

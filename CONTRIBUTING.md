@@ -1,6 +1,6 @@
-# Contributing to Recipe Manager Service
+# Contributing to Recipe Management Service
 
-We love your input! We want to make contributing to Recipe Manager Service
+We love your input! We want to make contributing to Recipe Management Service
 as easy and transparent as possible, whether it's:
 
 - Reporting a bug
@@ -42,8 +42,8 @@ actively welcome your pull requests:
 1. **Clone the repository**
 
    ```bash
-   git clone https://github.com/your-org/recipe-manager-service.git
-   cd recipe-manager-service
+   git clone https://github.com/your-org/recipe-management-service.git
+   cd recipe-management-service
    ```
 
 2. **Install VS Code extensions**
@@ -444,4 +444,4 @@ the same license as the project (MIT License).
 
 ---
 
-Thank you for contributing to Recipe Manager Service! 🎉
+Thank you for contributing to Recipe Management Service! 🎉

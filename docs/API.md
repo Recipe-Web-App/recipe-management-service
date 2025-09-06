@@ -21,8 +21,8 @@ content.
 
 ## Base URLs
 
-- **Local Development**: `http://localhost:8080/api/v1/recipe-manager`
-- **Kubernetes**: `http://recipe-manager.local/api/v1/recipe-manager`
+- **Local Development**: `http://localhost:8080/api/v1/recipe-management`
+- **Kubernetes**: `http://recipe-management.local/api/v1/recipe-management`
 
 ## Authentication
 
@@ -1302,7 +1302,7 @@ Key configuration variables:
 - `POSTGRES_HOST`: Database host
 - `POSTGRES_PORT`: Database port
 - `POSTGRES_DB`: Database name
-- `POSTGRES_SCHEMA`: Database schema (default: recipe_manager)
+- `POSTGRES_SCHEMA`: Database schema (default: recipe_management)
 
 ## Support
 

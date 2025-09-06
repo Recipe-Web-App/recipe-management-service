@@ -5,7 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
-/** Entry point for the Recipe Manager Service Spring Boot application. */
+/** Entry point for the Recipe Management Service Spring Boot application. */
 @SpringBootApplication
 @EnableFeignClients(basePackages = "com.recipe_manager.client.recipescraper")
 @EnableScheduling

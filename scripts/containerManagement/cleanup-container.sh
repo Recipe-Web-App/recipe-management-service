@@ -3,9 +3,9 @@
 
 set -euo pipefail
 
-NAMESPACE="recipe-manager"
+NAMESPACE="recipe-management"
 CONFIG_DIR="k8s"
-IMAGE_NAME="recipe-manager-service"
+IMAGE_NAME="recipe-management-service"
 IMAGE_TAG="latest"
 FULL_IMAGE_NAME="${IMAGE_NAME}:${IMAGE_TAG}"
 

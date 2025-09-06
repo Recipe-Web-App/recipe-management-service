@@ -3,7 +3,7 @@
 ## Overview
 
 This document describes the infrastructure components and best practices
-implemented in the Recipe Manager Service.
+implemented in the Recipe Management Service.
 
 ## Components
 

@@ -8,7 +8,7 @@ code in this repository.
 ### Essential Commands
 
 - **Build**: `mvn clean package`
-- **Run**: `java -jar target/recipe-manager-service-*.jar`
+- **Run**: `java -jar target/recipe-management-service-*.jar`
 - **Format Code**: `mvn spotless:apply`
 - **Code Quality**: `mvn checkstyle:check spotbugs:check pmd:check`
 - **Tests**: `mvn test` (all tests)
@@ -24,7 +24,7 @@ code in this repository.
 
 ### Docker and Deployment
 
-- **Docker Build**: `docker build -t recipe-manager-service:latest .`
+- **Docker Build**: `docker build -t recipe-management-service:latest .`
 - **Kubernetes Deploy**: `kubectl apply -f k8s/`
 - **Container Scripts**: Available in `scripts/containerManagement/`
 

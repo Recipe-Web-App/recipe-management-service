@@ -1,4 +1,4 @@
--- Recipe Manager Service Database Schema
+-- Recipe Management Service Database Schema
 -- Initial migration placeholder
 --
 -- This is a placeholder migration file to establish the Flyway migration structure.

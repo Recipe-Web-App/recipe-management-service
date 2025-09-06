@@ -1,6 +1,6 @@
-# Recipe Manager Service - Test Framework
+# Recipe Management Service - Test Framework
 
-This directory contains a comprehensive test framework for the Recipe Manager
+This directory contains a comprehensive test framework for the Recipe Management
 Service, implementing multiple testing strategies to ensure code quality,
 reliability, and performance.
 
@@ -142,7 +142,7 @@ class RecipeKarateRunner {
 Feature: Recipe Management
 
   Scenario: Create recipe successfully
-    Given url baseUrl + '/api/v1/recipe-manager/recipe-management/recipes'
+    Given url baseUrl + '/api/v1/recipe-management/recipe-management/recipes'
     And header Authorization = 'Bearer ' + token
     When method POST
     Then status 201

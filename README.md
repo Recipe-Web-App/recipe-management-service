@@ -1,4 +1,4 @@
-# Recipe Manager Service
+# Recipe Management Service
 
 A modern, production-ready recipe management backend service built with Java
 Spring Boot, designed for cloud-native deployment on Kubernetes.
@@ -23,8 +23,8 @@ Spring Boot, designed for cloud-native deployment on Kubernetes.
 
    ```bash
    # Clone repository
-   git clone https://github.com/your-org/recipe-manager-service.git
-   cd recipe-manager-service
+   git clone https://github.com/your-org/recipe-management-service.git
+   cd recipe-management-service
 
    # Copy environment configuration
    cp .env.example .env
@@ -47,7 +47,7 @@ Spring Boot, designed for cloud-native deployment on Kubernetes.
 
    ```bash
    mvn clean install
-   java -jar target/recipe-manager-service-*.jar
+   java -jar target/recipe-management-service-*.jar
    ```
 
 4. **Verify Installation**
@@ -153,7 +153,7 @@ sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE recipe_db TO recipe_u
 mvn clean install
 
 # Run application
-java -jar target/recipe-manager-service-*.jar
+java -jar target/recipe-management-service-*.jar
 
 # Or run with Maven
 mvn spring-boot:run
@@ -162,7 +162,7 @@ mvn spring-boot:run
 ### Docker
 
 ```sh
-docker build -t your-docker-repo/recipe-manager-service:latest .
+docker build -t your-docker-repo/recipe-management-service:latest .
 ```
 
 ### Kubernetes
@@ -192,7 +192,7 @@ If you're getting 403 errors with JWT tokens from your user-management-service:
 2. **Verify Service Logs**
 
    ```bash
-   kubectl logs -n recipe-manager -l app=recipe-manager-service
+   kubectl logs -n recipe-management -l app=recipe-management-service
    ```
 
    Look for: "JWT signature does not match locally computed signature"
@@ -222,7 +222,7 @@ curl -X POST http://user-management.local/api/v1/auth/login \
 
 # Use token in requests
 curl -H "Authorization: Bearer YOUR_JWT_TOKEN" \
-     http://localhost:8080/api/v1/recipe-manager/recipes
+     http://localhost:8080/api/v1/recipe-management/recipes
 ```
 
 ### Example API Calls
@@ -233,14 +233,14 @@ curl http://localhost:8080/actuator/health
 
 # Get all recipes (requires authentication)
 curl -H "Authorization: Bearer YOUR_TOKEN" \
-     http://localhost:8080/api/v1/recipe-manager/recipes
+     http://localhost:8080/api/v1/recipe-management/recipes
 
 # Create recipe (requires authentication)
 curl -X POST \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"name":"Pasta","description":"Delicious pasta recipe"}' \
-  http://localhost:8080/api/v1/recipe-manager/recipes
+  http://localhost:8080/api/v1/recipe-management/recipes
 
 # Get recipe media (requires authentication)
 curl -H "Authorization: Bearer YOUR_TOKEN" \
@@ -265,18 +265,13 @@ curl -X DELETE \
 
 #### Postman Collection Testing (Recommended)
 
-Import the comprehensive Postman collections from `tests/postman/` directory:
+Import the comprehensive Postman collection from `postman/` directory:
 
-- `Recipe-Manager-Recipe.postman_collection.json` - Recipe management endpoints
-- `Recipe-Manager-Auth.postman_collection.json` - Authentication endpoints
-- `Recipe-Manager-Actuator.postman_collection.json` - Health and metrics endpoints
-- `Recipe-Manager-Ingredient.postman_collection.json` - Ingredient management
-- `Recipe-Manager-Media.postman_collection.json` - Media operations
-- `Recipe-Manager-Review.postman_collection.json` - Review system
-- `Recipe-Manager-Step.postman_collection.json` - Recipe steps
-- `Recipe-Manager-Tag.postman_collection.json` - Tag management
+- `Recipe-Management-Service.postman_collection.json` - Complete API collection
+- `Recipe-Management-Local.postman_environment.json` - Local development environment
+- `Recipe-Management-Development.postman_environment.json` - Development environment
 
-See [Postman Testing Guide](tests/postman/README.md) for detailed instructions.
+See [Postman Testing Guide](postman/README.md) for detailed instructions.
 
 ## Development
 
@@ -403,7 +398,7 @@ curl http://localhost:8080/actuator/health/db
 
 ```bash
 # Build image
-docker build -t recipe-manager-service:latest .
+docker build -t recipe-management-service:latest .
 
 # Run container
 docker run -p 8080:8080 \
@@ -412,21 +407,21 @@ docker run -p 8080:8080 \
   -e POSTGRES_USER=recipe_user \
   -e POSTGRES_PASSWORD=password \
   -e JWT_SECRET=your-secret \  # Only if introspection disabled
-  recipe-manager-service:latest
+  recipe-management-service:latest
 ```
 
 ### Kubernetes Deployment
 
 ```bash
 # Create namespace
-kubectl create namespace recipe-manager
+kubectl create namespace recipe-management
 
 # Deploy using provided manifests
-kubectl apply -f k8s/ -n recipe-manager
+kubectl apply -f k8s/ -n recipe-management
 
 # Check deployment
-kubectl get pods -n recipe-manager
-kubectl get services -n recipe-manager
+kubectl get pods -n recipe-management
+kubectl get services -n recipe-management
 ```
 
 ### Environment-Specific Profiles
@@ -452,8 +447,8 @@ kubectl get services -n recipe-manager
 
 ### API Documentation
 
-- Comprehensive Postman collections in `tests/postman/` for API testing
-- Detailed collection documentation in [tests/postman/README.md](tests/postman/README.md)
+- Comprehensive Postman collection in `postman/` for API testing
+- Detailed collection documentation in [postman/README.md](postman/README.md)
 - OpenAPI/Swagger documentation (planned)
 
 ## Service Dependencies

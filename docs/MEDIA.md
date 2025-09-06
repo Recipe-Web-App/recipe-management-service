@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Recipe Manager Service provides comprehensive media management
+The Recipe Management Service provides comprehensive media management
 capabilities through integration with an external media-management-service.
 This system enables users to upload, manage, and organize media files (images
 and videos) associated with recipes, ingredients, and cooking steps.
@@ -14,7 +14,7 @@ and videos) associated with recipes, ingredients, and cooking steps.
 ```text
 ┌─────────────────────┐    ┌──────────────────────┐    ┌─────────────────────┐
 │                     │    │                      │    │                     │
-│   Recipe Manager    │◄──►│  Media Manager       │◄──►│   File Storage      │
+│   Recipe Management │◄──►│  Media Manager       │◄──►│   File Storage      │
 │   Service (Java)    │    │  Service (Rust)      │    │   (Content-         │
 │                     │    │                      │    │    Addressable)     │
 └─────────────────────┘    └──────────────────────┘    └─────────────────────┘
@@ -31,7 +31,7 @@ and videos) associated with recipes, ingredients, and cooking steps.
 
 ### Service Responsibilities
 
-#### Recipe Manager Service (This Service)
+#### Recipe Management Service (This Service)
 
 - **API Endpoints**: 8 REST endpoints for media operations
 - **Authentication**: JWT-based user authentication and authorization
@@ -436,7 +436,7 @@ curl -H "Authorization: Bearer YOUR_TOKEN" \
      http://localhost:8080/actuator/health
 
 # Check service logs
-kubectl logs -n recipe-manager -l app=recipe-manager-service
+kubectl logs -n recipe-management -l app=recipe-management-service
 
 # Check circuit breaker status
 curl http://localhost:8080/actuator/metrics/resilience4j.circuitbreaker.state
@@ -480,10 +480,10 @@ curl http://localhost:8080/actuator/metrics/resilience4j.circuitbreaker.state
 - **Integration Tests**: Full end-to-end with running external service
 - **Contract Tests**: Verify external service API compatibility
 
-For complete API testing, use the Postman collection: `tests/postman/Recipe-Manager-Media.postman_collection.json`
+For complete API testing, use the Postman collection: `tests/postman/Recipe-Management-Media.postman_collection.json`
 
 ---
 
 ## Generated Documentation
 
-Generated for Recipe Manager Service - Media Management System
+Generated for Recipe Management Service - Media Management System

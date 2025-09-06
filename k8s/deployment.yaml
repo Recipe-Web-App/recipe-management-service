@@ -3,10 +3,10 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: recipe-manager-service
-  namespace: recipe-manager
+  name: recipe-management-service
+  namespace: recipe-management
   labels:
-    app: recipe-manager-service
+    app: recipe-management-service
   annotations:
     # Ignoring image tag and pull policy checks since we build images locally
     kube-score/ignore: container-image-tag,container-image-pull-policy
@@ -14,11 +14,11 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      app: recipe-manager-service
+      app: recipe-management-service
   template:
     metadata:
       labels:
-        app: recipe-manager-service
+        app: recipe-management-service
     spec:
       restartPolicy: Always
       terminationGracePeriodSeconds: 10
@@ -32,11 +32,11 @@ spec:
                     - key: app
                       operator: In
                       values:
-                        - recipe-manager-service
+                        - recipe-management-service
                 topologyKey: kubernetes.io/hostname
       containers:
-        - name: recipe-manager-service
-          image: recipe-manager-service:latest
+        - name: recipe-management-service
+          image: recipe-management-service:latest
           imagePullPolicy: Never
           ports:
             - containerPort: 8080
@@ -44,67 +44,67 @@ spec:
             - name: POSTGRES_HOST
               valueFrom:
                 configMapKeyRef:
-                  name: recipe-manager-config
+                  name: recipe-management-config
                   key: POSTGRES_HOST
             - name: POSTGRES_PORT
               valueFrom:
                 configMapKeyRef:
-                  name: recipe-manager-config
+                  name: recipe-management-config
                   key: POSTGRES_PORT
             - name: POSTGRES_DB
               valueFrom:
                 configMapKeyRef:
-                  name: recipe-manager-config
+                  name: recipe-management-config
                   key: POSTGRES_DB
             - name: POSTGRES_SCHEMA
               valueFrom:
                 configMapKeyRef:
-                  name: recipe-manager-config
+                  name: recipe-management-config
                   key: POSTGRES_SCHEMA
             - name: RECIPE_MANAGEMENT_DB_USER
               valueFrom:
                 configMapKeyRef:
-                  name: recipe-manager-config
+                  name: recipe-management-config
                   key: RECIPE_MANAGEMENT_DB_USER
             - name: RECIPE_MANAGEMENT_DB_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: recipe-manager-secrets
+                  name: recipe-management-secrets
                   key: RECIPE_MANAGEMENT_DB_PASSWORD
             - name: JWT_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: recipe-manager-secrets
+                  name: recipe-management-secrets
                   key: JWT_SECRET
             - name: OAUTH2_SERVICE_ENABLED
               valueFrom:
                 configMapKeyRef:
-                  name: recipe-manager-config
+                  name: recipe-management-config
                   key: OAUTH2_SERVICE_ENABLED
             - name: OAUTH2_SERVICE_TO_SERVICE_ENABLED
               valueFrom:
                 configMapKeyRef:
-                  name: recipe-manager-config
+                  name: recipe-management-config
                   key: OAUTH2_SERVICE_TO_SERVICE_ENABLED
             - name: OAUTH2_CLIENT_ID
               valueFrom:
                 configMapKeyRef:
-                  name: recipe-manager-config
+                  name: recipe-management-config
                   key: OAUTH2_CLIENT_ID
             - name: OAUTH2_CLIENT_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: recipe-manager-secrets
+                  name: recipe-management-secrets
                   key: OAUTH2_CLIENT_SECRET
             - name: OAUTH2_INTROSPECTION_ENABLED
               valueFrom:
                 configMapKeyRef:
-                  name: recipe-manager-config
+                  name: recipe-management-config
                   key: OAUTH2_INTROSPECTION_ENABLED
             - name: SPRING_PROFILES_ACTIVE
               valueFrom:
                 configMapKeyRef:
-                  name: recipe-manager-config
+                  name: recipe-management-config
                   key: SPRING_PROFILES_ACTIVE
           readinessProbe:
             httpGet:

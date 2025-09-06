@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Recipe Manager Service uses JWT (JSON Web Token) authentication that
+The Recipe Management Service uses JWT (JSON Web Token) authentication that
 integrates with your user-management-service. This document explains how
 authentication works and how to configure it.
 
@@ -201,7 +201,7 @@ public class RecipeService {
 
 ### Shared JWT Secret Key
 
-**CRITICAL**: Both the user-management-service and recipe-manager-service
+**CRITICAL**: Both the user-management-service and recipe-management-service
 MUST use the same JWT secret key for authentication to work correctly.
 
 ### Token Generation (User Management Service)
@@ -234,7 +234,7 @@ jwt:
   secret: ${JWT_SECRET}
   expiration: 86400000
 
-# recipe-manager-service
+# recipe-management-service
 app:
   security:
     jwt:
@@ -253,7 +253,7 @@ export JWT_SECRET="your-very-secure-secret-key-that-should-be-at-least-32-charac
 
 ### Kubernetes Deployment
 
-For recipe-manager-service, ensure JWT_SECRET is included in your .env file:
+For recipe-management-service, ensure JWT_SECRET is included in your .env file:
 
 ```bash
 # .env file

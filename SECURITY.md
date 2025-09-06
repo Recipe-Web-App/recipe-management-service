@@ -21,7 +21,7 @@ and will make every effort to acknowledge your contributions.
 **Please do not report security vulnerabilities through public GitHub issues.**
 
 Instead, please report them via email to:
-**<security@recipe-manager.com>** (replace with your actual security contact)
+**<security@recipe-management.com>** (replace with your actual security contact)
 
 You should receive a response within 48 hours. If for some reason you do not,
 please follow up via email to ensure we received your original message.
@@ -59,7 +59,7 @@ We prefer all communications to be in English.
 
 ### For Users
 
-- Always use the latest version of the Recipe Manager Service
+- Always use the latest version of the Recipe Management Service
 - Use strong, unique passwords for database connections
 - Implement proper network security (firewalls, VPNs)
 - Regularly update dependencies and base images
@@ -128,7 +128,7 @@ This project includes:
 
 ## Security Contact Information
 
-- **Security Email**: <security@recipe-manager.com> (replace with actual contact)
+- **Security Email**: <security@recipe-management.com> (replace with actual contact)
 - **Response Time**: 48 hours for initial response
 - **Escalation**: If no response within 72 hours, please contact the project
   maintainers directly

@@ -3,8 +3,6 @@ package com.recipe_manager.config;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -13,7 +11,6 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.HealthIndicator;
-import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
  * Test class for HealthCheckConfig.
@@ -49,8 +46,8 @@ class HealthCheckConfigTest {
   @Tag("standard-processing")
   @DisplayName("Should create databaseHealthIndicator and return up")
   void shouldCreateDatabaseHealthIndicatorUp() {
-    com.recipe_manager.service.DatabaseConnectionService connectionService =
-        mock(com.recipe_manager.service.DatabaseConnectionService.class);
+    com.recipe_manager.service.DatabaseConnectionService connectionService = mock(
+        com.recipe_manager.service.DatabaseConnectionService.class);
     when(connectionService.isConnected()).thenReturn(true);
     when(connectionService.getLastSuccessfulConnection()).thenReturn(java.time.LocalDateTime.now());
     when(connectionService.getLastConnectionAttempt()).thenReturn(java.time.LocalDateTime.now());
@@ -67,8 +64,8 @@ class HealthCheckConfigTest {
   @Tag("error-processing")
   @DisplayName("Should create databaseHealthIndicator and return degraded on disconnection")
   void shouldCreateDatabaseHealthIndicatorDown() {
-    com.recipe_manager.service.DatabaseConnectionService connectionService =
-        mock(com.recipe_manager.service.DatabaseConnectionService.class);
+    com.recipe_manager.service.DatabaseConnectionService connectionService = mock(
+        com.recipe_manager.service.DatabaseConnectionService.class);
     when(connectionService.isConnected()).thenReturn(false);
     when(connectionService.getLastConnectionAttempt()).thenReturn(java.time.LocalDateTime.now());
     when(connectionService.getLastError()).thenReturn("Connection failed");
@@ -110,7 +107,7 @@ class HealthCheckConfigTest {
     HealthIndicator indicator = new HealthCheckConfig().applicationHealthIndicator();
     Health health = indicator.health();
     assertEquals("UP", health.getStatus().getCode());
-    assertEquals("Recipe Manager Service", health.getDetails().get("application"));
+    assertEquals("Recipe Management Service", health.getDetails().get("application"));
     assertEquals("0.1.0", health.getDetails().get("version"));
     assertEquals("running", health.getDetails().get("status"));
   }
@@ -185,11 +182,11 @@ class HealthCheckConfigTest {
 
     // Test megabytes
     assertEquals("1.00 MB", m.invoke(config, 1024L * 1024L));
-    assertEquals("2.50 MB", m.invoke(config, (long)(1024L * 1024L * 2.5)));
+    assertEquals("2.50 MB", m.invoke(config, (long) (1024L * 1024L * 2.5)));
     assertEquals("1023.00 MB", m.invoke(config, 1024L * 1024L * 1023L));
 
     // Test gigabytes
     assertEquals("1.00 GB", m.invoke(config, 1024L * 1024L * 1024L));
-    assertEquals("2.50 GB", m.invoke(config, (long)(1024L * 1024L * 1024L * 2.5)));
+    assertEquals("2.50 GB", m.invoke(config, (long) (1024L * 1024L * 1024L * 2.5)));
   }
 }

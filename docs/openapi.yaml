@@ -28,7 +28,7 @@ info:
 servers:
   - url: http://localhost:8080/api/v1/recipe-management
     description: Local development server
-  - url: http://recipe-manager.local/api/v1/recipe-management
+  - url: http://recipe-management.local/api/v1/recipe-management
     description: Kubernetes deployment
 
 security:
@@ -1843,7 +1843,7 @@ components:
           properties:
             name:
               type: string
-              example: "recipe-manager-service"
+              example: "recipe-management-service"
             version:
               type: string
               example: "1.0.0"
@@ -1974,7 +1974,7 @@ components:
                       type: boolean
                 example:
                   spring.application.name:
-                    value: "recipe-manager-service"
+                    value: "recipe-management-service"
                     origin: "class path resource [application.yml] - 19:7"
                     sensitive: false
                   server.port:
@@ -1998,7 +1998,7 @@ components:
               example: "applicationConfig: [classpath:/application.yml]"
             value:
               type: string
-              example: "recipe-manager-service"
+              example: "recipe-management-service"
         activeProfiles:
           type: array
           items:
@@ -2034,7 +2034,7 @@ components:
                           include-message: "always"
                           include-binding-errors: "always"
                         servlet:
-                          context-path: "/api/v1/recipe-manager"
+                          context-path: "/api/v1/recipe-management"
               parentId:
                 type: string
                 nullable: true
@@ -2046,7 +2046,7 @@ components:
                   properties:
                     port: 8080
                     servlet:
-                      context-path: "/api/v1/recipe-manager"
+                      context-path: "/api/v1/recipe-management"
                 management:
                   prefix: "management"
                   properties:
@@ -2058,7 +2058,7 @@ components:
                 spring.application:
                   prefix: "spring.application"
                   properties:
-                    name: "recipe-manager-service"
+                    name: "recipe-management-service"
               parentId: null
 
     IngredientCommentDto:

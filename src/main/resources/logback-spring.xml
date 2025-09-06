@@ -7,7 +7,7 @@
   <springProfile name="!prod">
     <!-- Development/Test profile -->
     <property name="LOG_PATTERN" value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} [%X{requestId}] - %msg%n"/>
-    <property name="LOG_FILE" value="logs/recipe-manager-service.log"/>
+    <property name="LOG_FILE" value="logs/recipe-management-service.log"/>
   </springProfile>
 
   <springProfile name="prod">

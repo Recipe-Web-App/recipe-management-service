@@ -104,7 +104,7 @@ class DeleteStepCommentComponentTest extends AbstractComponentTest {
     try (MockedStatic<SecurityUtils> mockedSecurity = Mockito.mockStatic(SecurityUtils.class)) {
       mockedSecurity.when(SecurityUtils::getCurrentUserId).thenReturn(currentUserId);
 
-      mockMvc.perform(delete("/recipe-management/recipes/123/steps/1/comment")
+      mockMvc.perform(delete("/recipes/123/steps/1/comment")
           .contentType(MediaType.APPLICATION_JSON)
           .content(requestBody))
           .andExpect(status().isNoContent())
@@ -129,7 +129,7 @@ class DeleteStepCommentComponentTest extends AbstractComponentTest {
     try (MockedStatic<SecurityUtils> mockedSecurity = Mockito.mockStatic(SecurityUtils.class)) {
       mockedSecurity.when(SecurityUtils::getCurrentUserId).thenReturn(currentUserId);
 
-      mockMvc.perform(delete("/recipe-management/recipes/999/steps/1/comment")
+      mockMvc.perform(delete("/recipes/999/steps/1/comment")
           .contentType(MediaType.APPLICATION_JSON)
           .content(requestBody))
           .andExpect(status().isNotFound())
@@ -155,7 +155,7 @@ class DeleteStepCommentComponentTest extends AbstractComponentTest {
     try (MockedStatic<SecurityUtils> mockedSecurity = Mockito.mockStatic(SecurityUtils.class)) {
       mockedSecurity.when(SecurityUtils::getCurrentUserId).thenReturn(currentUserId);
 
-      mockMvc.perform(delete("/recipe-management/recipes/123/steps/999/comment")
+      mockMvc.perform(delete("/recipes/123/steps/999/comment")
           .contentType(MediaType.APPLICATION_JSON)
           .content(requestBody))
           .andExpect(status().isNotFound())
@@ -182,7 +182,7 @@ class DeleteStepCommentComponentTest extends AbstractComponentTest {
     try (MockedStatic<SecurityUtils> mockedSecurity = Mockito.mockStatic(SecurityUtils.class)) {
       mockedSecurity.when(SecurityUtils::getCurrentUserId).thenReturn(currentUserId);
 
-      mockMvc.perform(delete("/recipe-management/recipes/123/steps/1/comment")
+      mockMvc.perform(delete("/recipes/123/steps/1/comment")
           .contentType(MediaType.APPLICATION_JSON)
           .content(requestBody))
           .andExpect(status().isNotFound())
@@ -211,7 +211,7 @@ class DeleteStepCommentComponentTest extends AbstractComponentTest {
     try (MockedStatic<SecurityUtils> mockedSecurity = Mockito.mockStatic(SecurityUtils.class)) {
       mockedSecurity.when(SecurityUtils::getCurrentUserId).thenReturn(differentUserId);
 
-      mockMvc.perform(delete("/recipe-management/recipes/123/steps/1/comment")
+      mockMvc.perform(delete("/recipes/123/steps/1/comment")
           .contentType(MediaType.APPLICATION_JSON)
           .content(requestBody))
           .andExpect(status().isForbidden())
@@ -250,7 +250,7 @@ class DeleteStepCommentComponentTest extends AbstractComponentTest {
     try (MockedStatic<SecurityUtils> mockedSecurity = Mockito.mockStatic(SecurityUtils.class)) {
       mockedSecurity.when(SecurityUtils::getCurrentUserId).thenReturn(currentUserId); // Recipe owner
 
-      mockMvc.perform(delete("/recipe-management/recipes/123/steps/1/comment")
+      mockMvc.perform(delete("/recipes/123/steps/1/comment")
           .contentType(MediaType.APPLICATION_JSON)
           .content(requestBody))
           .andExpect(status().isForbidden())

@@ -83,7 +83,7 @@ class RemoveTagComponentTest extends AbstractComponentTest {
         """.formatted(tagName);
 
     // When & Then
-    mockMvc.perform(delete("/recipe-management/recipes/123/tags")
+    mockMvc.perform(delete("/recipes/123/tags")
         .contentType(MediaType.APPLICATION_JSON)
         .content(requestBody))
         .andExpect(status().isOk())
@@ -118,7 +118,7 @@ class RemoveTagComponentTest extends AbstractComponentTest {
         """.formatted(tagName);
 
     // When & Then
-    mockMvc.perform(delete("/recipe-management/recipes/456/tags")
+    mockMvc.perform(delete("/recipes/456/tags")
         .contentType(MediaType.APPLICATION_JSON)
         .content(requestBody))
         .andExpect(status().isOk())
@@ -142,7 +142,7 @@ class RemoveTagComponentTest extends AbstractComponentTest {
         """;
 
     // When & Then
-    mockMvc.perform(delete("/recipe-management/recipes/999/tags")
+    mockMvc.perform(delete("/recipes/999/tags")
         .contentType(MediaType.APPLICATION_JSON)
         .content(requestBody))
         .andExpect(status().isNotFound())
@@ -166,7 +166,7 @@ class RemoveTagComponentTest extends AbstractComponentTest {
         """.formatted(tagName);
 
     // When & Then
-    mockMvc.perform(delete("/recipe-management/recipes/123/tags")
+    mockMvc.perform(delete("/recipes/123/tags")
         .contentType(MediaType.APPLICATION_JSON)
         .content(requestBody))
         .andExpect(status().isNotFound())
@@ -185,7 +185,7 @@ class RemoveTagComponentTest extends AbstractComponentTest {
         """;
 
     // When & Then
-    mockMvc.perform(delete("/recipe-management/recipes/123/tags")
+    mockMvc.perform(delete("/recipes/123/tags")
         .contentType(MediaType.APPLICATION_JSON)
         .content(requestBody))
         .andExpect(status().isBadRequest())
@@ -203,7 +203,7 @@ class RemoveTagComponentTest extends AbstractComponentTest {
         """;
 
     // When & Then
-    mockMvc.perform(delete("/recipe-management/recipes/123/tags")
+    mockMvc.perform(delete("/recipes/123/tags")
         .contentType(MediaType.APPLICATION_JSON)
         .content(requestBody))
         .andExpect(status().isBadRequest())

@@ -108,7 +108,7 @@ class AddStepCommentComponentTest extends AbstractComponentTest {
     try (MockedStatic<SecurityUtils> mockedSecurity = Mockito.mockStatic(SecurityUtils.class)) {
       mockedSecurity.when(SecurityUtils::getCurrentUserId).thenReturn(currentUserId);
 
-      mockMvc.perform(post("/recipe-management/recipes/123/steps/1/comment")
+      mockMvc.perform(post("/recipes/123/steps/1/comment")
           .contentType(MediaType.APPLICATION_JSON)
           .content(requestBody))
           .andExpect(status().isCreated())
@@ -156,7 +156,7 @@ class AddStepCommentComponentTest extends AbstractComponentTest {
     try (MockedStatic<SecurityUtils> mockedSecurity = Mockito.mockStatic(SecurityUtils.class)) {
       mockedSecurity.when(SecurityUtils::getCurrentUserId).thenReturn(currentUserId);
 
-      mockMvc.perform(post("/recipe-management/recipes/123/steps/1/comment")
+      mockMvc.perform(post("/recipes/123/steps/1/comment")
           .contentType(MediaType.APPLICATION_JSON)
           .content(requestBody))
           .andExpect(status().isCreated())
@@ -187,7 +187,7 @@ class AddStepCommentComponentTest extends AbstractComponentTest {
         """;
 
     // When & Then
-    mockMvc.perform(post("/recipe-management/recipes/999/steps/1/comment")
+    mockMvc.perform(post("/recipes/999/steps/1/comment")
         .contentType(MediaType.APPLICATION_JSON)
         .content(requestBody))
         .andExpect(status().isNotFound())
@@ -210,7 +210,7 @@ class AddStepCommentComponentTest extends AbstractComponentTest {
         """;
 
     // When & Then
-    mockMvc.perform(post("/recipe-management/recipes/123/steps/999/comment")
+    mockMvc.perform(post("/recipes/123/steps/999/comment")
         .contentType(MediaType.APPLICATION_JSON)
         .content(requestBody))
         .andExpect(status().isNotFound())
@@ -230,7 +230,7 @@ class AddStepCommentComponentTest extends AbstractComponentTest {
         """;
 
     // When & Then
-    mockMvc.perform(post("/recipe-management/recipes/123/steps/1/comment")
+    mockMvc.perform(post("/recipes/123/steps/1/comment")
         .contentType(MediaType.APPLICATION_JSON)
         .content(requestBody))
         .andExpect(status().isBadRequest())
@@ -249,7 +249,7 @@ class AddStepCommentComponentTest extends AbstractComponentTest {
         """;
 
     // When & Then
-    mockMvc.perform(post("/recipe-management/recipes/123/steps/1/comment")
+    mockMvc.perform(post("/recipes/123/steps/1/comment")
         .contentType(MediaType.APPLICATION_JSON)
         .content(requestBody))
         .andExpect(status().isBadRequest())

@@ -83,7 +83,7 @@ class AddTagComponentTest extends AbstractComponentTest {
         """.formatted(tagName);
 
     // When & Then
-    mockMvc.perform(post("/recipe-management/recipes/123/tags")
+    mockMvc.perform(post("/recipes/123/tags")
         .contentType(MediaType.APPLICATION_JSON)
         .content(requestBody))
         .andExpect(status().isCreated())
@@ -118,7 +118,7 @@ class AddTagComponentTest extends AbstractComponentTest {
         """.formatted(tagName);
 
     // When & Then
-    mockMvc.perform(post("/recipe-management/recipes/456/tags")
+    mockMvc.perform(post("/recipes/456/tags")
         .contentType(MediaType.APPLICATION_JSON)
         .content(requestBody))
         .andExpect(status().isCreated())
@@ -144,7 +144,7 @@ class AddTagComponentTest extends AbstractComponentTest {
         """;
 
     // When & Then
-    mockMvc.perform(post("/recipe-management/recipes/999/tags")
+    mockMvc.perform(post("/recipes/999/tags")
         .contentType(MediaType.APPLICATION_JSON)
         .content(requestBody))
         .andExpect(status().isNotFound())
@@ -163,7 +163,7 @@ class AddTagComponentTest extends AbstractComponentTest {
         """;
 
     // When & Then
-    mockMvc.perform(post("/recipe-management/recipes/123/tags")
+    mockMvc.perform(post("/recipes/123/tags")
         .contentType(MediaType.APPLICATION_JSON)
         .content(requestBody))
         .andExpect(status().isBadRequest())
@@ -181,7 +181,7 @@ class AddTagComponentTest extends AbstractComponentTest {
         """;
 
     // When & Then
-    mockMvc.perform(post("/recipe-management/recipes/123/tags")
+    mockMvc.perform(post("/recipes/123/tags")
         .contentType(MediaType.APPLICATION_JSON)
         .content(requestBody))
         .andExpect(status().isBadRequest())
@@ -217,7 +217,7 @@ class AddTagComponentTest extends AbstractComponentTest {
         """.formatted(newTagName);
 
     // When & Then
-    mockMvc.perform(post("/recipe-management/recipes/789/tags")
+    mockMvc.perform(post("/recipes/789/tags")
         .contentType(MediaType.APPLICATION_JSON)
         .content(requestBody))
         .andExpect(status().isCreated())

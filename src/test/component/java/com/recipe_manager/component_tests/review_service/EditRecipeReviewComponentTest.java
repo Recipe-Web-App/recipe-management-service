@@ -48,7 +48,7 @@ class EditRecipeReviewComponentTest extends AbstractComponentTest {
 
     when(reviewService.editReview(eq(123L), eq(1L), any(EditReviewRequest.class))).thenReturn(reviewDto);
 
-    mockMvc.perform(put("/recipe-management/recipes/123/review/1")
+    mockMvc.perform(put("/recipes/123/review/1")
         .contentType(MediaType.APPLICATION_JSON)
         .content("{\"rating\":3.5,\"comment\":\"Updated comment\"}"))
         .andExpect(status().isOk())
@@ -66,7 +66,7 @@ class EditRecipeReviewComponentTest extends AbstractComponentTest {
     when(reviewService.editReview(eq(123L), eq(999L), any(EditReviewRequest.class)))
         .thenThrow(new com.recipe_manager.exception.ResourceNotFoundException("Review not found with ID: 999 for recipe: 123"));
 
-    mockMvc.perform(put("/recipe-management/recipes/123/review/999")
+    mockMvc.perform(put("/recipes/123/review/999")
         .contentType(MediaType.APPLICATION_JSON)
         .content("{\"rating\":3.5,\"comment\":\"Updated comment\"}"))
         .andExpect(status().isNotFound())
@@ -80,7 +80,7 @@ class EditRecipeReviewComponentTest extends AbstractComponentTest {
     when(reviewService.editReview(eq(123L), eq(1L), any(EditReviewRequest.class)))
         .thenThrow(new AccessDeniedException("User can only edit their own reviews"));
 
-    mockMvc.perform(put("/recipe-management/recipes/123/review/1")
+    mockMvc.perform(put("/recipes/123/review/1")
         .contentType(MediaType.APPLICATION_JSON)
         .content("{\"rating\":3.5,\"comment\":\"Updated comment\"}"))
         .andExpect(status().isForbidden())
@@ -94,7 +94,7 @@ class EditRecipeReviewComponentTest extends AbstractComponentTest {
     when(reviewService.editReview(eq(123L), eq(1L), any(EditReviewRequest.class)))
         .thenThrow(new com.recipe_manager.exception.BusinessException("Rating must be in increments of 0.5 (e.g., 0.0, 0.5, 1.0, 1.5, etc.)"));
 
-    mockMvc.perform(put("/recipe-management/recipes/123/review/1")
+    mockMvc.perform(put("/recipes/123/review/1")
         .contentType(MediaType.APPLICATION_JSON)
         .content("{\"rating\":2.7,\"comment\":\"Updated comment\"}"))
         .andExpect(status().isBadRequest())

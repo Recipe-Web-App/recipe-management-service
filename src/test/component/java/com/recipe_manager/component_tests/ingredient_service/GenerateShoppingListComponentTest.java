@@ -97,7 +97,7 @@ class GenerateShoppingListComponentTest extends AbstractComponentTest {
     List<RecipeIngredient> ingredients = Arrays.asList(ingredient1, ingredient2);
     when(recipeIngredientRepository.findByRecipeRecipeId(123L)).thenReturn(ingredients);
 
-    mockMvc.perform(get("/recipe-management/recipes/123/ingredients/shopping-list")
+    mockMvc.perform(get("/recipes/123/ingredients/shopping-list")
         .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.recipeId").value(123))
@@ -114,7 +114,7 @@ class GenerateShoppingListComponentTest extends AbstractComponentTest {
   @DisplayName("Should return 400 for invalid recipe ID format")
   void shouldHandleInvalidRecipeIdFormat() throws Exception {
     // No repository setup needed as this should fail at parsing level
-    mockMvc.perform(get("/recipe-management/recipes/invalid/ingredients/shopping-list")
+    mockMvc.perform(get("/recipes/invalid/ingredients/shopping-list")
         .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isBadRequest())
         .andExpect(header().exists("X-Request-ID"));
@@ -127,7 +127,7 @@ class GenerateShoppingListComponentTest extends AbstractComponentTest {
     // Setup repository to return empty list
     when(recipeIngredientRepository.findByRecipeRecipeId(456L)).thenReturn(Arrays.asList());
 
-    mockMvc.perform(get("/recipe-management/recipes/456/ingredients/shopping-list")
+    mockMvc.perform(get("/recipes/456/ingredients/shopping-list")
         .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.recipeId").value(456))
@@ -164,7 +164,7 @@ class GenerateShoppingListComponentTest extends AbstractComponentTest {
     List<RecipeIngredient> ingredients = Arrays.asList(ingredient1, ingredient2);
     when(recipeIngredientRepository.findByRecipeRecipeId(789L)).thenReturn(ingredients);
 
-    mockMvc.perform(get("/recipe-management/recipes/789/ingredients/shopping-list")
+    mockMvc.perform(get("/recipes/789/ingredients/shopping-list")
         .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.recipeId").value(789))

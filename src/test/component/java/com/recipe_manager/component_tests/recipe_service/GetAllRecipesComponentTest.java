@@ -93,7 +93,7 @@ class GetAllRecipesComponentTest extends AbstractComponentTest {
     when(recipeRepository.findAll(any(Pageable.class))).thenReturn(recipePage);
 
     // When & Then
-    mockMvc.perform(get("/recipe-management/recipes")
+    mockMvc.perform(get("/recipes")
         .accept(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.recipes").isArray())
@@ -132,7 +132,7 @@ class GetAllRecipesComponentTest extends AbstractComponentTest {
     when(recipeRepository.findAll(any(Pageable.class))).thenReturn(emptyPage);
 
     // When & Then
-    mockMvc.perform(get("/recipe-management/recipes")
+    mockMvc.perform(get("/recipes")
         .accept(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.recipes").isArray())
@@ -157,7 +157,7 @@ class GetAllRecipesComponentTest extends AbstractComponentTest {
     when(recipeRepository.findAll(any(Pageable.class))).thenReturn(pagedRecipes);
 
     // When & Then
-    mockMvc.perform(get("/recipe-management/recipes")
+    mockMvc.perform(get("/recipes")
         .param("page", "1")
         .param("size", "1")
         .accept(MediaType.APPLICATION_JSON))
@@ -186,7 +186,7 @@ class GetAllRecipesComponentTest extends AbstractComponentTest {
     when(recipeRepository.findAll(any(Pageable.class))).thenReturn(recipePage);
 
     // When & Then
-    mockMvc.perform(get("/recipe-management/recipes")
+    mockMvc.perform(get("/recipes")
         .accept(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.recipes").isArray())

@@ -34,7 +34,7 @@ class DeleteRecipeReviewComponentTest extends AbstractComponentTest {
   void shouldDeleteRecipeReview() throws Exception {
     doNothing().when(reviewService).deleteReview(eq(123L), eq(1L));
 
-    mockMvc.perform(delete("/recipe-management/recipes/123/review/1")
+    mockMvc.perform(delete("/recipes/123/review/1")
         .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isNoContent())
         .andExpect(header().exists("X-Request-ID"));
@@ -47,7 +47,7 @@ class DeleteRecipeReviewComponentTest extends AbstractComponentTest {
     doThrow(new com.recipe_manager.exception.ResourceNotFoundException("Review not found with ID: 999 for recipe: 123"))
         .when(reviewService).deleteReview(eq(123L), eq(999L));
 
-    mockMvc.perform(delete("/recipe-management/recipes/123/review/999")
+    mockMvc.perform(delete("/recipes/123/review/999")
         .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isNotFound())
         .andExpect(header().exists("X-Request-ID"));
@@ -60,7 +60,7 @@ class DeleteRecipeReviewComponentTest extends AbstractComponentTest {
     doThrow(new AccessDeniedException("User can only delete their own reviews"))
         .when(reviewService).deleteReview(eq(123L), eq(1L));
 
-    mockMvc.perform(delete("/recipe-management/recipes/123/review/1")
+    mockMvc.perform(delete("/recipes/123/review/1")
         .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isForbidden())
         .andExpect(header().exists("X-Request-ID"));

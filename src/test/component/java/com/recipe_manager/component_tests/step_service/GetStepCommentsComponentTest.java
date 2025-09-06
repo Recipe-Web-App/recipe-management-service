@@ -119,7 +119,7 @@ class GetStepCommentsComponentTest extends AbstractComponentTest {
         .thenReturn(stepComments);
 
     // When & Then
-    mockMvc.perform(get("/recipe-management/recipes/123/steps/1/comment"))
+    mockMvc.perform(get("/recipes/123/steps/1/comment"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.recipeId").value(123))
         .andExpect(jsonPath("$.stepId").value(1))
@@ -151,7 +151,7 @@ class GetStepCommentsComponentTest extends AbstractComponentTest {
         .thenReturn(Arrays.asList());
 
     // When & Then
-    mockMvc.perform(get("/recipe-management/recipes/123/steps/1/comment"))
+    mockMvc.perform(get("/recipes/123/steps/1/comment"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.recipeId").value(123))
         .andExpect(jsonPath("$.stepId").value(1))
@@ -168,7 +168,7 @@ class GetStepCommentsComponentTest extends AbstractComponentTest {
     when(recipeRepository.existsById(999L)).thenReturn(false);
 
     // When & Then
-    mockMvc.perform(get("/recipe-management/recipes/999/steps/1/comment"))
+    mockMvc.perform(get("/recipes/999/steps/1/comment"))
         .andExpect(status().isNotFound())
         .andExpect(header().exists("X-Request-ID"));
   }
@@ -182,7 +182,7 @@ class GetStepCommentsComponentTest extends AbstractComponentTest {
     when(recipeStepRepository.findByStepIdAndRecipeRecipeId(999L, 123L)).thenReturn(Optional.empty());
 
     // When & Then
-    mockMvc.perform(get("/recipe-management/recipes/123/steps/999/comment"))
+    mockMvc.perform(get("/recipes/123/steps/999/comment"))
         .andExpect(status().isNotFound())
         .andExpect(header().exists("X-Request-ID"));
   }

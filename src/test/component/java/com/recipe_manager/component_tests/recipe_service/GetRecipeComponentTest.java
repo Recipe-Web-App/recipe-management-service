@@ -78,7 +78,7 @@ class GetRecipeComponentTest extends AbstractComponentTest {
     when(recipeRepository.findById(123L)).thenReturn(Optional.of(recipe));
 
     // When & Then
-    mockMvc.perform(get("/recipe-management/recipes/123")
+    mockMvc.perform(get("/recipes/123")
         .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.recipeId").value(123))
@@ -98,7 +98,7 @@ class GetRecipeComponentTest extends AbstractComponentTest {
   void shouldHandleNotFoundForNonExistentRecipe() throws Exception {
     when(recipeRepository.findById(999L)).thenReturn(Optional.empty());
 
-    mockMvc.perform(get("/recipe-management/recipes/999")
+    mockMvc.perform(get("/recipes/999")
         .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isNotFound())
         .andExpect(header().exists("X-Request-ID"));
@@ -110,7 +110,7 @@ class GetRecipeComponentTest extends AbstractComponentTest {
   void shouldHandleInvalidRecipeIdFormat() throws Exception {
     // No repository setup needed as this should fail at parsing level
 
-    mockMvc.perform(get("/recipe-management/recipes/invalid")
+    mockMvc.perform(get("/recipes/invalid")
         .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isBadRequest())
         .andExpect(header().exists("X-Request-ID"));

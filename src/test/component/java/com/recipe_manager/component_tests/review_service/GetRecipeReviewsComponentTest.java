@@ -51,7 +51,7 @@ class GetRecipeReviewsComponentTest extends AbstractComponentTest {
 
     when(reviewService.getReviews(123L)).thenReturn(response);
 
-    mockMvc.perform(get("/recipe-management/recipes/123/review")
+    mockMvc.perform(get("/recipes/123/review")
         .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.recipeId").value(123))
@@ -73,7 +73,7 @@ class GetRecipeReviewsComponentTest extends AbstractComponentTest {
 
     when(reviewService.getReviews(123L)).thenReturn(response);
 
-    mockMvc.perform(get("/recipe-management/recipes/123/review")
+    mockMvc.perform(get("/recipes/123/review")
         .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.recipeId").value(123))

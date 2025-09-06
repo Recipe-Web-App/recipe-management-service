@@ -83,7 +83,7 @@ class GetIngredientsComponentTest extends AbstractComponentTest {
         .thenReturn(Collections.emptyList());
 
     // When & Then
-    mockMvc.perform(get("/recipe-management/recipes/123/ingredients")
+    mockMvc.perform(get("/recipes/123/ingredients")
         .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -105,7 +105,7 @@ class GetIngredientsComponentTest extends AbstractComponentTest {
     when(recipeIngredientRepository.findByRecipeRecipeId(456L))
         .thenReturn(Collections.emptyList());
 
-    mockMvc.perform(get("/recipe-management/recipes/456/ingredients")
+    mockMvc.perform(get("/recipes/456/ingredients")
         .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -120,7 +120,7 @@ class GetIngredientsComponentTest extends AbstractComponentTest {
   @DisplayName("Should return 400 for invalid recipe ID format")
   void shouldReturn400ForInvalidRecipeIdFormat() throws Exception {
     // No repository setup needed as this should fail at parsing level
-    mockMvc.perform(get("/recipe-management/recipes/invalid/ingredients")
+    mockMvc.perform(get("/recipes/invalid/ingredients")
         .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isBadRequest())
         .andExpect(header().exists("X-Request-ID"));

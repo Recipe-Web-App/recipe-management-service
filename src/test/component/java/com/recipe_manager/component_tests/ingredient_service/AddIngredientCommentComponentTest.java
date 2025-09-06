@@ -80,7 +80,7 @@ class AddIngredientCommentComponentTest extends AbstractComponentTest {
         .thenReturn(List.of()); // Return empty list for this test
 
     // When & Then
-    mockMvc.perform(post("/recipe-management/recipes/123/ingredients/456/comment")
+    mockMvc.perform(post("/recipes/123/ingredients/456/comment")
         .contentType(MediaType.APPLICATION_JSON)
         .content("{\"comment\":\"This is a test comment\"}"))
         .andExpect(status().isOk())
@@ -95,7 +95,7 @@ class AddIngredientCommentComponentTest extends AbstractComponentTest {
   @Tag("error-processing")
   @DisplayName("Should return 400 for empty comment")
   void shouldReturn400ForEmptyComment() throws Exception {
-    mockMvc.perform(post("/recipe-management/recipes/123/ingredients/456/comment")
+    mockMvc.perform(post("/recipes/123/ingredients/456/comment")
         .contentType(MediaType.APPLICATION_JSON)
         .content("{\"comment\":\"\"}"))
         .andExpect(status().isBadRequest())
@@ -106,7 +106,7 @@ class AddIngredientCommentComponentTest extends AbstractComponentTest {
   @Tag("error-processing")
   @DisplayName("Should return 400 for invalid recipe ID format")
   void shouldReturn400ForInvalidRecipeIdFormat() throws Exception {
-    mockMvc.perform(post("/recipe-management/recipes/invalid/ingredients/456/comment")
+    mockMvc.perform(post("/recipes/invalid/ingredients/456/comment")
         .contentType(MediaType.APPLICATION_JSON)
         .content("{\"comment\":\"Test comment\"}"))
         .andExpect(status().isBadRequest())
@@ -117,7 +117,7 @@ class AddIngredientCommentComponentTest extends AbstractComponentTest {
   @Tag("error-processing")
   @DisplayName("Should return 400 for invalid ingredient ID format")
   void shouldReturn400ForInvalidIngredientIdFormat() throws Exception {
-    mockMvc.perform(post("/recipe-management/recipes/123/ingredients/invalid/comment")
+    mockMvc.perform(post("/recipes/123/ingredients/invalid/comment")
         .contentType(MediaType.APPLICATION_JSON)
         .content("{\"comment\":\"Test comment\"}"))
         .andExpect(status().isBadRequest())
@@ -131,7 +131,7 @@ class AddIngredientCommentComponentTest extends AbstractComponentTest {
     when(recipeIngredientRepository.findByRecipeRecipeIdAndIngredientIngredientId(999L, 888L))
         .thenReturn(Optional.empty());
 
-    mockMvc.perform(post("/recipe-management/recipes/999/ingredients/888/comment")
+    mockMvc.perform(post("/recipes/999/ingredients/888/comment")
         .contentType(MediaType.APPLICATION_JSON)
         .content("{\"comment\":\"Test comment\"}"))
         .andExpect(status().isBadRequest())

@@ -97,7 +97,7 @@ class ScaleRecipeIngredientsComponentTest extends AbstractComponentTest {
         .thenReturn(Collections.emptyList());
 
     // When & Then
-    mockMvc.perform(get("/recipe-management/recipes/123/ingredients/scale")
+    mockMvc.perform(get("/recipes/123/ingredients/scale")
         .param("quantity", "2.5")
         .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
@@ -127,7 +127,7 @@ class ScaleRecipeIngredientsComponentTest extends AbstractComponentTest {
 
     // No comment mocking needed since there are no ingredients
 
-    mockMvc.perform(get("/recipe-management/recipes/456/ingredients/scale")
+    mockMvc.perform(get("/recipes/456/ingredients/scale")
         .param("quantity", "3.0")
         .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
@@ -144,7 +144,7 @@ class ScaleRecipeIngredientsComponentTest extends AbstractComponentTest {
   @DisplayName("Should return 400 for invalid quantity parameter")
   void shouldHandleInvalidQuantityParameter() throws Exception {
     // No repository setup needed as this should fail at parameter parsing level
-    mockMvc.perform(get("/recipe-management/recipes/123/ingredients/scale")
+    mockMvc.perform(get("/recipes/123/ingredients/scale")
         .param("quantity", "invalid")
         .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isBadRequest())
@@ -156,7 +156,7 @@ class ScaleRecipeIngredientsComponentTest extends AbstractComponentTest {
   @DisplayName("Should return 400 for missing quantity parameter")
   void shouldHandleMissingQuantityParameter() throws Exception {
     // No repository setup needed as this should fail at parameter validation level
-    mockMvc.perform(get("/recipe-management/recipes/123/ingredients/scale")
+    mockMvc.perform(get("/recipes/123/ingredients/scale")
         .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isBadRequest())
         .andExpect(header().exists("X-Request-ID"));
@@ -167,7 +167,7 @@ class ScaleRecipeIngredientsComponentTest extends AbstractComponentTest {
   @DisplayName("Should return 400 for invalid recipe ID format")
   void shouldReturn400ForInvalidRecipeIdFormat() throws Exception {
     // No repository setup needed as this should fail at parsing level
-    mockMvc.perform(get("/recipe-management/recipes/invalid/ingredients/scale")
+    mockMvc.perform(get("/recipes/invalid/ingredients/scale")
         .param("quantity", "2.0")
         .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isBadRequest())

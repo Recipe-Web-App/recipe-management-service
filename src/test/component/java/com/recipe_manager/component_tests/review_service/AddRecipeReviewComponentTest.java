@@ -47,7 +47,7 @@ class AddRecipeReviewComponentTest extends AbstractComponentTest {
 
     when(reviewService.addReview(eq(123L), any(AddReviewRequest.class))).thenReturn(reviewDto);
 
-    mockMvc.perform(post("/recipe-management/recipes/123/review")
+    mockMvc.perform(post("/recipes/123/review")
         .contentType(MediaType.APPLICATION_JSON)
         .content("{\"rating\":4.5,\"comment\":\"Great recipe!\"}"))
         .andExpect(status().isOk())
@@ -65,7 +65,7 @@ class AddRecipeReviewComponentTest extends AbstractComponentTest {
     when(reviewService.addReview(eq(999L), any(AddReviewRequest.class)))
         .thenThrow(new com.recipe_manager.exception.ResourceNotFoundException("Recipe not found with ID: 999"));
 
-    mockMvc.perform(post("/recipe-management/recipes/999/review")
+    mockMvc.perform(post("/recipes/999/review")
         .contentType(MediaType.APPLICATION_JSON)
         .content("{\"rating\":4.5,\"comment\":\"Great recipe!\"}"))
         .andExpect(status().isNotFound())
@@ -79,7 +79,7 @@ class AddRecipeReviewComponentTest extends AbstractComponentTest {
     when(reviewService.addReview(eq(123L), any(AddReviewRequest.class)))
         .thenThrow(new com.recipe_manager.exception.BusinessException("Rating must be in increments of 0.5 (e.g., 0.0, 0.5, 1.0, 1.5, etc.)"));
 
-    mockMvc.perform(post("/recipe-management/recipes/123/review")
+    mockMvc.perform(post("/recipes/123/review")
         .contentType(MediaType.APPLICATION_JSON)
         .content("{\"rating\":4.3,\"comment\":\"Good recipe!\"}"))
         .andExpect(status().isBadRequest())
@@ -93,7 +93,7 @@ class AddRecipeReviewComponentTest extends AbstractComponentTest {
     when(reviewService.addReview(eq(123L), any(AddReviewRequest.class)))
         .thenThrow(new com.recipe_manager.exception.BusinessException("User has already reviewed this recipe"));
 
-    mockMvc.perform(post("/recipe-management/recipes/123/review")
+    mockMvc.perform(post("/recipes/123/review")
         .contentType(MediaType.APPLICATION_JSON)
         .content("{\"rating\":4.5,\"comment\":\"Great recipe!\"}"))
         .andExpect(status().isBadRequest())

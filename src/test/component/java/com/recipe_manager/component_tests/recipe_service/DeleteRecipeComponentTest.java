@@ -85,7 +85,7 @@ class DeleteRecipeComponentTest extends AbstractComponentTest {
       doNothing().when(recipeRepository).delete(recipe);
 
       // When & Then
-      mockMvc.perform(delete("/recipe-management/recipes/123")
+      mockMvc.perform(delete("/recipes/123")
           .contentType(MediaType.APPLICATION_JSON))
           .andExpect(status().isNoContent())
           .andExpect(header().exists("X-Request-ID"));
@@ -98,7 +98,7 @@ class DeleteRecipeComponentTest extends AbstractComponentTest {
   void shouldHandleNotFoundForNonExistentRecipe() throws Exception {
     when(recipeRepository.findById(999L)).thenReturn(Optional.empty());
 
-    mockMvc.perform(delete("/recipe-management/recipes/999")
+    mockMvc.perform(delete("/recipes/999")
         .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isNotFound())
         .andExpect(header().exists("X-Request-ID"));
@@ -110,7 +110,7 @@ class DeleteRecipeComponentTest extends AbstractComponentTest {
   void shouldHandleInvalidRecipeIdFormat() throws Exception {
     // No repository setup needed as this should fail at parsing level
 
-    mockMvc.perform(delete("/recipe-management/recipes/invalid")
+    mockMvc.perform(delete("/recipes/invalid")
         .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isBadRequest())
         .andExpect(header().exists("X-Request-ID"));

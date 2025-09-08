@@ -116,7 +116,7 @@
     <dependency>
       <groupId>org.hibernate.orm</groupId>
       <artifactId>hibernate-jcache</artifactId>
-      <version>6.6.26.Final</version>
+      <version>7.1.0.Final</version>
     </dependency>
 
     <!-- Utilities -->

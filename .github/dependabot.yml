@@ -8,7 +8,9 @@ updates:
       interval: 'weekly'
       day: 'monday'
       time: '09:00'
-    open-pull-requests-limit: 10
+    open-pull-requests-limit: 100
+    assignees:
+      - 'jsamuelsen11'
     labels:
       - 'dependencies'
       - 'java'
@@ -26,7 +28,9 @@ updates:
       interval: 'weekly'
       day: 'monday'
       time: '09:00'
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 100
+    assignees:
+      - 'jsamuelsen11'
     labels:
       - 'dependencies'
       - 'github-actions'
@@ -40,7 +44,9 @@ updates:
       interval: 'weekly'
       day: 'monday'
       time: '09:00'
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 100
+    assignees:
+      - 'jsamuelsen11'
     labels:
       - 'dependencies'
       - 'docker'

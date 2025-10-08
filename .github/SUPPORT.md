@@ -287,7 +287,7 @@ And still need help:
 
 1. **Ask in Discussions**: For usage questions
 2. **Create an Issue**: For bugs or features (use templates!)
-3. **Reach Out**: Contact @jsamuelsen for project-specific questions
+3. **Reach Out**: Contact @jsamuelsen11 for project-specific questions
 
 **Remember**:
 

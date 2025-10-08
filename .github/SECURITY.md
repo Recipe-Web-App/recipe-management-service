@@ -227,7 +227,7 @@ For security concerns:
 - **Private Issues**: Use
   [Security Advisories](https://github.com/Recipe-Web-App/recipe-management-service/security/advisories/new)
 - **General Questions**: Use GitHub Discussions (for non-sensitive topics)
-- **Maintainer**: @jsamuelsen
+- **Maintainer**: @jsamuelsen11
 
 ## Acknowledgments
 

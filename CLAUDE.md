@@ -157,7 +157,7 @@ class MyComponentTest extends AbstractComponentTest {
 
 - **Google Java Style**: Automatic formatting via Spotless
 - **Static Analysis**: SpotBugs, PMD, Checkstyle (all must pass)
-- **Code Coverage**: 85% minimum line coverage (enforced by JaCoCo)
+- **Code Coverage**: 90% minimum line coverage (enforced by JaCoCo)
 - **Documentation**: Javadoc required for public APIs
 - **Line Length**: 100 characters maximum
 - **Indentation**: 2 spaces (configured in .editorconfig)
@@ -173,7 +173,7 @@ class MyComponentTest extends AbstractComponentTest {
   structure
 - **Test Naming**: Test classes must be named `{ClassName}Test.java`
 - **Test Tags**: All unit tests must include `@Tag("unit")` annotation
-- **Coverage**: Each new file must achieve minimum 85% test coverage before
+- **Coverage**: Each new file must achieve minimum 90% test coverage before
   moving to next file
 
 ### Annotation Processing

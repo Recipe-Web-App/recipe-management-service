@@ -1,0 +1,155 @@
+---
+name: Task
+description: Track development tasks, work items, and planned implementation work
+title: "[Task]: "
+labels: ["task", "needs-triage"]
+assignees:
+  - jsamuelsen
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this template to create and track development tasks.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Task Description
+      description: Clear description of the task and its objectives
+      placeholder: Describe what needs to be done
+    validations:
+      required: true
+
+  - type: dropdown
+    id: task_type
+    attributes:
+      label: Task Type
+      description: What kind of task is this?
+      options:
+        - New Feature Implementation
+        - Bug Fix
+        - Refactoring
+        - Technical Debt
+        - Performance Optimization
+        - Security Enhancement
+        - Documentation
+        - Testing
+        - DevOps/Infrastructure
+        - Database Migration
+        - Dependency Update
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component Area
+      description: Which component does this task affect?
+      options:
+        - Recipe Service
+        - Ingredient Service
+        - Shopping List Service
+        - Database/Repository Layer
+        - REST Controllers
+        - DTOs/Mappers
+        - Service Layer
+        - Security/Authentication
+        - Configuration
+        - Testing
+        - Documentation
+        - CI/CD
+        - Docker/Kubernetes
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      description: How urgent is this task?
+      options:
+        - Critical
+        - High
+        - Medium
+        - Low
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance_criteria
+    attributes:
+      label: Acceptance Criteria
+      description: What conditions must be met for this task to be considered complete?
+      placeholder: |
+        - [ ] Criterion 1
+        - [ ] Criterion 2
+        - [ ] Criterion 3
+    validations:
+      required: true
+
+  - type: textarea
+    id: testing
+    attributes:
+      label: Testing Requirements
+      description: What testing is required for this task?
+      placeholder: |
+        - Unit tests added/updated
+        - Component tests with Testcontainers
+        - Integration tests with Karate
+        - Manual testing steps
+    validations:
+      required: true
+
+  - type: textarea
+    id: implementation_notes
+    attributes:
+      label: Implementation Notes
+      description: Technical notes, approach, or considerations
+      placeholder: |
+        Architecture decisions, dependencies, potential challenges, etc.
+
+  - type: textarea
+    id: related
+    attributes:
+      label: Related Issues/PRs
+      description: Link to related issues or pull requests
+      placeholder: |
+        Related to #123
+        Depends on #456
+        Blocks #789
+
+  - type: dropdown
+    id: effort
+    attributes:
+      label: Estimated Effort
+      description: Rough estimate of time required
+      options:
+        - Small (< 4 hours)
+        - Medium (1-2 days)
+        - Large (3-5 days)
+        - Extra Large (1+ week)
+        - Unknown
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context
+      description: Any other relevant information
+      placeholder: Context, links, references, etc.
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Task Setup Checklist
+      description: Confirm task is ready for work
+      options:
+        - label: Task description is clear and specific
+          required: true
+        - label: Acceptance criteria are defined
+          required: true
+        - label: Testing requirements are identified
+          required: false

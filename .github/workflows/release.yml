@@ -5,6 +5,15 @@ on: # yamllint disable-line rule:truthy
   push:
     branches: [main]
 
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
 jobs:
   release:
     runs-on: ubuntu-latest
@@ -21,6 +30,7 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '21'
+          cache: 'maven'
 
       - name: Cache Maven dependencies
         uses: actions/cache@v4
@@ -51,9 +61,28 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npx semantic-release
 
-      - name: Build Docker image with version
+      - name: Set up Docker Buildx
+        if: success()
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker images with version
         if: success()
         run: |
           VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
           docker build -t recipe-manager-service:${VERSION} .
           docker build -t recipe-manager-service:latest .
+
+      - name: Generate SBOM for Docker image
+        if: success()
+        uses: anchore/sbom-action@v0
+        with:
+          image: recipe-manager-service:latest
+          format: spdx-json
+          output-file: sbom.spdx.json
+
+      - name: Upload SBOM as artifact
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: docker-sbom
+          path: sbom.spdx.json

@@ -32,27 +32,38 @@ code in this repository.
 
 ### Technology Stack
 
-- **Java 21** with Spring Boot 3.5.3
-- **PostgreSQL** database with Flyway migrations
+- **Java 21** with Spring Boot 3.5.6
+- **PostgreSQL 15+** database with Flyway migrations
 - **Maven** build system with comprehensive quality plugins
-- **JWT authentication** integrated with user-management-service
+- **JWT authentication** with OAuth2 introspection support
+- **Feign clients** for external service integration (media-management, recipe-scraper)
 - **Docker + Kubernetes** deployment
 
 ### Package Structure
 
 ```text
 com.recipe_manager/
-├── config/           # Spring configuration (Security, Logging, Health)
-├── controller/       # REST controllers
-├── exception/        # Global exception handling
+├── client/          # External service clients (Feign)
+│   ├── common/     # Common client configurations
+│   ├── mediamanager/   # Media management service client
+│   └── recipescraper/  # Recipe scraper service client
+├── config/          # Spring configuration (Security, Logging, Health)
+├── controller/      # REST controllers
+├── exception/       # Global exception handling
+├── health/          # Custom health check indicators
 ├── model/
-│   ├── dto/         # Data transfer objects
-│   ├── entity/      # JPA entities
-│   ├── enums/       # Enums
-│   └── mapper/      # MapStruct mappers (Lombok compatible)
+│   ├── converter/  # JPA attribute converters
+│   ├── dto/        # Data transfer objects
+│   ├── entity/     # JPA entities
+│   ├── enums/      # Enums
+│   └── mapper/     # MapStruct mappers (Lombok compatible)
 ├── repository/      # JPA repositories
+│   ├── ingredient/ # Ingredient-related repositories
+│   ├── media/      # Media-related repositories
+│   └── recipe/     # Recipe-related repositories
 ├── security/        # JWT and security components
 ├── service/         # Business logic
+│   └── external/   # External service integration
 └── util/           # Utility classes
 ```
 
@@ -146,8 +157,10 @@ class MyComponentTest extends AbstractComponentTest {
 
 - **Google Java Style**: Automatic formatting via Spotless
 - **Static Analysis**: SpotBugs, PMD, Checkstyle (all must pass)
-- **Code Coverage**: 90% minimum instruction coverage
+- **Code Coverage**: 85% minimum line coverage (enforced by JaCoCo)
 - **Documentation**: Javadoc required for public APIs
+- **Line Length**: 100 characters maximum
+- **Indentation**: 2 spaces (configured in .editorconfig)
 
 ### Unit Test Requirements
 
@@ -219,8 +232,34 @@ class MyComponentTest extends AbstractComponentTest {
 
 ### Common Issues
 
-- **MapStruct + Lombok**: Ensure Lombok is first in annotation processor chain
-- **Database Schema**: Use `POSTGRES_SCHEMA` environment variable consistently
+- **MapStruct + Lombok**: Ensure Lombok is first in annotation processor
+  chain
+- **Database Schema**: Use `POSTGRES_SCHEMA` environment variable
+  consistently
 - **JWT Authentication**: With OAuth2 introspection enabled, no shared
   JWT_SECRET needed
-- **Test Containers**: May require Docker daemon for component/integration tests
+- **Test Containers**: May require Docker daemon for component/integration
+  tests
+- **Spotless Formatting**: Run automatically during validate phase, but may
+  need explicit `mvn spotless:apply` for formatting issues
+
+## External Service Dependencies
+
+This service integrates with external services via Spring Cloud OpenFeign:
+
+- **Media Management Service**: Handles recipe media upload, storage, and deletion
+- **Recipe Scraper Service**: Scrapes recipes from external URLs
+- **User Management Service**: JWT token generation and validation (OAuth2 introspection)
+
+Feign clients are configured with:
+
+- Resilience4j circuit breakers for fault tolerance
+- Custom error decoders for proper exception handling
+- Request/response logging for debugging
+
+## Service Integration Patterns
+
+- **Circuit Breaker**: Automatic failover when external services are unavailable
+- **Retry Logic**: Configurable retry policies for transient failures
+- **Timeout Configuration**: Request timeouts to prevent hanging operations
+- **Error Handling**: Custom exceptions mapped from HTTP status codes

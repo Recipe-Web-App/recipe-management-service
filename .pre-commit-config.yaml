@@ -1,4 +1,26 @@
 ---
+ci:
+  autofix_commit_msg: |
+    chore(pre-commit-ci): auto fixes from pre-commit hooks
+
+    for more information, see https://pre-commit.ci
+  autofix_prs: true
+  autoupdate_branch: ''
+  autoupdate_commit_msg: 'chore(pre-commit-ci): pre-commit autoupdate'
+  autoupdate_schedule: weekly
+  skip:
+    # Skip local Maven hooks - require Java/Maven and system dependencies
+    - maven-checkstyle
+    - maven-spotbugs
+    - maven-pmd
+    - spotless-apply
+    - sortpom-sort
+    - sortpom-verify
+    # Skip system-dependent hooks
+    - kube-score
+    - trufflehog
+  submodules: false
+
 repos:
   # File formatting
   - repo: https://github.com/pre-commit/mirrors-prettier

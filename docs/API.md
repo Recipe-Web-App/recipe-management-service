@@ -4,13 +4,13 @@
 
 The Recipe Management Service is a production-ready microservice that provides
 comprehensive recipe management functionality within the Recipe Web Application
-ecosystem. Built with Java 21 and Spring Boot 3.5.3, it offers a complete suite
+ecosystem. Built with Java 21 and Spring Boot 3.5.6, it offers a complete suite
 of endpoints for managing recipes, ingredients, steps, tags, reviews, and media
 content.
 
 ## Architecture
 
-- **Framework**: Spring Boot 3.5.3 with Java 21
+- **Framework**: Spring Boot 3.5.6 with Java 21
 - **Database**: PostgreSQL with Flyway migrations
 - **Authentication**: JWT token authentication integrated with
   user-management-service
@@ -1316,4 +1316,4 @@ For questions or issues:
 
 ## Generated Documentation
 
-Generated for Recipe Management Service - Spring Boot 3.5.3 with Java 21
+Generated for Recipe Management Service - Spring Boot 3.5.6 with Java 21

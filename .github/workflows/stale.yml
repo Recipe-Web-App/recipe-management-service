@@ -5,6 +5,10 @@ on: # yamllint disable-line rule:truthy
     - cron: '0 2 * * *'
   workflow_dispatch:
 
+permissions:
+  issues: write
+  pull-requests: write
+
 jobs:
   stale:
     runs-on: ubuntu-latest
@@ -18,7 +22,10 @@ jobs:
           stale-pr-message: |
             This pull request has been automatically marked as stale because it has not had recent
             activity. It will be closed in 7 days if no further activity occurs.
-          days-before-stale: 30
+          days-before-stale: 60
           days-before-close: 7
-          exempt-issue-labels: 'pinned,security,important'
-          exempt-pr-labels: 'pinned,security,important'
+          days-before-pr-stale: 45
+          days-before-pr-close: 7
+          exempt-issue-labels: 'pinned,security,important,critical,in-progress,blocked'
+          exempt-pr-labels: 'pinned,security,important,critical,in-progress,blocked,work-in-progress'
+          exempt-all-milestones: true

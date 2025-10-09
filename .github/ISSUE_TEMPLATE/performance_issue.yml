@@ -1,0 +1,177 @@
+---
+name: Performance Issue
+description: Report performance degradation or optimization opportunities
+title: "[Performance]: "
+labels: ["performance", "needs-triage"]
+assignees:
+  - jsamuelsen11
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a performance issue! Please provide as much detail as possible
+        to help us investigate and optimize.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Performance Issue Description
+      description: Clear description of the performance problem
+      placeholder: Describe the performance issue you're experiencing
+    validations:
+      required: true
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: Affected Component
+      description: Which component has the performance issue?
+      options:
+        - API Endpoints (slow response times)
+        - Database Queries (slow SQL)
+        - JPA/Hibernate Operations
+        - Recipe Search/Filtering
+        - Ingredient Lookups
+        - Shopping List Generation
+        - MapStruct Mapping
+        - JSON Serialization/Deserialization
+        - JWT Token Processing
+        - Application Startup
+        - Memory Usage (heap, GC)
+        - Connection Pooling
+        - Caching
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Impact Severity
+      description: How severe is the performance impact?
+      options:
+        - Critical (Service unusable, timeouts)
+        - High (Significantly degraded, user-impacting)
+        - Medium (Noticeable slowdown)
+        - Low (Minor optimization opportunity)
+    validations:
+      required: true
+
+  - type: textarea
+    id: metrics
+    attributes:
+      label: Performance Metrics
+      description: Actual performance numbers (response times, throughput, resource usage)
+      placeholder: |
+        - Current response time: 5000ms
+        - Expected response time: <500ms
+        - Throughput: 10 req/sec (expected 100 req/sec)
+        - Memory usage: 2GB heap
+        - CPU usage: 80%
+      render: yaml
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to Reproduce
+      description: How can we reproduce the performance issue?
+      placeholder: |
+        1. Configure system with...
+        2. Send request to /api/v1/recipes/search
+        3. With parameters: { "query": "...", "limit": 100 }
+        4. Observe slow response time
+    validations:
+      required: true
+
+  - type: textarea
+    id: load
+    attributes:
+      label: Load Characteristics
+      description: What load conditions trigger this issue?
+      placeholder: |
+        - Number of concurrent users: 100
+        - Request rate: 50 req/sec
+        - Data volume: 100,000 recipes
+        - Database size: 10GB
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment Details
+      description: Environment configuration
+      value: |
+        - Java version:
+        - JVM settings (-Xmx, -Xms, GC algorithm):
+        - Spring Boot version:
+        - PostgreSQL version and configuration:
+        - Deployment: (local/Docker/Kubernetes)
+        - Hardware: (CPU cores, RAM)
+    validations:
+      required: true
+
+  - type: textarea
+    id: config
+    attributes:
+      label: Configuration
+      description: Relevant configuration settings
+      placeholder: |
+        spring.datasource.hikari.maximum-pool-size=10
+        spring.jpa.properties.hibernate.jdbc.batch_size=20
+        spring.jpa.properties.hibernate.cache.use_second_level_cache=true
+      render: yaml
+
+  - type: textarea
+    id: profiling
+    attributes:
+      label: Profiling Data (if available)
+      description: JVM profiling, SQL query plans, or JMeter results
+      placeholder: |
+        - JProfiler/VisualVM results
+        - PostgreSQL EXPLAIN ANALYZE output
+        - JMeter performance test results
+        - Flame graphs
+      render: shell
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant Logs
+      description: Application logs showing slow operations
+      render: shell
+      placeholder: |
+        2025-10-07 10:15:23 WARN  - Slow query detected: 4523ms
+        Hibernate: select ... (full query)
+
+  - type: textarea
+    id: investigation
+    attributes:
+      label: Investigation So Far
+      description: What have you already tried or discovered?
+      placeholder: |
+        - Enabled Hibernate query logging
+        - Observed N+1 query problem in recipe retrieval
+        - Tried adding database index, no improvement
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context
+      description: Any other relevant information
+      placeholder: Screenshots, graphs, monitoring dashboards, etc.
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Checklist
+      description: Please confirm
+      options:
+        - label: I have included actual performance metrics
+          required: true
+        - label: I have provided environment details
+          required: true
+        - label: I have described the reproduction steps
+          required: true

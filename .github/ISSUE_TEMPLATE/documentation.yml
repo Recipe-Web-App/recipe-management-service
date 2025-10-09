@@ -1,0 +1,136 @@
+---
+name: Documentation
+description: Report documentation issues or suggest improvements
+title: "[Docs]: "
+labels: ["documentation", "needs-triage"]
+assignees:
+  - jsamuelsen11
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping improve our documentation!
+
+  - type: dropdown
+    id: doc_type
+    attributes:
+      label: Documentation Type
+      description: What kind of documentation issue is this?
+      options:
+        - Missing Documentation
+        - Incorrect/Outdated Documentation
+        - Unclear/Confusing Documentation
+        - Typo/Grammar
+        - Code Example Error
+        - Broken Link
+        - API Documentation
+        - Improvement Suggestion
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: location
+    attributes:
+      label: Documentation Location
+      description: Where is this documentation located?
+      options:
+        - README.md
+        - CLAUDE.md
+        - JavaDoc/Code Comments
+        - API Documentation
+        - Wiki
+        - Configuration Examples
+        - Database Schema Docs
+        - Deployment Guide
+        - Contributing Guidelines
+        - Security Policy
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Issue Description
+      description: Describe the documentation issue
+      placeholder: What's wrong or missing with the documentation?
+    validations:
+      required: true
+
+  - type: textarea
+    id: specific_location
+    attributes:
+      label: Specific Location
+      description: Exact location of the documentation issue
+      placeholder: |
+        - File: src/main/java/com/recipe_manager/service/RecipeService.java
+        - Line: 42
+        - Section: "Recipe Search API"
+        - URL: https://github.com/...
+    validations:
+      required: true
+
+  - type: textarea
+    id: current_docs
+    attributes:
+      label: Current Documentation
+      description: Quote the current documentation (if applicable)
+      placeholder: |
+        > Current text that is incorrect or unclear
+      render: markdown
+
+  - type: textarea
+    id: suggested
+    attributes:
+      label: Suggested Improvement
+      description: How should the documentation be improved?
+      placeholder: |
+        Proposed new text or explanation
+      render: markdown
+    validations:
+      required: true
+
+  - type: dropdown
+    id: audience
+    attributes:
+      label: Target Audience
+      description: Who is the primary audience for this documentation?
+      options:
+        - End Users (API consumers)
+        - Contributors/Developers
+        - System Administrators/DevOps
+        - Security Reviewers
+        - All Audiences
+    validations:
+      required: true
+
+  - type: textarea
+    id: examples
+    attributes:
+      label: Examples or References
+      description: Links to good examples or reference documentation
+      placeholder: |
+        - Similar documentation in other projects
+        - External references
+        - Code examples
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context
+      description: Any other relevant information
+      placeholder: Screenshots, context, related documentation, etc.
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Checklist
+      description: Please confirm
+      options:
+        - label: I have searched existing documentation issues
+          required: true
+        - label: I have specified the exact location of the issue
+          required: true
+        - label: I have provided a suggested improvement
+          required: false

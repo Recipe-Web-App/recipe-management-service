@@ -1,0 +1,97 @@
+---
+# PR Labeler Configuration for Recipe Management Service
+
+# Dependencies
+dependencies:
+  - pom.xml
+  - "**/pom.xml"
+
+# Documentation
+documentation:
+  - "**/*.md"
+  - docs/**/*
+
+# GitHub configuration
+github:
+  - .github/**/*
+
+# Workflows
+github-actions:
+  - .github/workflows/**/*
+
+# Docker
+docker:
+  - Dockerfile
+  - docker-compose*.yml
+  - .dockerignore
+
+# Configuration
+configuration:
+  - "**/*.yml"
+  - "**/*.yaml"
+  - "**/*.properties"
+  - src/main/resources/application*.yml
+  - src/main/resources/application*.properties
+
+# Java source code
+java:
+  - "**/*.java"
+  - src/main/java/**/*
+
+# Tests
+tests:
+  - src/test/**/*
+  - "**/*Test.java"
+  - "**/*Tests.java"
+
+# Database/Migrations
+database:
+  - src/main/resources/db/**/*
+  - src/main/resources/db/migration/**/*
+
+# REST Controllers/API
+api:
+  - src/main/java/**/controller/**/*
+  - src/main/java/**/rest/**/*
+
+# Service Layer
+service:
+  - src/main/java/**/service/**/*
+
+# Repository/Data Access
+repository:
+  - src/main/java/**/repository/**/*
+
+# DTOs and Models
+dto:
+  - src/main/java/**/dto/**/*
+  - src/main/java/**/model/dto/**/*
+
+# Entities
+entity:
+  - src/main/java/**/entity/**/*
+  - src/main/java/**/model/entity/**/*
+
+# Mappers
+mapper:
+  - src/main/java/**/mapper/**/*
+  - src/main/java/**/model/mapper/**/*
+
+# Security
+security:
+  - src/main/java/**/security/**/*
+  - src/main/java/**/config/SecurityConfig.java
+
+# Configuration Classes
+config:
+  - src/main/java/**/config/**/*
+
+# Scripts
+scripts:
+  - scripts/**/*
+  - "**/*.sh"
+
+# Kubernetes
+kubernetes:
+  - k8s/**/*
+  - "**/*.yaml"

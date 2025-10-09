@@ -46,7 +46,7 @@ repos:
 
   # Enhanced secret detection
   - repo: https://github.com/trufflesecurity/trufflehog
-    rev: v3.90.3
+    rev: v3.90.8
     hooks:
       - id: trufflehog
         name: TruffleHog Secret Detection
@@ -56,7 +56,7 @@ repos:
 
   # Docker security scanning
   - repo: https://github.com/hadolint/hadolint
-    rev: v2.13.1-beta
+    rev: v2.14.0
     hooks:
       - id: hadolint-docker
         name: Dockerfile Security Scan

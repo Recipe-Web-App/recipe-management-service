@@ -1,0 +1,157 @@
+package com.recipe_manager.model.dto.collection;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.UUID;
+
+import com.recipe_manager.model.enums.CollaborationMode;
+import com.recipe_manager.model.enums.CollectionVisibility;
+
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
+
+/** Unit tests for RecipeCollectionDto. */
+@Tag("unit")
+class RecipeCollectionDtoTest {
+
+  @Test
+  @DisplayName("All-args constructor assigns all fields")
+  @Tag("standard-processing")
+  void allArgsConstructorAssignsFields() {
+    UUID userId = UUID.randomUUID();
+    LocalDateTime now = LocalDateTime.now();
+    ArrayList<RecipeCollectionItemDto> items = new ArrayList<>();
+    ArrayList<CollectionCollaboratorDto> collaborators = new ArrayList<>();
+
+    RecipeCollectionDto dto =
+        new RecipeCollectionDto(
+            1L,
+            userId,
+            "Test Collection",
+            "Description",
+            CollectionVisibility.PUBLIC,
+            CollaborationMode.OWNER_ONLY,
+            now,
+            now,
+            items,
+            collaborators);
+
+    assertThat(dto.getCollectionId()).isEqualTo(1L);
+    assertThat(dto.getUserId()).isEqualTo(userId);
+    assertThat(dto.getName()).isEqualTo("Test Collection");
+    assertThat(dto.getDescription()).isEqualTo("Description");
+    assertThat(dto.getVisibility()).isEqualTo(CollectionVisibility.PUBLIC);
+    assertThat(dto.getCollaborationMode()).isEqualTo(CollaborationMode.OWNER_ONLY);
+    assertThat(dto.getCreatedAt()).isEqualTo(now);
+    assertThat(dto.getUpdatedAt()).isEqualTo(now);
+    assertThat(dto.getItems()).isEqualTo(items);
+    assertThat(dto.getCollaborators()).isEqualTo(collaborators);
+  }
+
+  @Test
+  @DisplayName("No-args constructor sets defaults and nulls")
+  @Tag("standard-processing")
+  void noArgsConstructorSetsDefaults() {
+    RecipeCollectionDto dto = new RecipeCollectionDto();
+
+    assertThat(dto.getCollectionId()).isNull();
+    assertThat(dto.getUserId()).isNull();
+    assertThat(dto.getName()).isNull();
+    assertThat(dto.getDescription()).isNull();
+    assertThat(dto.getVisibility()).isNull();
+    assertThat(dto.getCollaborationMode()).isNull();
+    assertThat(dto.getCreatedAt()).isNull();
+    assertThat(dto.getUpdatedAt()).isNull();
+    assertThat(dto.getItems()).isNotNull().isEmpty();
+    assertThat(dto.getCollaborators()).isNotNull().isEmpty();
+  }
+
+  @Test
+  @DisplayName("Builder sets fields and uses defaults")
+  @Tag("standard-processing")
+  void builderSetsFieldsAndDefaults() {
+    UUID userId = UUID.randomUUID();
+
+    RecipeCollectionDto dto =
+        RecipeCollectionDto.builder()
+            .collectionId(2L)
+            .userId(userId)
+            .name("My Collection")
+            .visibility(CollectionVisibility.PRIVATE)
+            .collaborationMode(CollaborationMode.ALL_USERS)
+            .build();
+
+    assertThat(dto.getCollectionId()).isEqualTo(2L);
+    assertThat(dto.getUserId()).isEqualTo(userId);
+    assertThat(dto.getName()).isEqualTo("My Collection");
+    assertThat(dto.getVisibility()).isEqualTo(CollectionVisibility.PRIVATE);
+    assertThat(dto.getCollaborationMode()).isEqualTo(CollaborationMode.ALL_USERS);
+    assertThat(dto.getItems()).isNotNull().isEmpty();
+    assertThat(dto.getCollaborators()).isNotNull().isEmpty();
+  }
+
+  @Test
+  @DisplayName("Setters and getters work for all fields")
+  @Tag("standard-processing")
+  void settersAndGettersWork() {
+    RecipeCollectionDto dto = new RecipeCollectionDto();
+    UUID userId = UUID.randomUUID();
+    LocalDateTime now = LocalDateTime.now();
+    ArrayList<RecipeCollectionItemDto> items = new ArrayList<>();
+    ArrayList<CollectionCollaboratorDto> collaborators = new ArrayList<>();
+
+    dto.setCollectionId(3L);
+    dto.setUserId(userId);
+    dto.setName("Updated");
+    dto.setDescription("Updated Description");
+    dto.setVisibility(CollectionVisibility.FRIENDS_ONLY);
+    dto.setCollaborationMode(CollaborationMode.SPECIFIC_USERS);
+    dto.setCreatedAt(now);
+    dto.setUpdatedAt(now);
+    dto.setItems(items);
+    dto.setCollaborators(collaborators);
+
+    assertThat(dto.getCollectionId()).isEqualTo(3L);
+    assertThat(dto.getUserId()).isEqualTo(userId);
+    assertThat(dto.getName()).isEqualTo("Updated");
+    assertThat(dto.getDescription()).isEqualTo("Updated Description");
+    assertThat(dto.getVisibility()).isEqualTo(CollectionVisibility.FRIENDS_ONLY);
+    assertThat(dto.getCollaborationMode()).isEqualTo(CollaborationMode.SPECIFIC_USERS);
+    assertThat(dto.getCreatedAt()).isEqualTo(now);
+    assertThat(dto.getUpdatedAt()).isEqualTo(now);
+    assertThat(dto.getItems()).isEqualTo(items);
+    assertThat(dto.getCollaborators()).isEqualTo(collaborators);
+  }
+
+  @Test
+  @DisplayName("Equals/hashCode/toString are generated by Lombok")
+  @Tag("standard-processing")
+  void equalsHashCodeToString() {
+    UUID userId = UUID.randomUUID();
+
+    RecipeCollectionDto dto1 =
+        RecipeCollectionDto.builder()
+            .collectionId(1L)
+            .userId(userId)
+            .name("Test")
+            .visibility(CollectionVisibility.PUBLIC)
+            .collaborationMode(CollaborationMode.OWNER_ONLY)
+            .build();
+
+    RecipeCollectionDto dto2 =
+        RecipeCollectionDto.builder()
+            .collectionId(1L)
+            .userId(userId)
+            .name("Test")
+            .visibility(CollectionVisibility.PUBLIC)
+            .collaborationMode(CollaborationMode.OWNER_ONLY)
+            .build();
+
+    assertThat(dto1).isEqualTo(dto2);
+    assertThat(dto1.hashCode()).isEqualTo(dto2.hashCode());
+    assertThat(dto1.toString()).contains("Test", "PUBLIC", "OWNER_ONLY");
+  }
+}

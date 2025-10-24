@@ -1,0 +1,57 @@
+package com.recipe_manager.model.dto.response;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.UUID;
+
+import com.recipe_manager.model.dto.collection.CollectionRecipeDto;
+import com.recipe_manager.model.enums.CollaborationMode;
+import com.recipe_manager.model.enums.CollectionVisibility;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+/**
+ * Response DTO for collection details endpoint. Contains full collection metadata and list of
+ * recipes with their display order.
+ */
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
+public final class CollectionDetailsResponse {
+  /** The unique ID of the collection. */
+  private Long collectionId;
+
+  /** The user ID of the collection owner. */
+  private UUID userId;
+
+  /** The collection name. */
+  private String name;
+
+  /** The optional description. */
+  private String description;
+
+  /** The visibility level. */
+  private CollectionVisibility visibility;
+
+  /** The collaboration mode. */
+  private CollaborationMode collaborationMode;
+
+  /** Count of recipes in the collection. */
+  private Integer recipeCount;
+
+  /** Count of collaborators. */
+  private Integer collaboratorCount;
+
+  /** The creation timestamp. */
+  private LocalDateTime createdAt;
+
+  /** The last update timestamp. */
+  private LocalDateTime updatedAt;
+
+  /** List of recipes in this collection (ordered by displayOrder). */
+  private List<CollectionRecipeDto> recipes;
+}

@@ -5,6 +5,7 @@ import org.mapstruct.Mapping;
 
 import com.recipe_manager.model.dto.response.CollectionDto;
 import com.recipe_manager.model.dto.response.CollectionSummaryResponse;
+import com.recipe_manager.repository.collection.CollectionSummaryProjection;
 
 /** MapStruct mapper for converting collection response objects. */
 @Mapper(componentModel = "spring")
@@ -17,14 +18,15 @@ public interface CollectionMapper {
    * @return the API response DTO
    */
   @Mapping(target = "userId", source = "ownerId")
-  @Mapping(target = "collectionId", source = "collectionId")
-  @Mapping(target = "name", source = "name")
-  @Mapping(target = "description", source = "description")
-  @Mapping(target = "visibility", source = "visibility")
-  @Mapping(target = "collaborationMode", source = "collaborationMode")
-  @Mapping(target = "recipeCount", source = "recipeCount")
-  @Mapping(target = "collaboratorCount", source = "collaboratorCount")
-  @Mapping(target = "createdAt", source = "createdAt")
-  @Mapping(target = "updatedAt", source = "updatedAt")
   CollectionDto toDto(CollectionSummaryResponse summary);
+
+  /**
+   * Converts CollectionSummaryProjection (from native query) to CollectionDto (for API response).
+   * Maps ownerId field to userId to match OpenAPI specification.
+   *
+   * @param projection the collection summary projection from native query
+   * @return the API response DTO
+   */
+  @Mapping(target = "userId", source = "ownerId")
+  CollectionDto fromProjection(CollectionSummaryProjection projection);
 }

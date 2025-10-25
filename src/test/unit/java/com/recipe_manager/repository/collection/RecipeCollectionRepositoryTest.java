@@ -254,6 +254,103 @@ class RecipeCollectionRepositoryTest {
     assertThat(result).isEmpty();
   }
 
+  @Test
+  @DisplayName("Should find accessible collections for user with pagination")
+  @Tag("standard-processing")
+  void shouldFindAccessibleCollectionsForUser() {
+    // Given
+    Pageable pageable = PageRequest.of(0, 20);
+    List<CollectionSummaryProjection> projections =
+        Arrays.asList(createTestProjection(1L), createTestProjection(2L));
+    Page<CollectionSummaryProjection> expectedPage = new PageImpl<>(projections, pageable, 2);
+
+    when(recipeCollectionRepository.findAccessibleCollections(testUserId, pageable))
+        .thenReturn(expectedPage);
+
+    // When
+    Page<CollectionSummaryProjection> result =
+        recipeCollectionRepository.findAccessibleCollections(testUserId, pageable);
+
+    // Then
+    assertThat(result.getContent()).hasSize(2);
+    assertThat(result.getTotalElements()).isEqualTo(2);
+    assertThat(result.getNumber()).isEqualTo(0);
+    assertThat(result.getSize()).isEqualTo(20);
+    verify(recipeCollectionRepository).findAccessibleCollections(testUserId, pageable);
+  }
+
+  @Test
+  @DisplayName("Should find accessible collections with custom page size")
+  @Tag("standard-processing")
+  void shouldFindAccessibleCollectionsWithCustomPageSize() {
+    // Given
+    Pageable pageable = PageRequest.of(0, 5);
+    List<CollectionSummaryProjection> projections =
+        Arrays.asList(
+            createTestProjection(1L),
+            createTestProjection(2L),
+            createTestProjection(3L),
+            createTestProjection(4L),
+            createTestProjection(5L));
+    Page<CollectionSummaryProjection> expectedPage = new PageImpl<>(projections, pageable, 10);
+
+    when(recipeCollectionRepository.findAccessibleCollections(testUserId, pageable))
+        .thenReturn(expectedPage);
+
+    // When
+    Page<CollectionSummaryProjection> result =
+        recipeCollectionRepository.findAccessibleCollections(testUserId, pageable);
+
+    // Then
+    assertThat(result.getContent()).hasSize(5);
+    assertThat(result.getTotalElements()).isEqualTo(10);
+    assertThat(result.getTotalPages()).isEqualTo(2);
+  }
+
+  @Test
+  @DisplayName("Should return empty page when user has no accessible collections")
+  @Tag("standard-processing")
+  void shouldReturnEmptyPageWhenNoAccessibleCollections() {
+    // Given
+    Pageable pageable = PageRequest.of(0, 20);
+    Page<CollectionSummaryProjection> emptyPage =
+        new PageImpl<>(Collections.emptyList(), pageable, 0);
+
+    when(recipeCollectionRepository.findAccessibleCollections(testUserId, pageable))
+        .thenReturn(emptyPage);
+
+    // When
+    Page<CollectionSummaryProjection> result =
+        recipeCollectionRepository.findAccessibleCollections(testUserId, pageable);
+
+    // Then
+    assertThat(result.getContent()).isEmpty();
+    assertThat(result.getTotalElements()).isEqualTo(0);
+  }
+
+  @Test
+  @DisplayName("Should find accessible collections for different page numbers")
+  @Tag("standard-processing")
+  void shouldFindAccessibleCollectionsForDifferentPages() {
+    // Given
+    Pageable pageable = PageRequest.of(1, 10); // Second page
+    List<CollectionSummaryProjection> projections =
+        Arrays.asList(createTestProjection(11L), createTestProjection(12L));
+    Page<CollectionSummaryProjection> expectedPage = new PageImpl<>(projections, pageable, 25);
+
+    when(recipeCollectionRepository.findAccessibleCollections(testUserId, pageable))
+        .thenReturn(expectedPage);
+
+    // When
+    Page<CollectionSummaryProjection> result =
+        recipeCollectionRepository.findAccessibleCollections(testUserId, pageable);
+
+    // Then
+    assertThat(result.getContent()).hasSize(2);
+    assertThat(result.getNumber()).isEqualTo(1);
+    assertThat(result.getTotalPages()).isEqualTo(3);
+  }
+
   private RecipeCollection createTestCollection(Long collectionId) {
     return RecipeCollection.builder()
         .collectionId(collectionId)
@@ -265,5 +362,59 @@ class RecipeCollectionRepositoryTest {
         .createdAt(LocalDateTime.now())
         .updatedAt(LocalDateTime.now())
         .build();
+  }
+
+  private CollectionSummaryProjection createTestProjection(Long collectionId) {
+    return new CollectionSummaryProjection() {
+      @Override
+      public Long getCollectionId() {
+        return collectionId;
+      }
+
+      @Override
+      public String getName() {
+        return "Test Collection " + collectionId;
+      }
+
+      @Override
+      public String getDescription() {
+        return "Test Description";
+      }
+
+      @Override
+      public CollectionVisibility getVisibility() {
+        return CollectionVisibility.PUBLIC;
+      }
+
+      @Override
+      public CollaborationMode getCollaborationMode() {
+        return CollaborationMode.OWNER_ONLY;
+      }
+
+      @Override
+      public UUID getOwnerId() {
+        return testUserId;
+      }
+
+      @Override
+      public Integer getRecipeCount() {
+        return 5;
+      }
+
+      @Override
+      public Integer getCollaboratorCount() {
+        return 0;
+      }
+
+      @Override
+      public LocalDateTime getCreatedAt() {
+        return LocalDateTime.now().minusDays(1);
+      }
+
+      @Override
+      public LocalDateTime getUpdatedAt() {
+        return LocalDateTime.now();
+      }
+    };
   }
 }

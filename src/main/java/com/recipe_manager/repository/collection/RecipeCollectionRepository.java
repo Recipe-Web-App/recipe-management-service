@@ -116,4 +116,26 @@ public interface RecipeCollectionRepository extends JpaRepository<RecipeCollecti
       @Param("minRecipeCount") Integer minRecipeCount,
       @Param("maxRecipeCount") Integer maxRecipeCount,
       Pageable pageable);
+
+  /**
+   * Finds all collections accessible by a specific user using database views. This includes
+   * collections the user owns, collaborates on, and public collections based on the
+   * vw_user_collection_access view.
+   *
+   * @param userId the user ID to check access for
+   * @param pageable pagination information
+   * @return page of collection summaries accessible by the user
+   */
+  @Query(
+      value =
+          "SELECT collection_id, name, description, visibility, collaboration_mode, "
+              + "owner_id, recipe_count, collaborator_count, created_at, updated_at "
+              + "FROM recipe_manager.vw_collection_summary "
+              + "WHERE collection_id IN ( "
+              + "  SELECT collection_id FROM recipe_manager.vw_user_collection_access "
+              + "  WHERE accessor_user_id = :userId "
+              + ")",
+      nativeQuery = true)
+  Page<CollectionSummaryProjection> findAccessibleCollections(
+      @Param("userId") UUID userId, Pageable pageable);
 }

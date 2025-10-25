@@ -39,6 +39,7 @@ import com.recipe_manager.exception.GlobalExceptionHandler;
 import com.recipe_manager.model.enums.CollaborationMode;
 import com.recipe_manager.model.enums.CollectionVisibility;
 import com.recipe_manager.model.mapper.CollectionMapper;
+import com.recipe_manager.model.mapper.RecipeCollectionMapper;
 import com.recipe_manager.repository.collection.CollectionSummaryProjection;
 import com.recipe_manager.repository.collection.RecipeCollectionRepository;
 import com.recipe_manager.service.CollectionService;
@@ -50,7 +51,13 @@ import com.recipe_manager.service.CollectionService;
  * with mocked repository layer.
  */
 @Tag("component")
-@SpringBootTest(classes = {com.recipe_manager.model.mapper.CollectionMapperImpl.class})
+@SpringBootTest(
+    classes = {
+      com.recipe_manager.model.mapper.CollectionMapperImpl.class,
+      com.recipe_manager.model.mapper.RecipeCollectionMapperImpl.class,
+      com.recipe_manager.model.mapper.RecipeCollectionItemMapperImpl.class,
+      com.recipe_manager.model.mapper.CollectionCollaboratorMapperImpl.class
+    })
 @TestPropertySource(
     properties = {
       "spring.datasource.url=jdbc:h2:mem:testdb",
@@ -64,6 +71,8 @@ class GetCollectionsTest {
   @Mock private RecipeCollectionRepository recipeCollectionRepository;
 
   @Autowired private CollectionMapper collectionMapper;
+
+  @Autowired private RecipeCollectionMapper recipeCollectionMapper;
 
   private CollectionService collectionService;
   private CollectionController collectionController;
@@ -83,7 +92,9 @@ class GetCollectionsTest {
     SecurityContextHolder.setContext(securityContext);
 
     // Create real service with mocked repository
-    collectionService = new CollectionService(recipeCollectionRepository, collectionMapper);
+    collectionService =
+        new CollectionService(
+            recipeCollectionRepository, collectionMapper, recipeCollectionMapper);
     collectionController = new CollectionController(collectionService);
 
     mockMvc =

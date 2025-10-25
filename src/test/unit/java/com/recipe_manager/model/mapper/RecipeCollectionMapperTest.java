@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.UUID;
 
 import com.recipe_manager.model.dto.collection.RecipeCollectionDto;
+import com.recipe_manager.model.dto.request.CreateCollectionRequest;
 import com.recipe_manager.model.dto.request.UpdateCollectionRequest;
 import com.recipe_manager.model.entity.collection.RecipeCollection;
 import com.recipe_manager.model.enums.CollaborationMode;
@@ -155,5 +156,147 @@ class RecipeCollectionMapperTest {
 
     assertThat(collection.getName()).isEqualTo("Original Name");
     assertThat(collection.getVisibility()).isEqualTo(CollectionVisibility.PUBLIC);
+  }
+
+  @Test
+  @DisplayName("Should map CreateCollectionRequest to RecipeCollection entity")
+  void shouldMapCreateCollectionRequestToEntity() {
+    CreateCollectionRequest request =
+        CreateCollectionRequest.builder()
+            .name("New Collection")
+            .description("Test Description")
+            .visibility(CollectionVisibility.PUBLIC)
+            .collaborationMode(CollaborationMode.OWNER_ONLY)
+            .build();
+
+    RecipeCollection result = recipeCollectionMapper.fromRequest(request);
+
+    assertThat(result).isNotNull();
+    assertThat(result.getName()).isEqualTo("New Collection");
+    assertThat(result.getDescription()).isEqualTo("Test Description");
+    assertThat(result.getVisibility()).isEqualTo(CollectionVisibility.PUBLIC);
+    assertThat(result.getCollaborationMode()).isEqualTo(CollaborationMode.OWNER_ONLY);
+    // Verify auto-generated fields are null
+    assertThat(result.getCollectionId()).isNull();
+    assertThat(result.getUserId()).isNull();
+    assertThat(result.getCreatedAt()).isNull();
+    assertThat(result.getUpdatedAt()).isNull();
+    // Verify collection fields are empty (MapStruct initializes them due to @Builder.Default)
+    assertThat(result.getCollectionItems()).isEmpty();
+    assertThat(result.getCollaborators()).isEmpty();
+  }
+
+  @Test
+  @DisplayName("Should handle null CreateCollectionRequest")
+  void shouldHandleNullCreateCollectionRequest() {
+    RecipeCollection result = recipeCollectionMapper.fromRequest(null);
+    assertThat(result).isNull();
+  }
+
+  @Test
+  @DisplayName("Should map request with null description")
+  void shouldMapRequestWithNullDescription() {
+    CreateCollectionRequest request =
+        CreateCollectionRequest.builder()
+            .name("Collection Without Description")
+            .description(null)
+            .visibility(CollectionVisibility.PRIVATE)
+            .collaborationMode(CollaborationMode.ALL_USERS)
+            .build();
+
+    RecipeCollection result = recipeCollectionMapper.fromRequest(request);
+
+    assertThat(result).isNotNull();
+    assertThat(result.getName()).isEqualTo("Collection Without Description");
+    assertThat(result.getDescription()).isNull();
+    assertThat(result.getVisibility()).isEqualTo(CollectionVisibility.PRIVATE);
+    assertThat(result.getCollaborationMode()).isEqualTo(CollaborationMode.ALL_USERS);
+  }
+
+  @Test
+  @DisplayName("Should map request with all visibility types")
+  void shouldMapRequestWithAllVisibilityTypes() {
+    for (CollectionVisibility visibility : CollectionVisibility.values()) {
+      CreateCollectionRequest request =
+          CreateCollectionRequest.builder()
+              .name("Test Collection")
+              .visibility(visibility)
+              .collaborationMode(CollaborationMode.OWNER_ONLY)
+              .build();
+
+      RecipeCollection result = recipeCollectionMapper.fromRequest(request);
+
+      assertThat(result.getVisibility()).isEqualTo(visibility);
+    }
+  }
+
+  @Test
+  @DisplayName("Should map request with all collaboration modes")
+  void shouldMapRequestWithAllCollaborationModes() {
+    for (CollaborationMode mode : CollaborationMode.values()) {
+      CreateCollectionRequest request =
+          CreateCollectionRequest.builder()
+              .name("Test Collection")
+              .visibility(CollectionVisibility.PUBLIC)
+              .collaborationMode(mode)
+              .build();
+
+      RecipeCollection result = recipeCollectionMapper.fromRequest(request);
+
+      assertThat(result.getCollaborationMode()).isEqualTo(mode);
+    }
+  }
+
+  @Test
+  @DisplayName("Should verify ignored fields remain null when mapping from request")
+  void shouldVerifyIgnoredFieldsRemainNullWhenMappingFromRequest() {
+    CreateCollectionRequest request =
+        CreateCollectionRequest.builder()
+            .name("Test Collection")
+            .description("Description")
+            .visibility(CollectionVisibility.PUBLIC)
+            .collaborationMode(CollaborationMode.OWNER_ONLY)
+            .build();
+
+    RecipeCollection result = recipeCollectionMapper.fromRequest(request);
+
+    // All auto-generated fields should be null
+    assertThat(result.getCollectionId())
+        .as("collectionId should be null - set by JPA on save")
+        .isNull();
+    assertThat(result.getUserId()).as("userId should be null - set by service layer").isNull();
+    assertThat(result.getCreatedAt())
+        .as("createdAt should be null - set by @CreationTimestamp")
+        .isNull();
+    assertThat(result.getUpdatedAt())
+        .as("updatedAt should be null - set by @UpdateTimestamp")
+        .isNull();
+    // Collection fields are initialized to empty lists due to @Builder.Default annotation
+    assertThat(result.getCollectionItems())
+        .as("collectionItems should be empty - initialized by entity")
+        .isEmpty();
+    assertThat(result.getCollaborators())
+        .as("collaborators should be empty - initialized by entity")
+        .isEmpty();
+  }
+
+  @Test
+  @DisplayName("Should map all fields correctly for new collection")
+  void shouldMapAllFieldsCorrectlyForNewCollection() {
+    CreateCollectionRequest request =
+        CreateCollectionRequest.builder()
+            .name("Complete Collection")
+            .description("Complete Description")
+            .visibility(CollectionVisibility.FRIENDS_ONLY)
+            .collaborationMode(CollaborationMode.SPECIFIC_USERS)
+            .build();
+
+    RecipeCollection result = recipeCollectionMapper.fromRequest(request);
+
+    assertThat(result).isNotNull();
+    assertThat(result.getName()).isEqualTo("Complete Collection");
+    assertThat(result.getDescription()).isEqualTo("Complete Description");
+    assertThat(result.getVisibility()).isEqualTo(CollectionVisibility.FRIENDS_ONLY);
+    assertThat(result.getCollaborationMode()).isEqualTo(CollaborationMode.SPECIFIC_USERS);
   }
 }

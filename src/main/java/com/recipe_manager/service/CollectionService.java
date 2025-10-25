@@ -8,8 +8,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.recipe_manager.model.dto.request.CreateCollectionRequest;
 import com.recipe_manager.model.dto.response.CollectionDto;
+import com.recipe_manager.model.entity.collection.RecipeCollection;
 import com.recipe_manager.model.mapper.CollectionMapper;
+import com.recipe_manager.model.mapper.RecipeCollectionMapper;
 import com.recipe_manager.repository.collection.CollectionSummaryProjection;
 import com.recipe_manager.repository.collection.RecipeCollectionRepository;
 import com.recipe_manager.util.SecurityUtils;
@@ -29,17 +32,23 @@ public class CollectionService {
   /** Mapper used for converting between collection projections and DTOs. */
   private final CollectionMapper collectionMapper;
 
+  /** Mapper used for converting between collection entities and DTOs. */
+  private final RecipeCollectionMapper recipeCollectionMapper;
+
   /**
    * Constructs the collection service with required dependencies.
    *
    * @param recipeCollectionRepository the repository used for accessing collection data
    * @param collectionMapper the mapper used for converting between projections and DTOs
+   * @param recipeCollectionMapper the mapper used for converting between entities and DTOs
    */
   public CollectionService(
       final RecipeCollectionRepository recipeCollectionRepository,
-      final CollectionMapper collectionMapper) {
+      final CollectionMapper collectionMapper,
+      final RecipeCollectionMapper recipeCollectionMapper) {
     this.recipeCollectionRepository = recipeCollectionRepository;
     this.collectionMapper = collectionMapper;
+    this.recipeCollectionMapper = recipeCollectionMapper;
   }
 
   /**
@@ -64,5 +73,35 @@ public class CollectionService {
     Page<CollectionDto> dtoPage = projectionPage.map(collectionMapper::fromProjection);
 
     return ResponseEntity.ok(dtoPage);
+  }
+
+  /**
+   * Creates a new recipe collection owned by the authenticated user.
+   *
+   * <p>Extracts the user ID from the security context, maps the request to an entity, saves it to
+   * the database, and returns the created collection with a 201 Created status.
+   *
+   * @param request the create collection request containing collection details
+   * @return ResponseEntity containing the created collection DTO with 201 status
+   */
+  @Transactional
+  public ResponseEntity<CollectionDto> createCollection(final CreateCollectionRequest request) {
+    // Get current authenticated user ID from security context
+    UUID currentUserId = SecurityUtils.getCurrentUserId();
+
+    // Map request to entity
+    RecipeCollection collection = recipeCollectionMapper.fromRequest(request);
+
+    // Set the user ID (owner)
+    collection.setUserId(currentUserId);
+
+    // Save the collection (createdAt and updatedAt are set by JPA annotations)
+    RecipeCollection savedCollection = recipeCollectionRepository.save(collection);
+
+    // Convert saved entity to DTO
+    CollectionDto responseDto = collectionMapper.toDto(savedCollection);
+
+    // Return 201 Created with the new collection
+    return ResponseEntity.status(201).body(responseDto);
   }
 }

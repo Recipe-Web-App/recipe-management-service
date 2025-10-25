@@ -3,10 +3,15 @@ package com.recipe_manager.model.mapper;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import com.recipe_manager.model.dto.response.CollectionDto;
 import com.recipe_manager.model.dto.response.CollectionSummaryResponse;
+import com.recipe_manager.model.entity.collection.RecipeCollection;
+import com.recipe_manager.model.entity.collection.RecipeCollectionItem;
+import com.recipe_manager.model.entity.collection.CollectionCollaborator;
 import com.recipe_manager.model.enums.CollaborationMode;
 import com.recipe_manager.model.enums.CollectionVisibility;
 import com.recipe_manager.repository.collection.CollectionSummaryProjection;
@@ -72,7 +77,7 @@ class CollectionMapperTest {
   @DisplayName("Should handle null CollectionSummaryResponse")
   @Tag("standard-processing")
   void shouldHandleNullCollectionSummaryResponse() {
-    CollectionDto result = collectionMapper.toDto(null);
+    CollectionDto result = collectionMapper.toDto((CollectionSummaryResponse) null);
     assertThat(result).isNull();
   }
 
@@ -411,6 +416,242 @@ class CollectionMapperTest {
 
     assertThat(result.getRecipeCount()).isEqualTo(0);
     assertThat(result.getCollaboratorCount()).isEqualTo(0);
+  }
+
+  @Test
+  @DisplayName("Should map RecipeCollection entity to CollectionDto")
+  @Tag("standard-processing")
+  void shouldMapRecipeCollectionEntityToDto() {
+    UUID userId = UUID.randomUUID();
+    LocalDateTime now = LocalDateTime.now();
+
+    RecipeCollection collection =
+        RecipeCollection.builder()
+            .collectionId(1L)
+            .userId(userId)
+            .name("My Collection")
+            .description("Test Description")
+            .visibility(CollectionVisibility.PUBLIC)
+            .collaborationMode(CollaborationMode.OWNER_ONLY)
+            .createdAt(now)
+            .updatedAt(now)
+            .collectionItems(new ArrayList<>())
+            .collaborators(new ArrayList<>())
+            .build();
+
+    CollectionDto result = collectionMapper.toDto(collection);
+
+    assertThat(result).isNotNull();
+    assertThat(result.getCollectionId()).isEqualTo(1L);
+    assertThat(result.getUserId()).isEqualTo(userId);
+    assertThat(result.getName()).isEqualTo("My Collection");
+    assertThat(result.getDescription()).isEqualTo("Test Description");
+    assertThat(result.getVisibility()).isEqualTo(CollectionVisibility.PUBLIC);
+    assertThat(result.getCollaborationMode()).isEqualTo(CollaborationMode.OWNER_ONLY);
+    assertThat(result.getRecipeCount()).isEqualTo(0);
+    assertThat(result.getCollaboratorCount()).isEqualTo(0);
+    assertThat(result.getCreatedAt()).isEqualTo(now);
+    assertThat(result.getUpdatedAt()).isEqualTo(now);
+  }
+
+  @Test
+  @DisplayName("Should handle null RecipeCollection entity")
+  @Tag("standard-processing")
+  void shouldHandleNullRecipeCollectionEntity() {
+    CollectionDto result = collectionMapper.toDto((RecipeCollection) null);
+    assertThat(result).isNull();
+  }
+
+  @Test
+  @DisplayName("Should calculate recipe count from collection items")
+  @Tag("standard-processing")
+  void shouldCalculateRecipeCountFromCollectionItems() {
+    UUID userId = UUID.randomUUID();
+    LocalDateTime now = LocalDateTime.now();
+
+    List<RecipeCollectionItem> items = new ArrayList<>();
+    items.add(new RecipeCollectionItem()); // Add mock items
+    items.add(new RecipeCollectionItem());
+    items.add(new RecipeCollectionItem());
+
+    RecipeCollection collection =
+        RecipeCollection.builder()
+            .collectionId(1L)
+            .userId(userId)
+            .name("Collection With Items")
+            .visibility(CollectionVisibility.PUBLIC)
+            .collaborationMode(CollaborationMode.OWNER_ONLY)
+            .createdAt(now)
+            .updatedAt(now)
+            .collectionItems(items)
+            .collaborators(new ArrayList<>())
+            .build();
+
+    CollectionDto result = collectionMapper.toDto(collection);
+
+    assertThat(result.getRecipeCount()).isEqualTo(3);
+    assertThat(result.getCollaboratorCount()).isEqualTo(0);
+  }
+
+  @Test
+  @DisplayName("Should calculate collaborator count from collaborators list")
+  @Tag("standard-processing")
+  void shouldCalculateCollaboratorCountFromCollaboratorsList() {
+    UUID userId = UUID.randomUUID();
+    LocalDateTime now = LocalDateTime.now();
+
+    List<CollectionCollaborator> collaborators = new ArrayList<>();
+    collaborators.add(new CollectionCollaborator()); // Add mock collaborators
+    collaborators.add(new CollectionCollaborator());
+
+    RecipeCollection collection =
+        RecipeCollection.builder()
+            .collectionId(1L)
+            .userId(userId)
+            .name("Collection With Collaborators")
+            .visibility(CollectionVisibility.PUBLIC)
+            .collaborationMode(CollaborationMode.SPECIFIC_USERS)
+            .createdAt(now)
+            .updatedAt(now)
+            .collectionItems(new ArrayList<>())
+            .collaborators(collaborators)
+            .build();
+
+    CollectionDto result = collectionMapper.toDto(collection);
+
+    assertThat(result.getRecipeCount()).isEqualTo(0);
+    assertThat(result.getCollaboratorCount()).isEqualTo(2);
+  }
+
+  @Test
+  @DisplayName("Should handle null collection items list")
+  @Tag("standard-processing")
+  void shouldHandleNullCollectionItemsList() {
+    UUID userId = UUID.randomUUID();
+    LocalDateTime now = LocalDateTime.now();
+
+    RecipeCollection collection =
+        RecipeCollection.builder()
+            .collectionId(1L)
+            .userId(userId)
+            .name("Collection")
+            .visibility(CollectionVisibility.PUBLIC)
+            .collaborationMode(CollaborationMode.OWNER_ONLY)
+            .createdAt(now)
+            .updatedAt(now)
+            .collectionItems(null)
+            .collaborators(new ArrayList<>())
+            .build();
+
+    CollectionDto result = collectionMapper.toDto(collection);
+
+    assertThat(result.getRecipeCount()).isEqualTo(0);
+  }
+
+  @Test
+  @DisplayName("Should handle null collaborators list")
+  @Tag("standard-processing")
+  void shouldHandleNullCollaboratorsList() {
+    UUID userId = UUID.randomUUID();
+    LocalDateTime now = LocalDateTime.now();
+
+    RecipeCollection collection =
+        RecipeCollection.builder()
+            .collectionId(1L)
+            .userId(userId)
+            .name("Collection")
+            .visibility(CollectionVisibility.PUBLIC)
+            .collaborationMode(CollaborationMode.OWNER_ONLY)
+            .createdAt(now)
+            .updatedAt(now)
+            .collectionItems(new ArrayList<>())
+            .collaborators(null)
+            .build();
+
+    CollectionDto result = collectionMapper.toDto(collection);
+
+    assertThat(result.getCollaboratorCount()).isEqualTo(0);
+  }
+
+  @Test
+  @DisplayName("Should map entity with null description")
+  @Tag("standard-processing")
+  void shouldMapEntityWithNullDescription() {
+    UUID userId = UUID.randomUUID();
+    LocalDateTime now = LocalDateTime.now();
+
+    RecipeCollection collection =
+        RecipeCollection.builder()
+            .collectionId(1L)
+            .userId(userId)
+            .name("Collection Without Description")
+            .description(null)
+            .visibility(CollectionVisibility.PRIVATE)
+            .collaborationMode(CollaborationMode.ALL_USERS)
+            .createdAt(now)
+            .updatedAt(now)
+            .collectionItems(new ArrayList<>())
+            .collaborators(new ArrayList<>())
+            .build();
+
+    CollectionDto result = collectionMapper.toDto(collection);
+
+    assertThat(result).isNotNull();
+    assertThat(result.getDescription()).isNull();
+  }
+
+  @Test
+  @DisplayName("Should map entity with all visibility types")
+  @Tag("standard-processing")
+  void shouldMapEntityWithAllVisibilityTypes() {
+    UUID userId = UUID.randomUUID();
+    LocalDateTime now = LocalDateTime.now();
+
+    for (CollectionVisibility visibility : CollectionVisibility.values()) {
+      RecipeCollection collection =
+          RecipeCollection.builder()
+              .collectionId(1L)
+              .userId(userId)
+              .name("Test")
+              .visibility(visibility)
+              .collaborationMode(CollaborationMode.OWNER_ONLY)
+              .createdAt(now)
+              .updatedAt(now)
+              .collectionItems(new ArrayList<>())
+              .collaborators(new ArrayList<>())
+              .build();
+
+      CollectionDto result = collectionMapper.toDto(collection);
+
+      assertThat(result.getVisibility()).isEqualTo(visibility);
+    }
+  }
+
+  @Test
+  @DisplayName("Should map entity with all collaboration modes")
+  @Tag("standard-processing")
+  void shouldMapEntityWithAllCollaborationModes() {
+    UUID userId = UUID.randomUUID();
+    LocalDateTime now = LocalDateTime.now();
+
+    for (CollaborationMode mode : CollaborationMode.values()) {
+      RecipeCollection collection =
+          RecipeCollection.builder()
+              .collectionId(1L)
+              .userId(userId)
+              .name("Test")
+              .visibility(CollectionVisibility.PUBLIC)
+              .collaborationMode(mode)
+              .createdAt(now)
+              .updatedAt(now)
+              .collectionItems(new ArrayList<>())
+              .collaborators(new ArrayList<>())
+              .build();
+
+      CollectionDto result = collectionMapper.toDto(collection);
+
+      assertThat(result.getCollaborationMode()).isEqualTo(mode);
+    }
   }
 
   private CollectionSummaryProjection createTestProjection(

@@ -16,6 +16,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
@@ -27,10 +28,13 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import com.recipe_manager.model.dto.request.CreateCollectionRequest;
 import com.recipe_manager.model.dto.response.CollectionDto;
+import com.recipe_manager.model.entity.collection.RecipeCollection;
 import com.recipe_manager.model.enums.CollaborationMode;
 import com.recipe_manager.model.enums.CollectionVisibility;
 import com.recipe_manager.model.mapper.CollectionMapper;
+import com.recipe_manager.model.mapper.RecipeCollectionMapper;
 import com.recipe_manager.repository.collection.CollectionSummaryProjection;
 import com.recipe_manager.repository.collection.RecipeCollectionRepository;
 import com.recipe_manager.util.SecurityUtils;
@@ -44,13 +48,17 @@ class CollectionServiceTest {
 
   @Mock private CollectionMapper collectionMapper;
 
+  @Mock private RecipeCollectionMapper recipeCollectionMapper;
+
   private CollectionService collectionService;
 
   private UUID testUserId;
 
   @BeforeEach
   void setUp() {
-    collectionService = new CollectionService(recipeCollectionRepository, collectionMapper);
+    collectionService =
+        new CollectionService(
+            recipeCollectionRepository, collectionMapper, recipeCollectionMapper);
     testUserId = UUID.randomUUID();
   }
 
@@ -356,5 +364,295 @@ class CollectionServiceTest {
         .createdAt(LocalDateTime.now().minusDays(1))
         .updatedAt(LocalDateTime.now())
         .build();
+  }
+
+  @Test
+  @DisplayName("Should create collection successfully")
+  @Tag("standard-processing")
+  void shouldCreateCollectionSuccessfully() {
+    // Given
+    CreateCollectionRequest request =
+        CreateCollectionRequest.builder()
+            .name("New Collection")
+            .description("Test Description")
+            .visibility(CollectionVisibility.PUBLIC)
+            .collaborationMode(CollaborationMode.OWNER_ONLY)
+            .build();
+
+    RecipeCollection entityToSave = RecipeCollection.builder().name("New Collection").build();
+
+    RecipeCollection savedEntity =
+        RecipeCollection.builder()
+            .collectionId(1L)
+            .userId(testUserId)
+            .name("New Collection")
+            .description("Test Description")
+            .visibility(CollectionVisibility.PUBLIC)
+            .collaborationMode(CollaborationMode.OWNER_ONLY)
+            .createdAt(LocalDateTime.now())
+            .updatedAt(LocalDateTime.now())
+            .build();
+
+    CollectionDto expectedDto = createTestDto(1L);
+
+    when(recipeCollectionMapper.fromRequest(request)).thenReturn(entityToSave);
+    when(recipeCollectionRepository.save(any(RecipeCollection.class))).thenReturn(savedEntity);
+    when(collectionMapper.toDto(savedEntity)).thenReturn(expectedDto);
+
+    // When
+    ResponseEntity<CollectionDto> response;
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
+      response = collectionService.createCollection(request);
+    }
+
+    // Then
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+    assertThat(response.getBody()).isNotNull();
+    assertThat(response.getBody()).isEqualTo(expectedDto);
+
+    verify(recipeCollectionMapper).fromRequest(request);
+    verify(recipeCollectionRepository).save(any(RecipeCollection.class));
+    verify(collectionMapper).toDto(savedEntity);
+  }
+
+  @Test
+  @DisplayName("Should extract user ID from security context when creating collection")
+  @Tag("standard-processing")
+  void shouldExtractUserIdFromSecurityContextWhenCreatingCollection() {
+    // Given
+    UUID expectedUserId = UUID.randomUUID();
+    CreateCollectionRequest request =
+        CreateCollectionRequest.builder()
+            .name("New Collection")
+            .visibility(CollectionVisibility.PUBLIC)
+            .collaborationMode(CollaborationMode.OWNER_ONLY)
+            .build();
+
+    RecipeCollection entityToSave = RecipeCollection.builder().build();
+    RecipeCollection savedEntity = RecipeCollection.builder().collectionId(1L).build();
+
+    when(recipeCollectionMapper.fromRequest(any())).thenReturn(entityToSave);
+    when(recipeCollectionRepository.save(any())).thenReturn(savedEntity);
+    when(collectionMapper.toDto(any(RecipeCollection.class))).thenReturn(createTestDto(1L));
+
+    // When
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(expectedUserId);
+      collectionService.createCollection(request);
+
+      // Then - Verify SecurityUtils.getCurrentUserId() was called
+      securityUtilsMock.verify(SecurityUtils::getCurrentUserId);
+    }
+  }
+
+  @Test
+  @DisplayName("Should set user ID on entity before saving")
+  @Tag("standard-processing")
+  void shouldSetUserIdOnEntityBeforeSaving() {
+    // Given
+    CreateCollectionRequest request =
+        CreateCollectionRequest.builder()
+            .name("New Collection")
+            .visibility(CollectionVisibility.PUBLIC)
+            .collaborationMode(CollaborationMode.OWNER_ONLY)
+            .build();
+
+    RecipeCollection entityToSave = RecipeCollection.builder().name("New Collection").build();
+
+    RecipeCollection savedEntity = RecipeCollection.builder().collectionId(1L).build();
+
+    when(recipeCollectionMapper.fromRequest(request)).thenReturn(entityToSave);
+    when(recipeCollectionRepository.save(any(RecipeCollection.class))).thenReturn(savedEntity);
+    when(collectionMapper.toDto(any(RecipeCollection.class))).thenReturn(createTestDto(1L));
+
+    // When
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
+      collectionService.createCollection(request);
+    }
+
+    // Then - Capture the argument passed to save() and verify userId was set
+    ArgumentCaptor<RecipeCollection> captor = ArgumentCaptor.forClass(RecipeCollection.class);
+    verify(recipeCollectionRepository).save(captor.capture());
+
+    RecipeCollection capturedEntity = captor.getValue();
+    assertThat(capturedEntity.getUserId()).isEqualTo(testUserId);
+  }
+
+  @Test
+  @DisplayName("Should save collection to repository")
+  @Tag("standard-processing")
+  void shouldSaveCollectionToRepository() {
+    // Given
+    CreateCollectionRequest request =
+        CreateCollectionRequest.builder()
+            .name("New Collection")
+            .visibility(CollectionVisibility.PUBLIC)
+            .collaborationMode(CollaborationMode.OWNER_ONLY)
+            .build();
+
+    RecipeCollection entityToSave = RecipeCollection.builder().build();
+    RecipeCollection savedEntity = RecipeCollection.builder().collectionId(1L).build();
+
+    when(recipeCollectionMapper.fromRequest(any())).thenReturn(entityToSave);
+    when(recipeCollectionRepository.save(any())).thenReturn(savedEntity);
+    when(collectionMapper.toDto(any(RecipeCollection.class))).thenReturn(createTestDto(1L));
+
+    // When
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
+      collectionService.createCollection(request);
+    }
+
+    // Then
+    verify(recipeCollectionRepository).save(any(RecipeCollection.class));
+  }
+
+  @Test
+  @DisplayName("Should map saved entity to DTO")
+  @Tag("standard-processing")
+  void shouldMapSavedEntityToDto() {
+    // Given
+    CreateCollectionRequest request =
+        CreateCollectionRequest.builder()
+            .name("New Collection")
+            .visibility(CollectionVisibility.PUBLIC)
+            .collaborationMode(CollaborationMode.OWNER_ONLY)
+            .build();
+
+    RecipeCollection entityToSave = RecipeCollection.builder().build();
+    RecipeCollection savedEntity =
+        RecipeCollection.builder()
+            .collectionId(1L)
+            .userId(testUserId)
+            .name("New Collection")
+            .build();
+
+    when(recipeCollectionMapper.fromRequest(any())).thenReturn(entityToSave);
+    when(recipeCollectionRepository.save(any())).thenReturn(savedEntity);
+    when(collectionMapper.toDto(savedEntity)).thenReturn(createTestDto(1L));
+
+    // When
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
+      collectionService.createCollection(request);
+    }
+
+    // Then
+    verify(collectionMapper).toDto(savedEntity);
+  }
+
+  @Test
+  @DisplayName("Should return 201 Created status")
+  @Tag("standard-processing")
+  void shouldReturn201CreatedStatus() {
+    // Given
+    CreateCollectionRequest request =
+        CreateCollectionRequest.builder()
+            .name("New Collection")
+            .visibility(CollectionVisibility.PUBLIC)
+            .collaborationMode(CollaborationMode.OWNER_ONLY)
+            .build();
+
+    RecipeCollection entityToSave = RecipeCollection.builder().build();
+    RecipeCollection savedEntity = RecipeCollection.builder().collectionId(1L).build();
+
+    when(recipeCollectionMapper.fromRequest(any())).thenReturn(entityToSave);
+    when(recipeCollectionRepository.save(any())).thenReturn(savedEntity);
+    when(collectionMapper.toDto(any(RecipeCollection.class))).thenReturn(createTestDto(1L));
+
+    // When
+    ResponseEntity<CollectionDto> response;
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
+      response = collectionService.createCollection(request);
+    }
+
+    // Then
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+    assertThat(response.getStatusCodeValue()).isEqualTo(201);
+  }
+
+  @Test
+  @DisplayName("Should handle private collection creation")
+  @Tag("standard-processing")
+  void shouldHandlePrivateCollectionCreation() {
+    // Given
+    CreateCollectionRequest request =
+        CreateCollectionRequest.builder()
+            .name("Private Collection")
+            .visibility(CollectionVisibility.PRIVATE)
+            .collaborationMode(CollaborationMode.SPECIFIC_USERS)
+            .build();
+
+    RecipeCollection entityToSave = RecipeCollection.builder().build();
+    RecipeCollection savedEntity =
+        RecipeCollection.builder()
+            .collectionId(1L)
+            .visibility(CollectionVisibility.PRIVATE)
+            .collaborationMode(CollaborationMode.SPECIFIC_USERS)
+            .build();
+
+    CollectionDto expectedDto =
+        CollectionDto.builder()
+            .collectionId(1L)
+            .visibility(CollectionVisibility.PRIVATE)
+            .collaborationMode(CollaborationMode.SPECIFIC_USERS)
+            .recipeCount(0)
+            .collaboratorCount(0)
+            .build();
+
+    when(recipeCollectionMapper.fromRequest(any())).thenReturn(entityToSave);
+    when(recipeCollectionRepository.save(any())).thenReturn(savedEntity);
+    when(collectionMapper.toDto(savedEntity)).thenReturn(expectedDto);
+
+    // When
+    ResponseEntity<CollectionDto> response;
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
+      response = collectionService.createCollection(request);
+    }
+
+    // Then
+    assertThat(response.getBody()).isNotNull();
+    assertThat(response.getBody().getVisibility()).isEqualTo(CollectionVisibility.PRIVATE);
+    assertThat(response.getBody().getCollaborationMode())
+        .isEqualTo(CollaborationMode.SPECIFIC_USERS);
+  }
+
+  @Test
+  @DisplayName("Should create collection with null description")
+  @Tag("standard-processing")
+  void shouldCreateCollectionWithNullDescription() {
+    // Given
+    CreateCollectionRequest request =
+        CreateCollectionRequest.builder()
+            .name("Collection Without Description")
+            .description(null)
+            .visibility(CollectionVisibility.PUBLIC)
+            .collaborationMode(CollaborationMode.OWNER_ONLY)
+            .build();
+
+    RecipeCollection entityToSave = RecipeCollection.builder().build();
+    RecipeCollection savedEntity =
+        RecipeCollection.builder().collectionId(1L).description(null).build();
+
+    CollectionDto expectedDto = createTestDto(1L);
+
+    when(recipeCollectionMapper.fromRequest(any())).thenReturn(entityToSave);
+    when(recipeCollectionRepository.save(any())).thenReturn(savedEntity);
+    when(collectionMapper.toDto(any(RecipeCollection.class))).thenReturn(expectedDto);
+
+    // When
+    ResponseEntity<CollectionDto> response;
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
+      response = collectionService.createCollection(request);
+    }
+
+    // Then
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+    assertThat(response.getBody()).isNotNull();
   }
 }

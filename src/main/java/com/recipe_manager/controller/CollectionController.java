@@ -8,11 +8,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.recipe_manager.model.dto.request.CreateCollectionRequest;
+import com.recipe_manager.model.dto.request.UpdateCollectionRequest;
 import com.recipe_manager.model.dto.response.CollectionDetailsDto;
 import com.recipe_manager.model.dto.response.CollectionDto;
 import com.recipe_manager.service.CollectionService;
@@ -90,5 +92,26 @@ public class CollectionController {
   public ResponseEntity<CollectionDetailsDto> getCollectionById(
       @PathVariable final Long collectionId) {
     return collectionService.getCollectionById(collectionId);
+  }
+
+  /**
+   * Update collection metadata.
+   *
+   * <p>Updates collection properties such as name, description, visibility, and collaboration mode.
+   * Only the collection owner can update the collection. This is a partial update - only provided
+   * fields will be modified.
+   *
+   * @param collectionId the ID of the collection to update
+   * @param request the update request containing optional fields to modify
+   * @return ResponseEntity with the updated collection and 200 OK status
+   */
+  @PutMapping(
+      value = "/{collectionId}",
+      consumes = MediaType.APPLICATION_JSON_VALUE,
+      produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<CollectionDto> updateCollection(
+      @PathVariable final Long collectionId,
+      @Valid @RequestBody final UpdateCollectionRequest request) {
+    return collectionService.updateCollection(collectionId, request);
   }
 }

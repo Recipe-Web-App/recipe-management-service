@@ -9,25 +9,28 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/** Request DTO for updating an existing recipe collection. All fields are optional. */
+/**
+ * Request DTO for updating collection metadata.
+ *
+ * <p>All fields are optional to support partial updates. Only provided fields will be updated.
+ */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
 public final class UpdateCollectionRequest {
-  /** Max name length as defined in DB schema. */
-  private static final int MAX_NAME_LENGTH = 255;
 
-  /** The name of the collection. */
-  @Size(max = MAX_NAME_LENGTH, message = "Collection name must not exceed 255 characters")
+  /** Collection name. Must be between 1 and 255 characters if provided. */
+  @Size(min = 1, max = 255, message = "Collection name must be between 1 and 255 characters")
   private String name;
 
-  /** The optional description of the collection. */
+  /** Collection description. Maximum 2000 characters. Can be set to null to clear description. */
+  @Size(max = 2000, message = "Collection description must not exceed 2000 characters")
   private String description;
 
-  /** The visibility level of the collection. */
+  /** Collection visibility setting. Controls who can view the collection. */
   private CollectionVisibility visibility;
 
-  /** The collaboration mode. */
+  /** Collaboration mode. Controls who can edit the collection. */
   private CollaborationMode collaborationMode;
 }

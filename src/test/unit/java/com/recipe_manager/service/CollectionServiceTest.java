@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -30,10 +31,12 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 
 import com.recipe_manager.exception.ResourceNotFoundException;
 import com.recipe_manager.model.dto.collection.CollectionRecipeDto;
 import com.recipe_manager.model.dto.request.CreateCollectionRequest;
+import com.recipe_manager.model.dto.request.UpdateCollectionRequest;
 import com.recipe_manager.model.dto.response.CollectionDetailsDto;
 import com.recipe_manager.model.dto.response.CollectionDto;
 import com.recipe_manager.model.entity.collection.RecipeCollection;
@@ -1002,5 +1005,261 @@ class CollectionServiceTest {
         .createdAt(LocalDateTime.now())
         .updatedAt(LocalDateTime.now())
         .build();
+  }
+
+  @Test
+  @DisplayName("Should update collection successfully with all fields")
+  @Tag("standard-processing")
+  void shouldUpdateCollectionWithAllFields() {
+    // Given
+    Long collectionId = 1L;
+    UpdateCollectionRequest request =
+        UpdateCollectionRequest.builder()
+            .name("Updated Name")
+            .description("Updated Description")
+            .visibility(CollectionVisibility.PRIVATE)
+            .collaborationMode(CollaborationMode.SPECIFIC_USERS)
+            .build();
+
+    RecipeCollection existingCollection =
+        RecipeCollection.builder()
+            .collectionId(collectionId)
+            .userId(testUserId)
+            .name("Original Name")
+            .description("Original Description")
+            .visibility(CollectionVisibility.PUBLIC)
+            .collaborationMode(CollaborationMode.OWNER_ONLY)
+            .build();
+
+    RecipeCollection updatedCollection =
+        RecipeCollection.builder()
+            .collectionId(collectionId)
+            .userId(testUserId)
+            .name("Updated Name")
+            .description("Updated Description")
+            .visibility(CollectionVisibility.PRIVATE)
+            .collaborationMode(CollaborationMode.SPECIFIC_USERS)
+            .build();
+
+    CollectionDto expectedDto =
+        CollectionDto.builder()
+            .collectionId(collectionId)
+            .userId(testUserId)
+            .name("Updated Name")
+            .visibility(CollectionVisibility.PRIVATE)
+            .build();
+
+    when(recipeCollectionRepository.findById(collectionId))
+        .thenReturn(Optional.of(existingCollection));
+    when(recipeCollectionRepository.save(any(RecipeCollection.class)))
+        .thenReturn(updatedCollection);
+    when(collectionMapper.toDto(updatedCollection)).thenReturn(expectedDto);
+
+    // When
+    ResponseEntity<CollectionDto> response;
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
+      response = collectionService.updateCollection(collectionId, request);
+    }
+
+    // Then
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    assertThat(response.getBody()).isEqualTo(expectedDto);
+    verify(recipeCollectionRepository).findById(collectionId);
+    verify(recipeCollectionRepository).save(any(RecipeCollection.class));
+  }
+
+  @Test
+  @DisplayName("Should update only name when only name provided")
+  @Tag("standard-processing")
+  void shouldUpdateOnlyNameWhenOnlyNameProvided() {
+    // Given
+    Long collectionId = 2L;
+    UpdateCollectionRequest request = UpdateCollectionRequest.builder().name("New Name Only").build();
+
+    RecipeCollection existingCollection =
+        RecipeCollection.builder()
+            .collectionId(collectionId)
+            .userId(testUserId)
+            .name("Old Name")
+            .description("Original Description")
+            .visibility(CollectionVisibility.PUBLIC)
+            .collaborationMode(CollaborationMode.OWNER_ONLY)
+            .build();
+
+    when(recipeCollectionRepository.findById(collectionId))
+        .thenReturn(Optional.of(existingCollection));
+    when(recipeCollectionRepository.save(any(RecipeCollection.class)))
+        .thenReturn(existingCollection);
+    when(collectionMapper.toDto(any(RecipeCollection.class)))
+        .thenReturn(CollectionDto.builder().build());
+
+    // When
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
+      collectionService.updateCollection(collectionId, request);
+    }
+
+    // Then
+    assertThat(existingCollection.getName()).isEqualTo("New Name Only");
+    assertThat(existingCollection.getDescription()).isEqualTo("Original Description");
+    assertThat(existingCollection.getVisibility()).isEqualTo(CollectionVisibility.PUBLIC);
+  }
+
+  @Test
+  @DisplayName("Should throw AccessDeniedException when user is not owner")
+  @Tag("error-handling")
+  void shouldThrowAccessDeniedExceptionWhenUserIsNotOwner() {
+    // Given
+    Long collectionId = 3L;
+    UUID otherUserId = UUID.randomUUID();
+    UpdateCollectionRequest request = UpdateCollectionRequest.builder().name("Updated").build();
+
+    RecipeCollection existingCollection =
+        RecipeCollection.builder()
+            .collectionId(collectionId)
+            .userId(otherUserId) // Different owner
+            .name("Original")
+            .build();
+
+    when(recipeCollectionRepository.findById(collectionId))
+        .thenReturn(Optional.of(existingCollection));
+
+    // When/Then
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
+
+      assertThatThrownBy(() -> collectionService.updateCollection(collectionId, request))
+          .isInstanceOf(AccessDeniedException.class)
+          .hasMessage("Only the collection owner can update it");
+    }
+
+    verify(recipeCollectionRepository).findById(collectionId);
+    verify(recipeCollectionRepository, never()).save(any());
+  }
+
+  @Test
+  @DisplayName("Should throw ResourceNotFoundException when collection not found")
+  @Tag("error-handling")
+  void shouldThrowResourceNotFoundExceptionOnUpdate() {
+    // Given
+    Long collectionId = 999L;
+    UpdateCollectionRequest request = UpdateCollectionRequest.builder().name("Updated").build();
+
+    when(recipeCollectionRepository.findById(collectionId)).thenReturn(Optional.empty());
+
+    // When/Then
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
+
+      assertThatThrownBy(() -> collectionService.updateCollection(collectionId, request))
+          .isInstanceOf(ResourceNotFoundException.class)
+          .hasMessage("Collection not found");
+    }
+
+    verify(recipeCollectionRepository).findById(collectionId);
+    verify(recipeCollectionRepository, never()).save(any());
+  }
+
+  @Test
+  @DisplayName("Should update only visibility when only visibility provided")
+  @Tag("standard-processing")
+  void shouldUpdateOnlyVisibility() {
+    // Given
+    Long collectionId = 4L;
+    UpdateCollectionRequest request =
+        UpdateCollectionRequest.builder().visibility(CollectionVisibility.FRIENDS_ONLY).build();
+
+    RecipeCollection existingCollection =
+        RecipeCollection.builder()
+            .collectionId(collectionId)
+            .userId(testUserId)
+            .name("Name")
+            .visibility(CollectionVisibility.PUBLIC)
+            .build();
+
+    when(recipeCollectionRepository.findById(collectionId))
+        .thenReturn(Optional.of(existingCollection));
+    when(recipeCollectionRepository.save(any(RecipeCollection.class)))
+        .thenReturn(existingCollection);
+    when(collectionMapper.toDto(any(RecipeCollection.class)))
+        .thenReturn(CollectionDto.builder().build());
+
+    // When
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
+      collectionService.updateCollection(collectionId, request);
+    }
+
+    // Then
+    assertThat(existingCollection.getVisibility()).isEqualTo(CollectionVisibility.FRIENDS_ONLY);
+    verify(recipeCollectionRepository).save(existingCollection);
+  }
+
+  @Test
+  @DisplayName("Should update only collaboration mode when only mode provided")
+  @Tag("standard-processing")
+  void shouldUpdateOnlyCollaborationMode() {
+    // Given
+    Long collectionId = 5L;
+    UpdateCollectionRequest request =
+        UpdateCollectionRequest.builder().collaborationMode(CollaborationMode.ALL_USERS).build();
+
+    RecipeCollection existingCollection =
+        RecipeCollection.builder()
+            .collectionId(collectionId)
+            .userId(testUserId)
+            .name("Name")
+            .collaborationMode(CollaborationMode.OWNER_ONLY)
+            .build();
+
+    when(recipeCollectionRepository.findById(collectionId))
+        .thenReturn(Optional.of(existingCollection));
+    when(recipeCollectionRepository.save(any(RecipeCollection.class)))
+        .thenReturn(existingCollection);
+    when(collectionMapper.toDto(any(RecipeCollection.class)))
+        .thenReturn(CollectionDto.builder().build());
+
+    // When
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
+      collectionService.updateCollection(collectionId, request);
+    }
+
+    // Then
+    assertThat(existingCollection.getCollaborationMode()).isEqualTo(CollaborationMode.ALL_USERS);
+  }
+
+  @Test
+  @DisplayName("Should extract correct user ID from security context for update")
+  @Tag("standard-processing")
+  void shouldExtractCorrectUserIdForUpdate() {
+    // Given
+    UUID specificUserId = UUID.randomUUID();
+    Long collectionId = 6L;
+    UpdateCollectionRequest request = UpdateCollectionRequest.builder().name("Updated").build();
+
+    RecipeCollection existingCollection =
+        RecipeCollection.builder()
+            .collectionId(collectionId)
+            .userId(specificUserId)
+            .name("Original")
+            .build();
+
+    when(recipeCollectionRepository.findById(collectionId))
+        .thenReturn(Optional.of(existingCollection));
+    when(recipeCollectionRepository.save(any(RecipeCollection.class)))
+        .thenReturn(existingCollection);
+    when(collectionMapper.toDto(any(RecipeCollection.class)))
+        .thenReturn(CollectionDto.builder().build());
+
+    // When
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(specificUserId);
+      collectionService.updateCollection(collectionId, request);
+
+      // Then - Verify SecurityUtils.getCurrentUserId() was called
+      securityUtilsMock.verify(SecurityUtils::getCurrentUserId);
+    }
   }
 }

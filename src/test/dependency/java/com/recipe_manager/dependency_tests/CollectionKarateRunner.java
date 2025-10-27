@@ -12,4 +12,16 @@ class CollectionKarateRunner {
   Karate testGetCollections() {
     return Karate.run("feature/collection/get-collections.feature").relativeTo(getClass());
   }
+
+  @Karate.Test
+  @DisplayName("Get Collection By ID Endpoint")
+  Karate testGetCollectionById() {
+    return Karate.run("feature/collection/get-collection-by-id.feature").relativeTo(getClass());
+  }
+
+  @Karate.Test
+  @DisplayName("Update Collection Endpoint")
+  Karate testUpdateCollection() {
+    return Karate.run("feature/collection/update-collection.feature").relativeTo(getClass());
+  }
 }

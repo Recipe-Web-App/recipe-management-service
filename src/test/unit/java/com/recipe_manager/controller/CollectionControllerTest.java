@@ -26,6 +26,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import com.recipe_manager.model.dto.collection.CollectionRecipeDto;
+import com.recipe_manager.model.dto.request.UpdateCollectionRequest;
 import com.recipe_manager.model.dto.response.CollectionDetailsDto;
 import com.recipe_manager.model.dto.response.CollectionDto;
 import com.recipe_manager.model.enums.CollaborationMode;
@@ -494,5 +495,80 @@ class CollectionControllerTest {
         .createdAt(now)
         .updatedAt(now)
         .build();
+  }
+
+  @Test
+  @DisplayName("Should update collection successfully")
+  @Tag("standard-processing")
+  void shouldUpdateCollectionSuccessfully() {
+    // Given
+    Long collectionId = 1L;
+    UpdateCollectionRequest request =
+        UpdateCollectionRequest.builder()
+            .name("Updated Name")
+            .visibility(CollectionVisibility.PRIVATE)
+            .build();
+
+    CollectionDto updatedDto =
+        CollectionDto.builder()
+            .collectionId(collectionId)
+            .name("Updated Name")
+            .visibility(CollectionVisibility.PRIVATE)
+            .build();
+
+    ResponseEntity<CollectionDto> expectedResponse = ResponseEntity.ok(updatedDto);
+
+    when(collectionService.updateCollection(collectionId, request)).thenReturn(expectedResponse);
+
+    // When
+    ResponseEntity<CollectionDto> response =
+        collectionController.updateCollection(collectionId, request);
+
+    // Then
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    assertThat(response.getBody()).isEqualTo(updatedDto);
+    verify(collectionService).updateCollection(collectionId, request);
+  }
+
+  @Test
+  @DisplayName("Should delegate update to service layer")
+  @Tag("standard-processing")
+  void shouldDelegateUpdateToServiceLayer() {
+    // Given
+    Long collectionId = 2L;
+    UpdateCollectionRequest request =
+        UpdateCollectionRequest.builder().name("Updated").build();
+
+    when(collectionService.updateCollection(collectionId, request))
+        .thenReturn(ResponseEntity.ok(CollectionDto.builder().build()));
+
+    // When
+    collectionController.updateCollection(collectionId, request);
+
+    // Then
+    verify(collectionService).updateCollection(collectionId, request);
+  }
+
+  @Test
+  @DisplayName("Should return 200 OK status for update")
+  @Tag("standard-processing")
+  void shouldReturn200OkStatusForUpdate() {
+    // Given
+    Long collectionId = 3L;
+    UpdateCollectionRequest request =
+        UpdateCollectionRequest.builder().description("Updated Description").build();
+
+    ResponseEntity<CollectionDto> expectedResponse =
+        ResponseEntity.ok(CollectionDto.builder().build());
+
+    when(collectionService.updateCollection(collectionId, request)).thenReturn(expectedResponse);
+
+    // When
+    ResponseEntity<CollectionDto> response =
+        collectionController.updateCollection(collectionId, request);
+
+    // Then
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    assertThat(response.getStatusCodeValue()).isEqualTo(200);
   }
 }

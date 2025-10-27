@@ -5,11 +5,13 @@ import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.recipe_manager.exception.ResourceNotFoundException;
 import com.recipe_manager.model.dto.request.CreateCollectionRequest;
+import com.recipe_manager.model.dto.request.UpdateCollectionRequest;
 import com.recipe_manager.model.dto.response.CollectionDetailsDto;
 import com.recipe_manager.model.dto.response.CollectionDto;
 import com.recipe_manager.model.entity.collection.RecipeCollection;
@@ -139,5 +141,57 @@ public class CollectionService {
     CollectionDetailsDto dto = collectionMapper.toDetailsDto(collection);
 
     return ResponseEntity.ok(dto);
+  }
+
+  /**
+   * Updates collection metadata (name, description, visibility, collaboration mode).
+   *
+   * <p>This method performs a partial update - only provided fields will be updated. The
+   * authenticated user must be the collection owner. The updatedAt timestamp is automatically set.
+   *
+   * @param collectionId the ID of the collection to update
+   * @param request the update request containing optional fields to update
+   * @return ResponseEntity containing the updated collection DTO
+   * @throws ResourceNotFoundException if the collection doesn't exist
+   * @throws AccessDeniedException if the user is not the collection owner
+   */
+  @Transactional
+  public ResponseEntity<CollectionDto> updateCollection(
+      final Long collectionId, final UpdateCollectionRequest request) {
+    // Get current authenticated user ID from security context
+    UUID currentUserId = SecurityUtils.getCurrentUserId();
+
+    // Fetch the collection
+    RecipeCollection collection =
+        recipeCollectionRepository
+            .findById(collectionId)
+            .orElseThrow(() -> new ResourceNotFoundException("Collection not found"));
+
+    // Verify ownership - only the owner can update the collection
+    if (!collection.getUserId().equals(currentUserId)) {
+      throw new AccessDeniedException("Only the collection owner can update it");
+    }
+
+    // Update only provided fields (partial update)
+    if (request.getName() != null) {
+      collection.setName(request.getName());
+    }
+    if (request.getDescription() != null) {
+      collection.setDescription(request.getDescription());
+    }
+    if (request.getVisibility() != null) {
+      collection.setVisibility(request.getVisibility());
+    }
+    if (request.getCollaborationMode() != null) {
+      collection.setCollaborationMode(request.getCollaborationMode());
+    }
+
+    // Save the updated collection (updatedAt will be set automatically by JPA)
+    RecipeCollection updatedCollection = recipeCollectionRepository.save(collection);
+
+    // Convert updated entity to DTO
+    CollectionDto responseDto = collectionMapper.toDto(updatedCollection);
+
+    return ResponseEntity.ok(responseDto);
   }
 }

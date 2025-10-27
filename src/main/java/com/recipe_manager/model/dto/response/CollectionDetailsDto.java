@@ -14,14 +14,14 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Response DTO for collection details endpoint. Contains full collection metadata and list of
- * recipes with their display order.
+ * Response DTO for collection details endpoint matching OpenAPI specification. Contains full
+ * collection metadata and list of recipes with their display order.
  */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public final class CollectionDetailsResponse {
+public final class CollectionDetailsDto {
   /** The unique ID of the collection. */
   private Long collectionId;
 

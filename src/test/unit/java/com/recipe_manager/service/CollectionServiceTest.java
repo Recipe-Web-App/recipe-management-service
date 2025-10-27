@@ -1,7 +1,9 @@
 package com.recipe_manager.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -9,6 +11,7 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -28,9 +31,15 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import com.recipe_manager.exception.ResourceNotFoundException;
+import com.recipe_manager.model.dto.collection.CollectionRecipeDto;
 import com.recipe_manager.model.dto.request.CreateCollectionRequest;
+import com.recipe_manager.model.dto.response.CollectionDetailsDto;
 import com.recipe_manager.model.dto.response.CollectionDto;
 import com.recipe_manager.model.entity.collection.RecipeCollection;
+import com.recipe_manager.model.entity.collection.RecipeCollectionItem;
+import com.recipe_manager.model.entity.recipe.Recipe;
+import com.recipe_manager.model.entity.collection.RecipeCollectionItemId;
 import com.recipe_manager.model.enums.CollaborationMode;
 import com.recipe_manager.model.enums.CollectionVisibility;
 import com.recipe_manager.model.mapper.CollectionMapper;
@@ -654,5 +663,344 @@ class CollectionServiceTest {
     // Then
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
     assertThat(response.getBody()).isNotNull();
+  }
+
+  @Test
+  @DisplayName("Should get collection by ID successfully when user is owner")
+  @Tag("standard-processing")
+  void shouldGetCollectionByIdSuccessfullyWhenUserIsOwner() {
+    // Given
+    Long collectionId = 1L;
+    RecipeCollection collection = createTestCollectionWithRecipes(collectionId);
+    CollectionDetailsDto expectedDto = createTestDetailsDto(collectionId);
+
+    when(recipeCollectionRepository.hasViewAccess(collectionId, testUserId)).thenReturn(true);
+    when(recipeCollectionRepository.findByIdWithItems(collectionId))
+        .thenReturn(Optional.of(collection));
+    when(collectionMapper.toDetailsDto(collection)).thenReturn(expectedDto);
+
+    // When
+    ResponseEntity<CollectionDetailsDto> response;
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
+      response = collectionService.getCollectionById(collectionId);
+    }
+
+    // Then
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    assertThat(response.getBody()).isNotNull();
+    assertThat(response.getBody()).isEqualTo(expectedDto);
+
+    verify(recipeCollectionRepository).hasViewAccess(collectionId, testUserId);
+    verify(recipeCollectionRepository).findByIdWithItems(collectionId);
+    verify(collectionMapper).toDetailsDto(collection);
+  }
+
+  @Test
+  @DisplayName("Should get collection by ID successfully when user has view access")
+  @Tag("standard-processing")
+  void shouldGetCollectionByIdSuccessfullyWhenUserHasAccess() {
+    // Given
+    Long collectionId = 2L;
+    UUID otherUserId = UUID.randomUUID();
+    RecipeCollection collection = createTestCollectionWithRecipes(collectionId);
+    collection.setUserId(otherUserId); // Collection owned by different user
+    CollectionDetailsDto expectedDto = createTestDetailsDto(collectionId);
+
+    when(recipeCollectionRepository.hasViewAccess(collectionId, testUserId)).thenReturn(true);
+    when(recipeCollectionRepository.findByIdWithItems(collectionId))
+        .thenReturn(Optional.of(collection));
+    when(collectionMapper.toDetailsDto(collection)).thenReturn(expectedDto);
+
+    // When
+    ResponseEntity<CollectionDetailsDto> response;
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
+      response = collectionService.getCollectionById(collectionId);
+    }
+
+    // Then
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    assertThat(response.getBody()).isNotNull();
+    verify(recipeCollectionRepository).hasViewAccess(collectionId, testUserId);
+  }
+
+  @Test
+  @DisplayName("Should throw ResourceNotFoundException when user has no access")
+  @Tag("standard-processing")
+  void shouldThrowResourceNotFoundExceptionWhenUserHasNoAccess() {
+    // Given
+    Long collectionId = 3L;
+
+    when(recipeCollectionRepository.hasViewAccess(collectionId, testUserId)).thenReturn(false);
+
+    // When/Then
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
+
+      assertThatThrownBy(() -> collectionService.getCollectionById(collectionId))
+          .isInstanceOf(ResourceNotFoundException.class)
+          .hasMessage("Collection not found or access denied");
+    }
+
+    verify(recipeCollectionRepository).hasViewAccess(collectionId, testUserId);
+  }
+
+  @Test
+  @DisplayName("Should throw ResourceNotFoundException when collection does not exist")
+  @Tag("standard-processing")
+  void shouldThrowResourceNotFoundExceptionWhenCollectionDoesNotExist() {
+    // Given
+    Long collectionId = 999L;
+
+    when(recipeCollectionRepository.hasViewAccess(collectionId, testUserId)).thenReturn(true);
+    when(recipeCollectionRepository.findByIdWithItems(collectionId)).thenReturn(Optional.empty());
+
+    // When/Then
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
+
+      assertThatThrownBy(() -> collectionService.getCollectionById(collectionId))
+          .isInstanceOf(ResourceNotFoundException.class)
+          .hasMessage("Collection not found");
+    }
+
+    verify(recipeCollectionRepository).hasViewAccess(collectionId, testUserId);
+    verify(recipeCollectionRepository).findByIdWithItems(collectionId);
+  }
+
+  @Test
+  @DisplayName("Should handle collection with empty recipes list")
+  @Tag("standard-processing")
+  void shouldHandleCollectionWithEmptyRecipesList() {
+    // Given
+    Long collectionId = 4L;
+    RecipeCollection collection =
+        RecipeCollection.builder()
+            .collectionId(collectionId)
+            .userId(testUserId)
+            .name("Empty Collection")
+            .visibility(CollectionVisibility.PUBLIC)
+            .collaborationMode(CollaborationMode.OWNER_ONLY)
+            .collectionItems(Collections.emptyList())
+            .createdAt(LocalDateTime.now())
+            .updatedAt(LocalDateTime.now())
+            .build();
+
+    CollectionDetailsDto expectedDto =
+        CollectionDetailsDto.builder()
+            .collectionId(collectionId)
+            .userId(testUserId)
+            .name("Empty Collection")
+            .visibility(CollectionVisibility.PUBLIC)
+            .collaborationMode(CollaborationMode.OWNER_ONLY)
+            .recipeCount(0)
+            .collaboratorCount(0)
+            .recipes(Collections.emptyList())
+            .createdAt(collection.getCreatedAt())
+            .updatedAt(collection.getUpdatedAt())
+            .build();
+
+    when(recipeCollectionRepository.hasViewAccess(collectionId, testUserId)).thenReturn(true);
+    when(recipeCollectionRepository.findByIdWithItems(collectionId))
+        .thenReturn(Optional.of(collection));
+    when(collectionMapper.toDetailsDto(collection)).thenReturn(expectedDto);
+
+    // When
+    ResponseEntity<CollectionDetailsDto> response;
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
+      response = collectionService.getCollectionById(collectionId);
+    }
+
+    // Then
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    assertThat(response.getBody()).isNotNull();
+    assertThat(response.getBody().getRecipes()).isEmpty();
+    assertThat(response.getBody().getRecipeCount()).isEqualTo(0);
+  }
+
+  @Test
+  @DisplayName("Should get collection with multiple recipes in order")
+  @Tag("standard-processing")
+  void shouldGetCollectionWithMultipleRecipesInOrder() {
+    // Given
+    Long collectionId = 5L;
+    RecipeCollection collection = createTestCollectionWithMultipleRecipes(collectionId);
+
+    CollectionRecipeDto recipe1 =
+        CollectionRecipeDto.builder()
+            .recipeId(1L)
+            .recipeTitle("First Recipe")
+            .displayOrder(10)
+            .addedBy(testUserId)
+            .addedAt(LocalDateTime.now())
+            .build();
+
+    CollectionRecipeDto recipe2 =
+        CollectionRecipeDto.builder()
+            .recipeId(2L)
+            .recipeTitle("Second Recipe")
+            .displayOrder(20)
+            .addedBy(testUserId)
+            .addedAt(LocalDateTime.now())
+            .build();
+
+    CollectionDetailsDto expectedDto =
+        CollectionDetailsDto.builder()
+            .collectionId(collectionId)
+            .userId(testUserId)
+            .name("Multi-Recipe Collection")
+            .visibility(CollectionVisibility.PUBLIC)
+            .collaborationMode(CollaborationMode.OWNER_ONLY)
+            .recipeCount(2)
+            .collaboratorCount(0)
+            .recipes(Arrays.asList(recipe1, recipe2))
+            .createdAt(collection.getCreatedAt())
+            .updatedAt(collection.getUpdatedAt())
+            .build();
+
+    when(recipeCollectionRepository.hasViewAccess(collectionId, testUserId)).thenReturn(true);
+    when(recipeCollectionRepository.findByIdWithItems(collectionId))
+        .thenReturn(Optional.of(collection));
+    when(collectionMapper.toDetailsDto(collection)).thenReturn(expectedDto);
+
+    // When
+    ResponseEntity<CollectionDetailsDto> response;
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
+      response = collectionService.getCollectionById(collectionId);
+    }
+
+    // Then
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    assertThat(response.getBody()).isNotNull();
+    assertThat(response.getBody().getRecipes()).hasSize(2);
+    assertThat(response.getBody().getRecipeCount()).isEqualTo(2);
+  }
+
+  @Test
+  @DisplayName("Should extract correct user ID from security context for get by ID")
+  @Tag("standard-processing")
+  void shouldExtractCorrectUserIdFromSecurityContextForGetById() {
+    // Given
+    UUID expectedUserId = UUID.randomUUID();
+    Long collectionId = 6L;
+    RecipeCollection collection = createTestCollectionWithRecipes(collectionId);
+    CollectionDetailsDto expectedDto = createTestDetailsDto(collectionId);
+
+    when(recipeCollectionRepository.hasViewAccess(collectionId, expectedUserId)).thenReturn(true);
+    when(recipeCollectionRepository.findByIdWithItems(collectionId))
+        .thenReturn(Optional.of(collection));
+    when(collectionMapper.toDetailsDto(collection)).thenReturn(expectedDto);
+
+    // When
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(expectedUserId);
+      collectionService.getCollectionById(collectionId);
+
+      // Then - Verify SecurityUtils.getCurrentUserId() was called
+      securityUtilsMock.verify(SecurityUtils::getCurrentUserId);
+    }
+
+    verify(recipeCollectionRepository).hasViewAccess(collectionId, expectedUserId);
+  }
+
+  private RecipeCollection createTestCollectionWithRecipes(Long collectionId) {
+    Recipe recipe =
+        Recipe.builder().recipeId(1L).title("Test Recipe").description("Test Description").build();
+
+    RecipeCollectionItemId itemId = new RecipeCollectionItemId(collectionId, 1L);
+
+    RecipeCollectionItem item =
+        RecipeCollectionItem.builder()
+            .id(itemId)
+            .recipe(recipe)
+            .displayOrder(10)
+            .addedBy(testUserId)
+            .addedAt(LocalDateTime.now())
+            .build();
+
+    return RecipeCollection.builder()
+        .collectionId(collectionId)
+        .userId(testUserId)
+        .name("Test Collection")
+        .description("Test Description")
+        .visibility(CollectionVisibility.PUBLIC)
+        .collaborationMode(CollaborationMode.OWNER_ONLY)
+        .collectionItems(Arrays.asList(item))
+        .createdAt(LocalDateTime.now())
+        .updatedAt(LocalDateTime.now())
+        .build();
+  }
+
+  private RecipeCollection createTestCollectionWithMultipleRecipes(Long collectionId) {
+    Recipe recipe1 =
+        Recipe.builder().recipeId(1L).title("First Recipe").description("First Description").build();
+
+    Recipe recipe2 =
+        Recipe.builder()
+            .recipeId(2L)
+            .title("Second Recipe")
+            .description("Second Description")
+            .build();
+
+    RecipeCollectionItemId itemId1 = new RecipeCollectionItemId(collectionId, 1L);
+    RecipeCollectionItemId itemId2 = new RecipeCollectionItemId(collectionId, 2L);
+
+    RecipeCollectionItem item1 =
+        RecipeCollectionItem.builder()
+            .id(itemId1)
+            .recipe(recipe1)
+            .displayOrder(10)
+            .addedBy(testUserId)
+            .addedAt(LocalDateTime.now())
+            .build();
+
+    RecipeCollectionItem item2 =
+        RecipeCollectionItem.builder()
+            .id(itemId2)
+            .recipe(recipe2)
+            .displayOrder(20)
+            .addedBy(testUserId)
+            .addedAt(LocalDateTime.now())
+            .build();
+
+    return RecipeCollection.builder()
+        .collectionId(collectionId)
+        .userId(testUserId)
+        .name("Multi-Recipe Collection")
+        .visibility(CollectionVisibility.PUBLIC)
+        .collaborationMode(CollaborationMode.OWNER_ONLY)
+        .collectionItems(Arrays.asList(item1, item2))
+        .createdAt(LocalDateTime.now())
+        .updatedAt(LocalDateTime.now())
+        .build();
+  }
+
+  private CollectionDetailsDto createTestDetailsDto(Long collectionId) {
+    CollectionRecipeDto recipeDto =
+        CollectionRecipeDto.builder()
+            .recipeId(1L)
+            .recipeTitle("Test Recipe")
+            .recipeDescription("Test Description")
+            .displayOrder(10)
+            .addedBy(testUserId)
+            .addedAt(LocalDateTime.now())
+            .build();
+
+    return CollectionDetailsDto.builder()
+        .collectionId(collectionId)
+        .userId(testUserId)
+        .name("Test Collection")
+        .description("Test Description")
+        .visibility(CollectionVisibility.PUBLIC)
+        .collaborationMode(CollaborationMode.OWNER_ONLY)
+        .recipeCount(1)
+        .collaboratorCount(0)
+        .recipes(Arrays.asList(recipeDto))
+        .createdAt(LocalDateTime.now())
+        .updatedAt(LocalDateTime.now())
+        .build();
   }
 }

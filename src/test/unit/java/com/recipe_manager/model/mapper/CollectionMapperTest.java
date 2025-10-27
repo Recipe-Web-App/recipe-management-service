@@ -730,4 +730,55 @@ class CollectionMapperTest {
       }
     };
   }
+
+  @Test
+  @DisplayName("Should map RecipeCollection to CollectionDetailsDto with empty recipes")
+  @Tag("standard-processing")
+  void shouldMapRecipeCollectionToCollectionDetailsDtoWithEmptyRecipes() {
+    // Given
+    UUID userId = UUID.randomUUID();
+    LocalDateTime now = LocalDateTime.now();
+
+    RecipeCollection collection =
+        RecipeCollection.builder()
+            .collectionId(1L)
+            .userId(userId)
+            .name("My Detailed Collection")
+            .description("Detailed Description")
+            .visibility(CollectionVisibility.PUBLIC)
+            .collaborationMode(CollaborationMode.OWNER_ONLY)
+            .createdAt(now)
+            .updatedAt(now)
+            .collectionItems(new ArrayList<>())
+            .collaborators(new ArrayList<>())
+            .build();
+
+    // When
+    var result = collectionMapper.toDetailsDto(collection);
+
+    // Then
+    assertThat(result).isNotNull();
+    assertThat(result.getCollectionId()).isEqualTo(1L);
+    assertThat(result.getUserId()).isEqualTo(userId);
+    assertThat(result.getName()).isEqualTo("My Detailed Collection");
+    assertThat(result.getDescription()).isEqualTo("Detailed Description");
+    assertThat(result.getVisibility()).isEqualTo(CollectionVisibility.PUBLIC);
+    assertThat(result.getCollaborationMode()).isEqualTo(CollaborationMode.OWNER_ONLY);
+    assertThat(result.getRecipeCount()).isEqualTo(0);
+    assertThat(result.getCollaboratorCount()).isEqualTo(0);
+    assertThat(result.getCreatedAt()).isEqualTo(now);
+    assertThat(result.getUpdatedAt()).isEqualTo(now);
+    assertThat(result.getRecipes()).isEmpty();
+  }
+
+  @Test
+  @DisplayName("Should handle null RecipeCollection for toDetailsDto")
+  @Tag("standard-processing")
+  void shouldHandleNullForToDetailsDto() {
+    // When
+    var result = collectionMapper.toDetailsDto(null);
+
+    // Then
+    assertThat(result).isNull();
+  }
 }

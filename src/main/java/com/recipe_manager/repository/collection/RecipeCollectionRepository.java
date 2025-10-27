@@ -138,4 +138,35 @@ public interface RecipeCollectionRepository extends JpaRepository<RecipeCollecti
       nativeQuery = true)
   Page<CollectionSummaryProjection> findAccessibleCollections(
       @Param("userId") UUID userId, Pageable pageable);
+
+  /**
+   * Checks if a user has view access to a specific collection. Uses the vw_user_collection_access
+   * view which handles all permission logic (owner, collaborator, public, friends).
+   *
+   * @param collectionId the collection ID to check access for
+   * @param userId the user ID to check access for
+   * @return true if user has view access to the collection, false otherwise
+   */
+  @Query(
+      value =
+          "SELECT COUNT(*) > 0 FROM recipe_manager.vw_user_collection_access "
+              + "WHERE collection_id = :collectionId AND accessor_user_id = :userId",
+      nativeQuery = true)
+  boolean hasViewAccess(@Param("collectionId") Long collectionId, @Param("userId") UUID userId);
+
+  /**
+   * Finds a collection by ID with all collection items eagerly loaded. This method fetches the
+   * collection with its recipes in a single query using JOIN FETCH to avoid N+1 queries. Collection
+   * items are ordered by display_order ascending.
+   *
+   * @param collectionId the collection ID
+   * @return optional containing the collection with eagerly loaded items, or empty if not found
+   */
+  @Query(
+      "SELECT DISTINCT c FROM RecipeCollection c "
+          + "LEFT JOIN FETCH c.collectionItems ci "
+          + "LEFT JOIN FETCH ci.recipe "
+          + "WHERE c.collectionId = :collectionId "
+          + "ORDER BY ci.displayOrder ASC")
+  Optional<RecipeCollection> findByIdWithItems(@Param("collectionId") Long collectionId);
 }

@@ -25,6 +25,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import com.recipe_manager.model.dto.collection.CollectionRecipeDto;
+import com.recipe_manager.model.dto.response.CollectionDetailsDto;
 import com.recipe_manager.model.dto.response.CollectionDto;
 import com.recipe_manager.model.enums.CollaborationMode;
 import com.recipe_manager.model.enums.CollectionVisibility;
@@ -267,6 +269,230 @@ class CollectionControllerTest {
         .collaboratorCount(0)
         .createdAt(LocalDateTime.now().minusDays(1))
         .updatedAt(LocalDateTime.now())
+        .build();
+  }
+
+  @Test
+  @DisplayName("Should get collection by ID successfully")
+  @Tag("standard-processing")
+  void shouldGetCollectionByIdSuccessfully() {
+    // Given
+    Long collectionId = 1L;
+    CollectionDetailsDto detailsDto = createTestDetailsDto(collectionId);
+    ResponseEntity<CollectionDetailsDto> expectedResponse = ResponseEntity.ok(detailsDto);
+
+    when(collectionService.getCollectionById(collectionId)).thenReturn(expectedResponse);
+
+    // When
+    ResponseEntity<CollectionDetailsDto> response =
+        collectionController.getCollectionById(collectionId);
+
+    // Then
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    assertThat(response.getBody()).isNotNull();
+    assertThat(response.getBody()).isEqualTo(detailsDto);
+
+    verify(collectionService).getCollectionById(collectionId);
+  }
+
+  @Test
+  @DisplayName("Should pass correct collection ID to service")
+  @Tag("standard-processing")
+  void shouldPassCorrectCollectionIdToService() {
+    // Given
+    Long collectionId = 123L;
+    CollectionDetailsDto detailsDto = createTestDetailsDto(collectionId);
+    ResponseEntity<CollectionDetailsDto> expectedResponse = ResponseEntity.ok(detailsDto);
+
+    when(collectionService.getCollectionById(collectionId)).thenReturn(expectedResponse);
+
+    // When
+    collectionController.getCollectionById(collectionId);
+
+    // Then
+    verify(collectionService).getCollectionById(collectionId);
+  }
+
+  @Test
+  @DisplayName("Should delegate get by ID to service layer")
+  @Tag("standard-processing")
+  void shouldDelegateGetByIdToServiceLayer() {
+    // Given
+    Long collectionId = 456L;
+    CollectionDetailsDto detailsDto = createTestDetailsDto(collectionId);
+    ResponseEntity<CollectionDetailsDto> expectedResponse = ResponseEntity.ok(detailsDto);
+
+    when(collectionService.getCollectionById(collectionId)).thenReturn(expectedResponse);
+
+    // When
+    collectionController.getCollectionById(collectionId);
+
+    // Then
+    verify(collectionService).getCollectionById(collectionId);
+  }
+
+  @Test
+  @DisplayName("Should return collection details with all fields")
+  @Tag("standard-processing")
+  void shouldReturnCollectionDetailsWithAllFields() {
+    // Given
+    Long collectionId = 789L;
+    UUID userId = UUID.randomUUID();
+    UUID addedBy = UUID.randomUUID();
+    LocalDateTime now = LocalDateTime.now();
+
+    CollectionRecipeDto recipeDto =
+        CollectionRecipeDto.builder()
+            .recipeId(1L)
+            .recipeTitle("Test Recipe")
+            .recipeDescription("Test Description")
+            .displayOrder(10)
+            .addedBy(addedBy)
+            .addedAt(now)
+            .build();
+
+    CollectionDetailsDto detailsDto =
+        CollectionDetailsDto.builder()
+            .collectionId(collectionId)
+            .userId(userId)
+            .name("Detailed Collection")
+            .description("Detailed Description")
+            .visibility(CollectionVisibility.FRIENDS_ONLY)
+            .collaborationMode(CollaborationMode.SPECIFIC_USERS)
+            .recipeCount(1)
+            .collaboratorCount(2)
+            .recipes(Arrays.asList(recipeDto))
+            .createdAt(now)
+            .updatedAt(now)
+            .build();
+
+    ResponseEntity<CollectionDetailsDto> expectedResponse = ResponseEntity.ok(detailsDto);
+
+    when(collectionService.getCollectionById(collectionId)).thenReturn(expectedResponse);
+
+    // When
+    ResponseEntity<CollectionDetailsDto> response =
+        collectionController.getCollectionById(collectionId);
+
+    // Then
+    assertThat(response.getBody()).isNotNull();
+    CollectionDetailsDto result = response.getBody();
+    assertThat(result.getCollectionId()).isEqualTo(collectionId);
+    assertThat(result.getUserId()).isEqualTo(userId);
+    assertThat(result.getName()).isEqualTo("Detailed Collection");
+    assertThat(result.getDescription()).isEqualTo("Detailed Description");
+    assertThat(result.getVisibility()).isEqualTo(CollectionVisibility.FRIENDS_ONLY);
+    assertThat(result.getCollaborationMode()).isEqualTo(CollaborationMode.SPECIFIC_USERS);
+    assertThat(result.getRecipeCount()).isEqualTo(1);
+    assertThat(result.getCollaboratorCount()).isEqualTo(2);
+    assertThat(result.getRecipes()).hasSize(1);
+    assertThat(result.getCreatedAt()).isEqualTo(now);
+    assertThat(result.getUpdatedAt()).isEqualTo(now);
+  }
+
+  @Test
+  @DisplayName("Should return collection with multiple recipes")
+  @Tag("standard-processing")
+  void shouldReturnCollectionWithMultipleRecipes() {
+    // Given
+    Long collectionId = 999L;
+    UUID userId = UUID.randomUUID();
+    LocalDateTime now = LocalDateTime.now();
+
+    CollectionRecipeDto recipe1 =
+        CollectionRecipeDto.builder()
+            .recipeId(1L)
+            .recipeTitle("First Recipe")
+            .displayOrder(10)
+            .addedBy(userId)
+            .addedAt(now.minusDays(2))
+            .build();
+
+    CollectionRecipeDto recipe2 =
+        CollectionRecipeDto.builder()
+            .recipeId(2L)
+            .recipeTitle("Second Recipe")
+            .displayOrder(20)
+            .addedBy(userId)
+            .addedAt(now.minusDays(1))
+            .build();
+
+    CollectionDetailsDto detailsDto =
+        CollectionDetailsDto.builder()
+            .collectionId(collectionId)
+            .userId(userId)
+            .name("Multi-Recipe Collection")
+            .visibility(CollectionVisibility.PUBLIC)
+            .collaborationMode(CollaborationMode.OWNER_ONLY)
+            .recipeCount(2)
+            .collaboratorCount(0)
+            .recipes(Arrays.asList(recipe1, recipe2))
+            .createdAt(now)
+            .updatedAt(now)
+            .build();
+
+    ResponseEntity<CollectionDetailsDto> expectedResponse = ResponseEntity.ok(detailsDto);
+
+    when(collectionService.getCollectionById(collectionId)).thenReturn(expectedResponse);
+
+    // When
+    ResponseEntity<CollectionDetailsDto> response =
+        collectionController.getCollectionById(collectionId);
+
+    // Then
+    assertThat(response.getBody()).isNotNull();
+    assertThat(response.getBody().getRecipes()).hasSize(2);
+    assertThat(response.getBody().getRecipeCount()).isEqualTo(2);
+    assertThat(response.getBody().getRecipes().get(0).getRecipeId()).isEqualTo(1L);
+    assertThat(response.getBody().getRecipes().get(1).getRecipeId()).isEqualTo(2L);
+  }
+
+  @Test
+  @DisplayName("Should return 200 OK status for get by ID")
+  @Tag("standard-processing")
+  void shouldReturn200OkStatusForGetById() {
+    // Given
+    Long collectionId = 100L;
+    CollectionDetailsDto detailsDto = createTestDetailsDto(collectionId);
+    ResponseEntity<CollectionDetailsDto> expectedResponse = ResponseEntity.ok(detailsDto);
+
+    when(collectionService.getCollectionById(collectionId)).thenReturn(expectedResponse);
+
+    // When
+    ResponseEntity<CollectionDetailsDto> response =
+        collectionController.getCollectionById(collectionId);
+
+    // Then
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    assertThat(response.getStatusCodeValue()).isEqualTo(200);
+  }
+
+  private CollectionDetailsDto createTestDetailsDto(Long collectionId) {
+    UUID userId = UUID.randomUUID();
+    LocalDateTime now = LocalDateTime.now();
+
+    CollectionRecipeDto recipeDto =
+        CollectionRecipeDto.builder()
+            .recipeId(1L)
+            .recipeTitle("Test Recipe")
+            .recipeDescription("Test Description")
+            .displayOrder(10)
+            .addedBy(userId)
+            .addedAt(now)
+            .build();
+
+    return CollectionDetailsDto.builder()
+        .collectionId(collectionId)
+        .userId(userId)
+        .name("Test Collection " + collectionId)
+        .description("Test Description")
+        .visibility(CollectionVisibility.PUBLIC)
+        .collaborationMode(CollaborationMode.OWNER_ONLY)
+        .recipeCount(1)
+        .collaboratorCount(0)
+        .recipes(Arrays.asList(recipeDto))
+        .createdAt(now)
+        .updatedAt(now)
         .build();
   }
 }

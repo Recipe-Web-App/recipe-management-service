@@ -351,6 +351,103 @@ class RecipeCollectionRepositoryTest {
     assertThat(result.getTotalPages()).isEqualTo(3);
   }
 
+  @Test
+  @DisplayName("Should check if user has view access to collection")
+  @Tag("standard-processing")
+  void shouldCheckViewAccess() {
+    // Given
+    Long collectionId = 1L;
+    when(recipeCollectionRepository.hasViewAccess(collectionId, testUserId)).thenReturn(true);
+
+    // When
+    boolean hasAccess = recipeCollectionRepository.hasViewAccess(collectionId, testUserId);
+
+    // Then
+    assertThat(hasAccess).isTrue();
+    verify(recipeCollectionRepository).hasViewAccess(collectionId, testUserId);
+  }
+
+  @Test
+  @DisplayName("Should return false when user does not have view access")
+  @Tag("standard-processing")
+  void shouldReturnFalseWhenNoViewAccess() {
+    // Given
+    Long collectionId = 1L;
+    UUID otherUserId = UUID.randomUUID();
+    when(recipeCollectionRepository.hasViewAccess(collectionId, otherUserId)).thenReturn(false);
+
+    // When
+    boolean hasAccess = recipeCollectionRepository.hasViewAccess(collectionId, otherUserId);
+
+    // Then
+    assertThat(hasAccess).isFalse();
+    verify(recipeCollectionRepository).hasViewAccess(collectionId, otherUserId);
+  }
+
+  @Test
+  @DisplayName("Should find collection by ID with items")
+  @Tag("standard-processing")
+  void shouldFindByIdWithItems() {
+    // Given
+    Long collectionId = 1L;
+    RecipeCollection collectionWithItems = createTestCollection(collectionId);
+    when(recipeCollectionRepository.findByIdWithItems(collectionId))
+        .thenReturn(Optional.of(collectionWithItems));
+
+    // When
+    Optional<RecipeCollection> result = recipeCollectionRepository.findByIdWithItems(collectionId);
+
+    // Then
+    assertThat(result).isPresent();
+    assertThat(result.get().getCollectionId()).isEqualTo(collectionId);
+    verify(recipeCollectionRepository).findByIdWithItems(collectionId);
+  }
+
+  @Test
+  @DisplayName("Should return empty when collection not found by ID with items")
+  @Tag("standard-processing")
+  void shouldReturnEmptyWhenCollectionNotFoundWithItems() {
+    // Given
+    Long collectionId = 999L;
+    when(recipeCollectionRepository.findByIdWithItems(collectionId)).thenReturn(Optional.empty());
+
+    // When
+    Optional<RecipeCollection> result = recipeCollectionRepository.findByIdWithItems(collectionId);
+
+    // Then
+    assertThat(result).isEmpty();
+    verify(recipeCollectionRepository).findByIdWithItems(collectionId);
+  }
+
+  @Test
+  @DisplayName("Should handle null collection ID when checking view access")
+  @Tag("standard-processing")
+  void shouldHandleNullCollectionIdForViewAccess() {
+    // Given
+    when(recipeCollectionRepository.hasViewAccess(null, testUserId)).thenReturn(false);
+
+    // When
+    boolean hasAccess = recipeCollectionRepository.hasViewAccess(null, testUserId);
+
+    // Then
+    assertThat(hasAccess).isFalse();
+  }
+
+  @Test
+  @DisplayName("Should handle null user ID when checking view access")
+  @Tag("standard-processing")
+  void shouldHandleNullUserIdForViewAccess() {
+    // Given
+    Long collectionId = 1L;
+    when(recipeCollectionRepository.hasViewAccess(collectionId, null)).thenReturn(false);
+
+    // When
+    boolean hasAccess = recipeCollectionRepository.hasViewAccess(collectionId, null);
+
+    // Then
+    assertThat(hasAccess).isFalse();
+  }
+
   private RecipeCollection createTestCollection(Long collectionId) {
     return RecipeCollection.builder()
         .collectionId(collectionId)

@@ -8,7 +8,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.recipe_manager.exception.ResourceNotFoundException;
 import com.recipe_manager.model.dto.request.CreateCollectionRequest;
+import com.recipe_manager.model.dto.response.CollectionDetailsDto;
 import com.recipe_manager.model.dto.response.CollectionDto;
 import com.recipe_manager.model.entity.collection.RecipeCollection;
 import com.recipe_manager.model.mapper.CollectionMapper;
@@ -103,5 +105,39 @@ public class CollectionService {
 
     // Return 201 Created with the new collection
     return ResponseEntity.status(201).body(responseDto);
+  }
+
+  /**
+   * Retrieves detailed information about a specific collection by ID.
+   *
+   * <p>This method checks if the authenticated user has view access to the collection using the
+   * vw_user_collection_access database view, fetches the collection with all recipes eagerly
+   * loaded, and returns the detailed collection information including all recipes ordered by
+   * display order.
+   *
+   * @param collectionId the ID of the collection to retrieve
+   * @return ResponseEntity containing the detailed collection DTO with all recipes
+   * @throws ResourceNotFoundException if the collection doesn't exist or user has no access
+   */
+  @Transactional(readOnly = true)
+  public ResponseEntity<CollectionDetailsDto> getCollectionById(final Long collectionId) {
+    // Get current authenticated user ID from security context
+    UUID currentUserId = SecurityUtils.getCurrentUserId();
+
+    // Check view permission using database view
+    if (!recipeCollectionRepository.hasViewAccess(collectionId, currentUserId)) {
+      throw new ResourceNotFoundException("Collection not found or access denied");
+    }
+
+    // Fetch collection with items eagerly loaded
+    RecipeCollection collection =
+        recipeCollectionRepository
+            .findByIdWithItems(collectionId)
+            .orElseThrow(() -> new ResourceNotFoundException("Collection not found"));
+
+    // Map entity to detailed DTO with all recipes
+    CollectionDetailsDto dto = collectionMapper.toDetailsDto(collection);
+
+    return ResponseEntity.ok(dto);
   }
 }

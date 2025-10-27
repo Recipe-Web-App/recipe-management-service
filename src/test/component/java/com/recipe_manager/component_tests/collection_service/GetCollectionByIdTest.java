@@ -40,7 +40,10 @@ import com.recipe_manager.model.entity.recipe.Recipe;
 import com.recipe_manager.model.enums.CollaborationMode;
 import com.recipe_manager.model.enums.CollectionVisibility;
 import com.recipe_manager.model.mapper.CollectionMapper;
+import com.recipe_manager.model.mapper.RecipeCollectionItemMapper;
 import com.recipe_manager.model.mapper.RecipeCollectionMapper;
+import com.recipe_manager.repository.collection.CollectionCollaboratorRepository;
+import com.recipe_manager.repository.collection.RecipeCollectionItemRepository;
 import com.recipe_manager.repository.collection.RecipeCollectionRepository;
 import com.recipe_manager.service.CollectionService;
 
@@ -70,9 +73,15 @@ class GetCollectionByIdTest {
 
   @Mock private RecipeCollectionRepository recipeCollectionRepository;
 
+  @Mock private RecipeCollectionItemRepository recipeCollectionItemRepository;
+
+  @Mock private CollectionCollaboratorRepository collectionCollaboratorRepository;
+
   @Autowired private CollectionMapper collectionMapper;
 
   @Autowired private RecipeCollectionMapper recipeCollectionMapper;
+
+  @Autowired private RecipeCollectionItemMapper recipeCollectionItemMapper;
 
   private CollectionService collectionService;
   private CollectionController collectionController;
@@ -97,7 +106,12 @@ class GetCollectionByIdTest {
     // Create real service with mocked repository
     collectionService =
         new CollectionService(
-            recipeCollectionRepository, collectionMapper, recipeCollectionMapper);
+            recipeCollectionRepository,
+            recipeCollectionItemRepository,
+            collectionCollaboratorRepository,
+            collectionMapper,
+            recipeCollectionMapper,
+            recipeCollectionItemMapper);
     collectionController = new CollectionController(collectionService);
 
     mockMvc =

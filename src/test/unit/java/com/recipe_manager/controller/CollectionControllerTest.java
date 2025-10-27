@@ -26,6 +26,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import com.recipe_manager.model.dto.collection.CollectionRecipeDto;
+import com.recipe_manager.model.dto.collection.RecipeCollectionItemDto;
 import com.recipe_manager.model.dto.request.SearchCollectionsRequest;
 import com.recipe_manager.model.dto.request.UpdateCollectionRequest;
 import com.recipe_manager.model.dto.response.CollectionDetailsDto;
@@ -621,5 +622,104 @@ class CollectionControllerTest {
     assertThat(response.getBody().getContent()).hasSize(1);
     assertThat(response.getBody().getContent().get(0).getName()).isEqualTo("Italian Recipes");
     verify(collectionService).searchCollections(request, pageable);
+  }
+
+  @Test
+  @DisplayName("Should add recipe to collection successfully")
+  @Tag("standard-processing")
+  void shouldAddRecipeToCollectionSuccessfully() {
+    // Given
+    Long collectionId = 1L;
+    Long recipeId = 100L;
+    UUID addedBy = UUID.randomUUID();
+    LocalDateTime addedAt = LocalDateTime.now();
+
+    RecipeCollectionItemDto itemDto =
+        RecipeCollectionItemDto.builder()
+            .collectionId(collectionId)
+            .recipeId(recipeId)
+            .displayOrder(10)
+            .addedBy(addedBy)
+            .addedAt(addedAt)
+            .build();
+
+    ResponseEntity<RecipeCollectionItemDto> expectedResponse =
+        ResponseEntity.status(HttpStatus.CREATED).body(itemDto);
+
+    when(collectionService.addRecipeToCollection(collectionId, recipeId))
+        .thenReturn(expectedResponse);
+
+    // When
+    ResponseEntity<RecipeCollectionItemDto> response =
+        collectionController.addRecipeToCollection(collectionId, recipeId);
+
+    // Then
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+    assertThat(response.getStatusCodeValue()).isEqualTo(201);
+    assertThat(response.getBody()).isNotNull();
+    assertThat(response.getBody()).isEqualTo(itemDto);
+    assertThat(response.getBody().getCollectionId()).isEqualTo(collectionId);
+    assertThat(response.getBody().getRecipeId()).isEqualTo(recipeId);
+    assertThat(response.getBody().getDisplayOrder()).isEqualTo(10);
+    assertThat(response.getBody().getAddedBy()).isEqualTo(addedBy);
+    assertThat(response.getBody().getAddedAt()).isEqualTo(addedAt);
+
+    verify(collectionService).addRecipeToCollection(collectionId, recipeId);
+  }
+
+  @Test
+  @DisplayName("Should delegate add recipe to service layer")
+  @Tag("standard-processing")
+  void shouldDelegateAddRecipeToServiceLayer() {
+    // Given
+    Long collectionId = 5L;
+    Long recipeId = 500L;
+
+    RecipeCollectionItemDto itemDto =
+        RecipeCollectionItemDto.builder()
+            .collectionId(collectionId)
+            .recipeId(recipeId)
+            .displayOrder(20)
+            .build();
+
+    ResponseEntity<RecipeCollectionItemDto> expectedResponse =
+        ResponseEntity.status(HttpStatus.CREATED).body(itemDto);
+
+    when(collectionService.addRecipeToCollection(collectionId, recipeId))
+        .thenReturn(expectedResponse);
+
+    // When
+    collectionController.addRecipeToCollection(collectionId, recipeId);
+
+    // Then
+    verify(collectionService).addRecipeToCollection(collectionId, recipeId);
+  }
+
+  @Test
+  @DisplayName("Should pass correct path variables to service for add recipe")
+  @Tag("standard-processing")
+  void shouldPassCorrectPathVariablesToServiceForAddRecipe() {
+    // Given
+    Long collectionId = 123L;
+    Long recipeId = 456L;
+
+    RecipeCollectionItemDto itemDto =
+        RecipeCollectionItemDto.builder()
+            .collectionId(collectionId)
+            .recipeId(recipeId)
+            .displayOrder(30)
+            .build();
+
+    ResponseEntity<RecipeCollectionItemDto> expectedResponse =
+        ResponseEntity.status(HttpStatus.CREATED).body(itemDto);
+
+    when(collectionService.addRecipeToCollection(collectionId, recipeId))
+        .thenReturn(expectedResponse);
+
+    // When
+    collectionController.addRecipeToCollection(collectionId, recipeId);
+
+    // Then
+    verify(collectionService).addRecipeToCollection(collectionId, recipeId);
   }
 }

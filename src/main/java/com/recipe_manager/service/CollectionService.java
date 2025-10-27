@@ -11,16 +11,24 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.recipe_manager.exception.DuplicateResourceException;
 import com.recipe_manager.exception.ResourceNotFoundException;
+import com.recipe_manager.model.dto.collection.RecipeCollectionItemDto;
 import com.recipe_manager.model.dto.request.CreateCollectionRequest;
 import com.recipe_manager.model.dto.request.SearchCollectionsRequest;
 import com.recipe_manager.model.dto.request.UpdateCollectionRequest;
 import com.recipe_manager.model.dto.response.CollectionDetailsDto;
 import com.recipe_manager.model.dto.response.CollectionDto;
 import com.recipe_manager.model.entity.collection.RecipeCollection;
+import com.recipe_manager.model.entity.collection.RecipeCollectionItem;
+import com.recipe_manager.model.entity.collection.RecipeCollectionItemId;
+import com.recipe_manager.model.enums.CollaborationMode;
 import com.recipe_manager.model.mapper.CollectionMapper;
+import com.recipe_manager.model.mapper.RecipeCollectionItemMapper;
 import com.recipe_manager.model.mapper.RecipeCollectionMapper;
+import com.recipe_manager.repository.collection.CollectionCollaboratorRepository;
 import com.recipe_manager.repository.collection.CollectionSummaryProjection;
+import com.recipe_manager.repository.collection.RecipeCollectionItemRepository;
 import com.recipe_manager.repository.collection.RecipeCollectionRepository;
 import com.recipe_manager.util.SecurityUtils;
 
@@ -33,8 +41,17 @@ import com.recipe_manager.util.SecurityUtils;
 @Service
 public class CollectionService {
 
+  /** Default display order increment for recipes in collections. */
+  private static final int DISPLAY_ORDER_INCREMENT = 10;
+
   /** Repository used for accessing recipe collection data. */
   private final RecipeCollectionRepository recipeCollectionRepository;
+
+  /** Repository used for accessing recipe collection items. */
+  private final RecipeCollectionItemRepository recipeCollectionItemRepository;
+
+  /** Repository used for accessing collection collaborators. */
+  private final CollectionCollaboratorRepository collectionCollaboratorRepository;
 
   /** Mapper used for converting between collection projections and DTOs. */
   private final CollectionMapper collectionMapper;
@@ -42,20 +59,32 @@ public class CollectionService {
   /** Mapper used for converting between collection entities and DTOs. */
   private final RecipeCollectionMapper recipeCollectionMapper;
 
+  /** Mapper used for converting between recipe collection item entities and DTOs. */
+  private final RecipeCollectionItemMapper recipeCollectionItemMapper;
+
   /**
    * Constructs the collection service with required dependencies.
    *
    * @param recipeCollectionRepository the repository used for accessing collection data
+   * @param recipeCollectionItemRepository the repository used for accessing collection items
+   * @param collectionCollaboratorRepository the repository used for accessing collaborators
    * @param collectionMapper the mapper used for converting between projections and DTOs
    * @param recipeCollectionMapper the mapper used for converting between entities and DTOs
+   * @param recipeCollectionItemMapper the mapper used for converting between item entities and DTOs
    */
   public CollectionService(
       final RecipeCollectionRepository recipeCollectionRepository,
+      final RecipeCollectionItemRepository recipeCollectionItemRepository,
+      final CollectionCollaboratorRepository collectionCollaboratorRepository,
       final CollectionMapper collectionMapper,
-      final RecipeCollectionMapper recipeCollectionMapper) {
+      final RecipeCollectionMapper recipeCollectionMapper,
+      final RecipeCollectionItemMapper recipeCollectionItemMapper) {
     this.recipeCollectionRepository = recipeCollectionRepository;
+    this.recipeCollectionItemRepository = recipeCollectionItemRepository;
+    this.collectionCollaboratorRepository = collectionCollaboratorRepository;
     this.collectionMapper = collectionMapper;
     this.recipeCollectionMapper = recipeCollectionMapper;
+    this.recipeCollectionItemMapper = recipeCollectionItemMapper;
   }
 
   /**
@@ -265,6 +294,107 @@ public class CollectionService {
     Page<CollectionDto> collectionDtos = collections.map(collectionMapper::toDto);
 
     return ResponseEntity.ok(collectionDtos);
+  }
+
+  /**
+   * Adds a recipe to a collection. User must have edit permission on the collection.
+   *
+   * @param collectionId the ID of the collection to add the recipe to
+   * @param recipeId the ID of the recipe to add
+   * @return ResponseEntity containing the created collection item DTO with 201 Created status
+   * @throws ResourceNotFoundException if collection doesn't exist
+   * @throws AccessDeniedException if user doesn't have edit permission
+   * @throws DuplicateResourceException if recipe is already in the collection
+   */
+  @Transactional
+  public ResponseEntity<RecipeCollectionItemDto> addRecipeToCollection(
+      final Long collectionId, final Long recipeId) {
+    // Get current authenticated user ID
+    UUID currentUserId = SecurityUtils.getCurrentUserId();
+
+    // Fetch the collection and verify it exists
+    RecipeCollection collection =
+        recipeCollectionRepository
+            .findById(collectionId)
+            .orElseThrow(() -> new ResourceNotFoundException("Collection not found"));
+
+    // Check if user has edit permission
+    checkEditPermission(collection, currentUserId);
+
+    // Check if recipe already exists in collection
+    if (recipeCollectionItemRepository.existsByIdCollectionIdAndIdRecipeId(
+        collectionId, recipeId)) {
+      throw new DuplicateResourceException("Recipe is already in this collection");
+    }
+
+    // Calculate display order (max + 10, or 10 if collection is empty)
+    Integer maxDisplayOrder =
+        recipeCollectionItemRepository.findMaxDisplayOrderByCollectionId(collectionId);
+    int newDisplayOrder =
+        (maxDisplayOrder == null)
+            ? DISPLAY_ORDER_INCREMENT
+            : maxDisplayOrder + DISPLAY_ORDER_INCREMENT;
+
+    // Create the collection item entity
+    RecipeCollectionItemId itemId =
+        RecipeCollectionItemId.builder().collectionId(collectionId).recipeId(recipeId).build();
+
+    RecipeCollectionItem collectionItem =
+        RecipeCollectionItem.builder()
+            .id(itemId)
+            .displayOrder(newDisplayOrder)
+            .addedBy(currentUserId)
+            .build();
+
+    // Save the entity
+    RecipeCollectionItem savedItem = recipeCollectionItemRepository.save(collectionItem);
+
+    // Map to DTO and return 201 Created
+    RecipeCollectionItemDto responseDto = recipeCollectionItemMapper.toDto(savedItem);
+    return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
+  }
+
+  /**
+   * Checks if the given user has edit permission on the collection.
+   *
+   * <p>Edit permission is granted if:
+   *
+   * <ul>
+   *   <li>User is the collection owner, OR
+   *   <li>Collection collaboration mode is ALL_USERS, OR
+   *   <li>Collection collaboration mode is SPECIFIC_USERS and user is a collaborator
+   * </ul>
+   *
+   * @param collection the collection to check permission for
+   * @param userId the user ID to check
+   * @throws AccessDeniedException if user doesn't have edit permission
+   */
+  private void checkEditPermission(final RecipeCollection collection, final UUID userId) {
+    // Owner always has edit permission
+    if (collection.getUserId().equals(userId)) {
+      return;
+    }
+
+    // Check collaboration mode
+    CollaborationMode mode = collection.getCollaborationMode();
+
+    if (mode == CollaborationMode.ALL_USERS) {
+      // All authenticated users can edit
+      return;
+    }
+
+    if (mode == CollaborationMode.SPECIFIC_USERS) {
+      // Check if user is a collaborator
+      boolean isCollaborator =
+          collectionCollaboratorRepository.existsByIdCollectionIdAndIdUserId(
+              collection.getCollectionId(), userId);
+      if (isCollaborator) {
+        return;
+      }
+    }
+
+    // No permission found
+    throw new AccessDeniedException("User doesn't have edit permission for this collection");
   }
 
   /**

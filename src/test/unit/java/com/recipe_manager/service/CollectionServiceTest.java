@@ -36,8 +36,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 
+import com.recipe_manager.exception.DuplicateResourceException;
 import com.recipe_manager.exception.ResourceNotFoundException;
 import com.recipe_manager.model.dto.collection.CollectionRecipeDto;
+import com.recipe_manager.model.dto.collection.RecipeCollectionItemDto;
 import com.recipe_manager.model.dto.request.CreateCollectionRequest;
 import com.recipe_manager.model.dto.request.SearchCollectionsRequest;
 import com.recipe_manager.model.dto.request.UpdateCollectionRequest;
@@ -50,8 +52,11 @@ import com.recipe_manager.model.entity.collection.RecipeCollectionItemId;
 import com.recipe_manager.model.enums.CollaborationMode;
 import com.recipe_manager.model.enums.CollectionVisibility;
 import com.recipe_manager.model.mapper.CollectionMapper;
+import com.recipe_manager.model.mapper.RecipeCollectionItemMapper;
 import com.recipe_manager.model.mapper.RecipeCollectionMapper;
+import com.recipe_manager.repository.collection.CollectionCollaboratorRepository;
 import com.recipe_manager.repository.collection.CollectionSummaryProjection;
+import com.recipe_manager.repository.collection.RecipeCollectionItemRepository;
 import com.recipe_manager.repository.collection.RecipeCollectionRepository;
 import com.recipe_manager.util.SecurityUtils;
 
@@ -62,9 +67,15 @@ class CollectionServiceTest {
 
   @Mock private RecipeCollectionRepository recipeCollectionRepository;
 
+  @Mock private RecipeCollectionItemRepository recipeCollectionItemRepository;
+
+  @Mock private CollectionCollaboratorRepository collectionCollaboratorRepository;
+
   @Mock private CollectionMapper collectionMapper;
 
   @Mock private RecipeCollectionMapper recipeCollectionMapper;
+
+  @Mock private RecipeCollectionItemMapper recipeCollectionItemMapper;
 
   private CollectionService collectionService;
 
@@ -84,7 +95,12 @@ class CollectionServiceTest {
   void setUp() {
     collectionService =
         new CollectionService(
-            recipeCollectionRepository, collectionMapper, recipeCollectionMapper);
+            recipeCollectionRepository,
+            recipeCollectionItemRepository,
+            collectionCollaboratorRepository,
+            collectionMapper,
+            recipeCollectionMapper,
+            recipeCollectionItemMapper);
     testUserId = UUID.randomUUID();
   }
 
@@ -1761,5 +1777,418 @@ class CollectionServiceTest {
     assertThat(response.getBody().getTotalElements()).isEqualTo(10);
     assertThat(response.getBody().getTotalPages()).isEqualTo(2);
     assertThat(response.getBody().getContent()).hasSize(2);
+  }
+
+  @Test
+  @DisplayName("Should add recipe successfully to empty collection with displayOrder 10")
+  @Tag("standard-processing")
+  void shouldAddRecipeToEmptyCollectionSuccessfully() {
+    // Given
+    Long collectionId = 1L;
+    Long recipeId = 100L;
+
+    RecipeCollection collection =
+        RecipeCollection.builder()
+            .collectionId(collectionId)
+            .userId(testUserId)
+            .name("My Collection")
+            .collaborationMode(CollaborationMode.OWNER_ONLY)
+            .build();
+
+    RecipeCollectionItemId itemId =
+        RecipeCollectionItemId.builder().collectionId(collectionId).recipeId(recipeId).build();
+
+    RecipeCollectionItem savedItem =
+        RecipeCollectionItem.builder()
+            .id(itemId)
+            .displayOrder(10)
+            .addedBy(testUserId)
+            .addedAt(LocalDateTime.now())
+            .build();
+
+    RecipeCollectionItemDto expectedDto =
+        RecipeCollectionItemDto.builder()
+            .collectionId(collectionId)
+            .recipeId(recipeId)
+            .displayOrder(10)
+            .addedBy(testUserId)
+            .build();
+
+    when(recipeCollectionRepository.findById(collectionId)).thenReturn(Optional.of(collection));
+    when(recipeCollectionItemRepository.existsByIdCollectionIdAndIdRecipeId(collectionId, recipeId))
+        .thenReturn(false);
+    when(recipeCollectionItemRepository.findMaxDisplayOrderByCollectionId(collectionId))
+        .thenReturn(null); // Empty collection
+    when(recipeCollectionItemRepository.save(any(RecipeCollectionItem.class)))
+        .thenReturn(savedItem);
+    when(recipeCollectionItemMapper.toDto(savedItem)).thenReturn(expectedDto);
+
+    // When
+    ResponseEntity<RecipeCollectionItemDto> response;
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
+      response = collectionService.addRecipeToCollection(collectionId, recipeId);
+    }
+
+    // Then
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+    assertThat(response.getBody()).isNotNull();
+    assertThat(response.getBody().getDisplayOrder()).isEqualTo(10);
+    verify(recipeCollectionRepository).findById(collectionId);
+    verify(recipeCollectionItemRepository).save(any(RecipeCollectionItem.class));
+  }
+
+  @Test
+  @DisplayName("Should add recipe with correct displayOrder when collection has recipes")
+  @Tag("standard-processing")
+  void shouldAddRecipeWithCorrectDisplayOrder() {
+    // Given
+    Long collectionId = 2L;
+    Long recipeId = 200L;
+
+    RecipeCollection collection =
+        RecipeCollection.builder()
+            .collectionId(collectionId)
+            .userId(testUserId)
+            .name("My Collection")
+            .collaborationMode(CollaborationMode.OWNER_ONLY)
+            .build();
+
+    RecipeCollectionItemId itemId =
+        RecipeCollectionItemId.builder().collectionId(collectionId).recipeId(recipeId).build();
+
+    RecipeCollectionItem savedItem =
+        RecipeCollectionItem.builder()
+            .id(itemId)
+            .displayOrder(40) // max (30) + 10
+            .addedBy(testUserId)
+            .addedAt(LocalDateTime.now())
+            .build();
+
+    RecipeCollectionItemDto expectedDto =
+        RecipeCollectionItemDto.builder()
+            .collectionId(collectionId)
+            .recipeId(recipeId)
+            .displayOrder(40)
+            .addedBy(testUserId)
+            .build();
+
+    when(recipeCollectionRepository.findById(collectionId)).thenReturn(Optional.of(collection));
+    when(recipeCollectionItemRepository.existsByIdCollectionIdAndIdRecipeId(collectionId, recipeId))
+        .thenReturn(false);
+    when(recipeCollectionItemRepository.findMaxDisplayOrderByCollectionId(collectionId))
+        .thenReturn(30); // Collection has items with max displayOrder = 30
+    when(recipeCollectionItemRepository.save(any(RecipeCollectionItem.class)))
+        .thenReturn(savedItem);
+    when(recipeCollectionItemMapper.toDto(savedItem)).thenReturn(expectedDto);
+
+    // When
+    ResponseEntity<RecipeCollectionItemDto> response;
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
+      response = collectionService.addRecipeToCollection(collectionId, recipeId);
+    }
+
+    // Then
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+    assertThat(response.getBody()).isNotNull();
+    assertThat(response.getBody().getDisplayOrder()).isEqualTo(40);
+    verify(recipeCollectionItemRepository).findMaxDisplayOrderByCollectionId(collectionId);
+  }
+
+  @Test
+  @DisplayName("Should throw ResourceNotFoundException when collection not found")
+  @Tag("error-handling")
+  void shouldThrowResourceNotFoundExceptionWhenAddingRecipeToNonExistentCollection() {
+    // Given
+    Long nonExistentCollectionId = 999L;
+    Long recipeId = 100L;
+
+    when(recipeCollectionRepository.findById(nonExistentCollectionId))
+        .thenReturn(Optional.empty());
+
+    // When/Then
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
+
+      assertThatThrownBy(
+              () -> collectionService.addRecipeToCollection(nonExistentCollectionId, recipeId))
+          .isInstanceOf(ResourceNotFoundException.class)
+          .hasMessage("Collection not found");
+    }
+
+    verify(recipeCollectionRepository).findById(nonExistentCollectionId);
+    verify(recipeCollectionItemRepository, never()).save(any());
+  }
+
+  @Test
+  @DisplayName("Should throw AccessDeniedException when user lacks edit permission")
+  @Tag("error-handling")
+  void shouldThrowAccessDeniedExceptionWhenUserLacksEditPermission() {
+    // Given
+    Long collectionId = 3L;
+    Long recipeId = 300L;
+    UUID otherUserId = UUID.randomUUID();
+
+    RecipeCollection collection =
+        RecipeCollection.builder()
+            .collectionId(collectionId)
+            .userId(otherUserId) // Different owner
+            .name("Someone else's collection")
+            .collaborationMode(CollaborationMode.OWNER_ONLY) // Only owner can edit
+            .build();
+
+    when(recipeCollectionRepository.findById(collectionId)).thenReturn(Optional.of(collection));
+
+    // When/Then
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
+
+      assertThatThrownBy(() -> collectionService.addRecipeToCollection(collectionId, recipeId))
+          .isInstanceOf(AccessDeniedException.class)
+          .hasMessage("User doesn't have edit permission for this collection");
+    }
+
+    verify(recipeCollectionRepository).findById(collectionId);
+    verify(recipeCollectionItemRepository, never()).save(any());
+  }
+
+  @Test
+  @DisplayName("Should throw DuplicateResourceException when recipe already in collection")
+  @Tag("error-handling")
+  void shouldThrowDuplicateResourceExceptionWhenRecipeAlreadyInCollection() {
+    // Given
+    Long collectionId = 4L;
+    Long recipeId = 400L;
+
+    RecipeCollection collection =
+        RecipeCollection.builder()
+            .collectionId(collectionId)
+            .userId(testUserId)
+            .name("My Collection")
+            .collaborationMode(CollaborationMode.OWNER_ONLY)
+            .build();
+
+    when(recipeCollectionRepository.findById(collectionId)).thenReturn(Optional.of(collection));
+    when(recipeCollectionItemRepository.existsByIdCollectionIdAndIdRecipeId(collectionId, recipeId))
+        .thenReturn(true); // Recipe already exists
+
+    // When/Then
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
+
+      assertThatThrownBy(() -> collectionService.addRecipeToCollection(collectionId, recipeId))
+          .isInstanceOf(DuplicateResourceException.class)
+          .hasMessage("Recipe is already in this collection");
+    }
+
+    verify(recipeCollectionRepository).findById(collectionId);
+    verify(recipeCollectionItemRepository)
+        .existsByIdCollectionIdAndIdRecipeId(collectionId, recipeId);
+    verify(recipeCollectionItemRepository, never()).save(any());
+  }
+
+  @Test
+  @DisplayName("Should allow owner to add recipes in OWNER_ONLY mode")
+  @Tag("standard-processing")
+  void shouldAllowOwnerToAddRecipesInOwnerOnlyMode() {
+    // Given
+    Long collectionId = 5L;
+    Long recipeId = 500L;
+
+    RecipeCollection collection =
+        RecipeCollection.builder()
+            .collectionId(collectionId)
+            .userId(testUserId) // User is the owner
+            .name("Owner Only Collection")
+            .collaborationMode(CollaborationMode.OWNER_ONLY)
+            .build();
+
+    RecipeCollectionItemId itemId =
+        RecipeCollectionItemId.builder().collectionId(collectionId).recipeId(recipeId).build();
+
+    RecipeCollectionItem savedItem =
+        RecipeCollectionItem.builder()
+            .id(itemId)
+            .displayOrder(10)
+            .addedBy(testUserId)
+            .build();
+
+    RecipeCollectionItemDto expectedDto =
+        RecipeCollectionItemDto.builder()
+            .collectionId(collectionId)
+            .recipeId(recipeId)
+            .displayOrder(10)
+            .build();
+
+    when(recipeCollectionRepository.findById(collectionId)).thenReturn(Optional.of(collection));
+    when(recipeCollectionItemRepository.existsByIdCollectionIdAndIdRecipeId(collectionId, recipeId))
+        .thenReturn(false);
+    when(recipeCollectionItemRepository.findMaxDisplayOrderByCollectionId(collectionId))
+        .thenReturn(null);
+    when(recipeCollectionItemRepository.save(any(RecipeCollectionItem.class)))
+        .thenReturn(savedItem);
+    when(recipeCollectionItemMapper.toDto(savedItem)).thenReturn(expectedDto);
+
+    // When
+    ResponseEntity<RecipeCollectionItemDto> response;
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
+      response = collectionService.addRecipeToCollection(collectionId, recipeId);
+    }
+
+    // Then
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+    assertThat(response.getBody()).isNotNull();
+  }
+
+  @Test
+  @DisplayName("Should allow any user to add recipes in ALL_USERS mode")
+  @Tag("standard-processing")
+  void shouldAllowAnyUserToAddRecipesInAllUsersMode() {
+    // Given
+    Long collectionId = 6L;
+    Long recipeId = 600L;
+    UUID otherUserId = UUID.randomUUID();
+
+    RecipeCollection collection =
+        RecipeCollection.builder()
+            .collectionId(collectionId)
+            .userId(otherUserId) // Different owner
+            .name("Public Collaboration Collection")
+            .collaborationMode(CollaborationMode.ALL_USERS) // Any user can edit
+            .build();
+
+    RecipeCollectionItemId itemId =
+        RecipeCollectionItemId.builder().collectionId(collectionId).recipeId(recipeId).build();
+
+    RecipeCollectionItem savedItem =
+        RecipeCollectionItem.builder()
+            .id(itemId)
+            .displayOrder(10)
+            .addedBy(testUserId)
+            .build();
+
+    RecipeCollectionItemDto expectedDto =
+        RecipeCollectionItemDto.builder()
+            .collectionId(collectionId)
+            .recipeId(recipeId)
+            .displayOrder(10)
+            .build();
+
+    when(recipeCollectionRepository.findById(collectionId)).thenReturn(Optional.of(collection));
+    when(recipeCollectionItemRepository.existsByIdCollectionIdAndIdRecipeId(collectionId, recipeId))
+        .thenReturn(false);
+    when(recipeCollectionItemRepository.findMaxDisplayOrderByCollectionId(collectionId))
+        .thenReturn(null);
+    when(recipeCollectionItemRepository.save(any(RecipeCollectionItem.class)))
+        .thenReturn(savedItem);
+    when(recipeCollectionItemMapper.toDto(savedItem)).thenReturn(expectedDto);
+
+    // When
+    ResponseEntity<RecipeCollectionItemDto> response;
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
+      response = collectionService.addRecipeToCollection(collectionId, recipeId);
+    }
+
+    // Then
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+    assertThat(response.getBody()).isNotNull();
+  }
+
+  @Test
+  @DisplayName("Should allow collaborators to add recipes in SPECIFIC_USERS mode")
+  @Tag("standard-processing")
+  void shouldAllowCollaboratorsToAddRecipesInSpecificUsersMode() {
+    // Given
+    Long collectionId = 7L;
+    Long recipeId = 700L;
+    UUID otherUserId = UUID.randomUUID();
+
+    RecipeCollection collection =
+        RecipeCollection.builder()
+            .collectionId(collectionId)
+            .userId(otherUserId) // Different owner
+            .name("Collaborator Collection")
+            .collaborationMode(CollaborationMode.SPECIFIC_USERS) // Only specific users can edit
+            .build();
+
+    RecipeCollectionItemId itemId =
+        RecipeCollectionItemId.builder().collectionId(collectionId).recipeId(recipeId).build();
+
+    RecipeCollectionItem savedItem =
+        RecipeCollectionItem.builder()
+            .id(itemId)
+            .displayOrder(10)
+            .addedBy(testUserId)
+            .build();
+
+    RecipeCollectionItemDto expectedDto =
+        RecipeCollectionItemDto.builder()
+            .collectionId(collectionId)
+            .recipeId(recipeId)
+            .displayOrder(10)
+            .build();
+
+    when(recipeCollectionRepository.findById(collectionId)).thenReturn(Optional.of(collection));
+    when(collectionCollaboratorRepository.existsByIdCollectionIdAndIdUserId(collectionId, testUserId))
+        .thenReturn(true); // User is a collaborator
+    when(recipeCollectionItemRepository.existsByIdCollectionIdAndIdRecipeId(collectionId, recipeId))
+        .thenReturn(false);
+    when(recipeCollectionItemRepository.findMaxDisplayOrderByCollectionId(collectionId))
+        .thenReturn(null);
+    when(recipeCollectionItemRepository.save(any(RecipeCollectionItem.class)))
+        .thenReturn(savedItem);
+    when(recipeCollectionItemMapper.toDto(savedItem)).thenReturn(expectedDto);
+
+    // When
+    ResponseEntity<RecipeCollectionItemDto> response;
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
+      response = collectionService.addRecipeToCollection(collectionId, recipeId);
+    }
+
+    // Then
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+    assertThat(response.getBody()).isNotNull();
+    verify(collectionCollaboratorRepository)
+        .existsByIdCollectionIdAndIdUserId(collectionId, testUserId);
+  }
+
+  @Test
+  @DisplayName("Should deny non-collaborators in SPECIFIC_USERS mode")
+  @Tag("error-handling")
+  void shouldDenyNonCollaboratorsInSpecificUsersMode() {
+    // Given
+    Long collectionId = 8L;
+    Long recipeId = 800L;
+    UUID otherUserId = UUID.randomUUID();
+
+    RecipeCollection collection =
+        RecipeCollection.builder()
+            .collectionId(collectionId)
+            .userId(otherUserId) // Different owner
+            .name("Collaborator Collection")
+            .collaborationMode(CollaborationMode.SPECIFIC_USERS)
+            .build();
+
+    when(recipeCollectionRepository.findById(collectionId)).thenReturn(Optional.of(collection));
+    when(collectionCollaboratorRepository.existsByIdCollectionIdAndIdUserId(collectionId, testUserId))
+        .thenReturn(false); // User is NOT a collaborator
+
+    // When/Then
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
+
+      assertThatThrownBy(() -> collectionService.addRecipeToCollection(collectionId, recipeId))
+          .isInstanceOf(AccessDeniedException.class)
+          .hasMessage("User doesn't have edit permission for this collection");
+    }
+
+    verify(recipeCollectionRepository).findById(collectionId);
+    verify(collectionCollaboratorRepository)
+        .existsByIdCollectionIdAndIdUserId(collectionId, testUserId);
+    verify(recipeCollectionItemRepository, never()).save(any());
   }
 }

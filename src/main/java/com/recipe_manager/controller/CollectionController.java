@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.recipe_manager.model.dto.collection.RecipeCollectionItemDto;
 import com.recipe_manager.model.dto.request.CreateCollectionRequest;
 import com.recipe_manager.model.dto.request.SearchCollectionsRequest;
 import com.recipe_manager.model.dto.request.UpdateCollectionRequest;
@@ -155,5 +156,25 @@ public class CollectionController {
       @Valid @RequestBody final SearchCollectionsRequest request,
       @PageableDefault(size = DEFAULT_PAGE_SIZE) final Pageable pageable) {
     return collectionService.searchCollections(request, pageable);
+  }
+
+  /**
+   * Add a recipe to a collection.
+   *
+   * <p>Adds a recipe to a collection with automatic display order assignment. The user must have
+   * edit permission on the collection (owner, or collaborator based on collaboration mode). If the
+   * collection is empty, the recipe is assigned displayOrder 10. Otherwise, it's assigned max
+   * displayOrder + 10 to maintain ordering gaps.
+   *
+   * @param collectionId the ID of the collection to add the recipe to
+   * @param recipeId the ID of the recipe to add
+   * @return ResponseEntity with the created collection item and 201 Created status
+   */
+  @PostMapping(
+      value = "/{collectionId}/recipes/{recipeId}",
+      produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<RecipeCollectionItemDto> addRecipeToCollection(
+      @PathVariable final Long collectionId, @PathVariable final Long recipeId) {
+    return collectionService.addRecipeToCollection(collectionId, recipeId);
   }
 }

@@ -3,7 +3,9 @@ package com.recipe_manager.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -29,6 +31,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -36,6 +39,7 @@ import org.springframework.security.access.AccessDeniedException;
 import com.recipe_manager.exception.ResourceNotFoundException;
 import com.recipe_manager.model.dto.collection.CollectionRecipeDto;
 import com.recipe_manager.model.dto.request.CreateCollectionRequest;
+import com.recipe_manager.model.dto.request.SearchCollectionsRequest;
 import com.recipe_manager.model.dto.request.UpdateCollectionRequest;
 import com.recipe_manager.model.dto.response.CollectionDetailsDto;
 import com.recipe_manager.model.dto.response.CollectionDto;
@@ -65,6 +69,16 @@ class CollectionServiceTest {
   private CollectionService collectionService;
 
   private UUID testUserId;
+
+  /**
+   * Matcher for null or empty arrays.
+   *
+   * @param <T> the array type
+   * @return matcher that accepts null or empty arrays
+   */
+  private static <T> T[] nullOrEmpty() {
+    return argThat(arr -> arr == null || arr.length == 0);
+  }
 
   @BeforeEach
   void setUp() {
@@ -1408,5 +1422,344 @@ class CollectionServiceTest {
     assertThat(deletedCollection.getCollectionId()).isEqualTo(collectionId);
     assertThat(deletedCollection.getUserId()).isEqualTo(testUserId);
     assertThat(deletedCollection.getName()).isEqualTo("Collection to Delete");
+  }
+
+  @Test
+  @DisplayName("Should search collections with text query")
+  @Tag("standard-processing")
+  void shouldSearchCollectionsWithTextQuery() {
+    // Given
+    SearchCollectionsRequest request = SearchCollectionsRequest.builder().query("pasta").build();
+
+    Pageable pageable = PageRequest.of(0, 20);
+
+    RecipeCollection collection1 =
+        RecipeCollection.builder()
+            .collectionId(1L)
+            .userId(testUserId)
+            .name("Pasta Recipes")
+            .visibility(CollectionVisibility.PUBLIC)
+            .collaborationMode(CollaborationMode.OWNER_ONLY)
+            .build();
+
+    Page<RecipeCollection> collectionPage = new PageImpl<>(List.of(collection1));
+
+    when(recipeCollectionRepository.searchCollections(
+            eq("pasta"), nullOrEmpty(), nullOrEmpty(), isNull(), isNull(), isNull(), eq(pageable)))
+        .thenReturn(collectionPage);
+
+    when(collectionMapper.toDto(any(RecipeCollection.class)))
+        .thenReturn(CollectionDto.builder().collectionId(1L).name("Pasta Recipes").build());
+
+    // When
+    ResponseEntity<Page<CollectionDto>> response =
+        collectionService.searchCollections(request, pageable);
+
+    // Then
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    assertThat(response.getBody()).isNotNull();
+    assertThat(response.getBody().getContent()).hasSize(1);
+    assertThat(response.getBody().getContent().get(0).getName()).isEqualTo("Pasta Recipes");
+  }
+
+  @Test
+  @DisplayName("Should search collections with visibility filter")
+  @Tag("standard-processing")
+  void shouldSearchCollectionsWithVisibilityFilter() {
+    // Given
+    SearchCollectionsRequest request =
+        SearchCollectionsRequest.builder()
+            .visibility(List.of(CollectionVisibility.PUBLIC, CollectionVisibility.FRIENDS_ONLY))
+            .build();
+
+    Pageable pageable = PageRequest.of(0, 20);
+    Page<RecipeCollection> collectionPage = new PageImpl<>(List.of());
+
+    when(recipeCollectionRepository.searchCollections(
+            isNull(),
+            eq(new String[] {"PUBLIC", "FRIENDS_ONLY"}),
+            nullOrEmpty(),
+            isNull(),
+            isNull(),
+            isNull(),
+            eq(pageable)))
+        .thenReturn(collectionPage);
+
+    // When
+    ResponseEntity<Page<CollectionDto>> response =
+        collectionService.searchCollections(request, pageable);
+
+    // Then
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    verify(recipeCollectionRepository)
+        .searchCollections(
+            isNull(),
+            argThat(
+                array ->
+                    array != null
+                        && array.length == 2
+                        && array[0].equals("PUBLIC")
+                        && array[1].equals("FRIENDS_ONLY")),
+            nullOrEmpty(),
+            isNull(),
+            isNull(),
+            isNull(),
+            eq(pageable));
+  }
+
+  @Test
+  @DisplayName("Should search collections with collaboration mode filter")
+  @Tag("standard-processing")
+  void shouldSearchCollectionsWithCollaborationModeFilter() {
+    // Given
+    SearchCollectionsRequest request =
+        SearchCollectionsRequest.builder()
+            .collaborationMode(List.of(CollaborationMode.ALL_USERS))
+            .build();
+
+    Pageable pageable = PageRequest.of(0, 20);
+    Page<RecipeCollection> collectionPage = new PageImpl<>(List.of());
+
+    when(recipeCollectionRepository.searchCollections(
+            isNull(),
+            nullOrEmpty(),
+            eq(new String[] {"ALL_USERS"}),
+            isNull(),
+            isNull(),
+            isNull(),
+            eq(pageable)))
+        .thenReturn(collectionPage);
+
+    // When
+    ResponseEntity<Page<CollectionDto>> response =
+        collectionService.searchCollections(request, pageable);
+
+    // Then
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    verify(recipeCollectionRepository)
+        .searchCollections(
+            isNull(),
+            nullOrEmpty(),
+            argThat(array -> array != null && array.length == 1 && array[0].equals("ALL_USERS")),
+            isNull(),
+            isNull(),
+            isNull(),
+            eq(pageable));
+  }
+
+  @Test
+  @DisplayName("Should search collections with owner filter")
+  @Tag("standard-processing")
+  void shouldSearchCollectionsWithOwnerFilter() {
+    // Given
+    UUID ownerUuid = UUID.randomUUID();
+    SearchCollectionsRequest request =
+        SearchCollectionsRequest.builder().ownerUserId(ownerUuid).build();
+
+    Pageable pageable = PageRequest.of(0, 20);
+    Page<RecipeCollection> collectionPage = new PageImpl<>(List.of());
+
+    when(recipeCollectionRepository.searchCollections(
+            isNull(), nullOrEmpty(), nullOrEmpty(), eq(ownerUuid), isNull(), isNull(), eq(pageable)))
+        .thenReturn(collectionPage);
+
+    // When
+    ResponseEntity<Page<CollectionDto>> response =
+        collectionService.searchCollections(request, pageable);
+
+    // Then
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    verify(recipeCollectionRepository)
+        .searchCollections(
+            isNull(), nullOrEmpty(), nullOrEmpty(), eq(ownerUuid), isNull(), isNull(), eq(pageable));
+  }
+
+  @Test
+  @DisplayName("Should search collections with recipe count range")
+  @Tag("standard-processing")
+  void shouldSearchCollectionsWithRecipeCountRange() {
+    // Given
+    SearchCollectionsRequest request =
+        SearchCollectionsRequest.builder().minRecipeCount(5).maxRecipeCount(20).build();
+
+    Pageable pageable = PageRequest.of(0, 20);
+    Page<RecipeCollection> collectionPage = new PageImpl<>(List.of());
+
+    when(recipeCollectionRepository.searchCollections(
+            isNull(), nullOrEmpty(), nullOrEmpty(), isNull(), eq(5), eq(20), eq(pageable)))
+        .thenReturn(collectionPage);
+
+    // When
+    ResponseEntity<Page<CollectionDto>> response =
+        collectionService.searchCollections(request, pageable);
+
+    // Then
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    verify(recipeCollectionRepository)
+        .searchCollections(isNull(), nullOrEmpty(), nullOrEmpty(), isNull(), eq(5), eq(20), eq(pageable));
+  }
+
+  @Test
+  @DisplayName("Should search collections with multiple filters")
+  @Tag("standard-processing")
+  void shouldSearchCollectionsWithMultipleFilters() {
+    // Given
+    UUID ownerUuid = UUID.randomUUID();
+    SearchCollectionsRequest request =
+        SearchCollectionsRequest.builder()
+            .query("italian")
+            .visibility(List.of(CollectionVisibility.PUBLIC))
+            .collaborationMode(List.of(CollaborationMode.ALL_USERS))
+            .ownerUserId(ownerUuid)
+            .minRecipeCount(3)
+            .maxRecipeCount(15)
+            .build();
+
+    Pageable pageable = PageRequest.of(0, 10);
+
+    RecipeCollection collection =
+        RecipeCollection.builder()
+            .collectionId(5L)
+            .userId(ownerUuid)
+            .name("Italian Recipes")
+            .visibility(CollectionVisibility.PUBLIC)
+            .collaborationMode(CollaborationMode.ALL_USERS)
+            .build();
+
+    Page<RecipeCollection> collectionPage = new PageImpl<>(List.of(collection));
+
+    when(recipeCollectionRepository.searchCollections(
+            eq("italian"),
+            eq(new String[] {"PUBLIC"}),
+            eq(new String[] {"ALL_USERS"}),
+            eq(ownerUuid),
+            eq(3),
+            eq(15),
+            eq(pageable)))
+        .thenReturn(collectionPage);
+
+    when(collectionMapper.toDto(any(RecipeCollection.class)))
+        .thenReturn(CollectionDto.builder().collectionId(5L).name("Italian Recipes").build());
+
+    // When
+    ResponseEntity<Page<CollectionDto>> response =
+        collectionService.searchCollections(request, pageable);
+
+    // Then
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    assertThat(response.getBody()).isNotNull();
+    assertThat(response.getBody().getContent()).hasSize(1);
+    verify(recipeCollectionRepository)
+        .searchCollections(
+            eq("italian"),
+            argThat(array -> array != null && array[0].equals("PUBLIC")),
+            argThat(array -> array != null && array[0].equals("ALL_USERS")),
+            eq(ownerUuid),
+            eq(3),
+            eq(15),
+            eq(pageable));
+  }
+
+  @Test
+  @DisplayName("Should search collections with null filters")
+  @Tag("standard-processing")
+  void shouldSearchCollectionsWithNullFilters() {
+    // Given
+    SearchCollectionsRequest request = SearchCollectionsRequest.builder().build();
+
+    Pageable pageable = PageRequest.of(0, 20);
+    Page<RecipeCollection> collectionPage = new PageImpl<>(List.of());
+
+    when(recipeCollectionRepository.searchCollections(
+            isNull(), nullOrEmpty(), nullOrEmpty(), isNull(), isNull(), isNull(), eq(pageable)))
+        .thenReturn(collectionPage);
+
+    // When
+    ResponseEntity<Page<CollectionDto>> response =
+        collectionService.searchCollections(request, pageable);
+
+    // Then
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    verify(recipeCollectionRepository)
+        .searchCollections(
+            isNull(), nullOrEmpty(), nullOrEmpty(), isNull(), isNull(), isNull(), eq(pageable));
+  }
+
+  @Test
+  @DisplayName("Should handle empty search results")
+  @Tag("standard-processing")
+  void shouldHandleEmptySearchResults() {
+    // Given
+    SearchCollectionsRequest request =
+        SearchCollectionsRequest.builder().query("nonexistent").build();
+
+    Pageable pageable = PageRequest.of(0, 20);
+    Page<RecipeCollection> emptyPage = new PageImpl<>(List.of());
+
+    when(recipeCollectionRepository.searchCollections(
+            eq("nonexistent"), nullOrEmpty(), nullOrEmpty(), isNull(), isNull(), isNull(), eq(pageable)))
+        .thenReturn(emptyPage);
+
+    // When
+    ResponseEntity<Page<CollectionDto>> response =
+        collectionService.searchCollections(request, pageable);
+
+    // Then
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    assertThat(response.getBody()).isNotNull();
+    assertThat(response.getBody().getContent()).isEmpty();
+    assertThat(response.getBody().getTotalElements()).isEqualTo(0);
+  }
+
+  @Test
+  @DisplayName("Should apply pagination correctly in search")
+  @Tag("standard-processing")
+  void shouldApplyPaginationCorrectlyInSearch() {
+    // Given
+    SearchCollectionsRequest request = SearchCollectionsRequest.builder().build();
+
+    Pageable pageable = PageRequest.of(1, 5, Sort.by("name").ascending());
+
+    List<RecipeCollection> collections =
+        List.of(
+            RecipeCollection.builder()
+                .collectionId(1L)
+                .userId(testUserId)
+                .name("Collection 1")
+                .build(),
+            RecipeCollection.builder()
+                .collectionId(2L)
+                .userId(testUserId)
+                .name("Collection 2")
+                .build());
+
+    Page<RecipeCollection> collectionPage = new PageImpl<>(collections, pageable, 10);
+
+    when(recipeCollectionRepository.searchCollections(
+            isNull(), nullOrEmpty(), nullOrEmpty(), isNull(), isNull(), isNull(), eq(pageable)))
+        .thenReturn(collectionPage);
+
+    when(collectionMapper.toDto(any(RecipeCollection.class)))
+        .thenAnswer(
+            invocation -> {
+              RecipeCollection entity = invocation.getArgument(0);
+              return CollectionDto.builder()
+                  .collectionId(entity.getCollectionId())
+                  .name(entity.getName())
+                  .build();
+            });
+
+    // When
+    ResponseEntity<Page<CollectionDto>> response =
+        collectionService.searchCollections(request, pageable);
+
+    // Then
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    assertThat(response.getBody()).isNotNull();
+    assertThat(response.getBody().getNumber()).isEqualTo(1);
+    assertThat(response.getBody().getSize()).isEqualTo(5);
+    assertThat(response.getBody().getTotalElements()).isEqualTo(10);
+    assertThat(response.getBody().getTotalPages()).isEqualTo(2);
+    assertThat(response.getBody().getContent()).hasSize(2);
   }
 }

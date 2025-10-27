@@ -1,9 +1,11 @@
 package com.recipe_manager.service;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -11,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.recipe_manager.exception.ResourceNotFoundException;
 import com.recipe_manager.model.dto.request.CreateCollectionRequest;
+import com.recipe_manager.model.dto.request.SearchCollectionsRequest;
 import com.recipe_manager.model.dto.request.UpdateCollectionRequest;
 import com.recipe_manager.model.dto.response.CollectionDetailsDto;
 import com.recipe_manager.model.dto.response.CollectionDto;
@@ -106,7 +109,7 @@ public class CollectionService {
     CollectionDto responseDto = collectionMapper.toDto(savedCollection);
 
     // Return 201 Created with the new collection
-    return ResponseEntity.status(201).body(responseDto);
+    return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
   }
 
   /**
@@ -227,5 +230,53 @@ public class CollectionService {
 
     // Return 204 No Content
     return ResponseEntity.noContent().build();
+  }
+
+  /**
+   * Searches collections with advanced filtering.
+   *
+   * <p>Supports filtering by text query (searches name and description), visibility, collaboration
+   * mode, owner, and recipe count ranges. All filters are optional and applied cumulatively using
+   * AND logic. Results are paginated.
+   *
+   * @param request the search request containing filter criteria
+   * @param pageable pagination information
+   * @return ResponseEntity containing paginated search results
+   */
+  @Transactional(readOnly = true)
+  public ResponseEntity<Page<CollectionDto>> searchCollections(
+      final SearchCollectionsRequest request, final Pageable pageable) {
+    // Convert enum lists to String arrays for repository query
+    String[] visibilityArray = toStringArray(request.getVisibility());
+    String[] collaborationModeArray = toStringArray(request.getCollaborationMode());
+
+    // Call repository with all search parameters
+    Page<RecipeCollection> collections =
+        recipeCollectionRepository.searchCollections(
+            request.getQuery(),
+            visibilityArray,
+            collaborationModeArray,
+            request.getOwnerUserId(),
+            request.getMinRecipeCount(),
+            request.getMaxRecipeCount(),
+            pageable);
+
+    // Map entities to DTOs
+    Page<CollectionDto> collectionDtos = collections.map(collectionMapper::toDto);
+
+    return ResponseEntity.ok(collectionDtos);
+  }
+
+  /**
+   * Converts a list of enums to a String array for use in native queries.
+   *
+   * @param enumList the list of enums to convert
+   * @return String array of enum names, or empty array if list is null or empty
+   */
+  private String[] toStringArray(final List<? extends Enum<?>> enumList) {
+    if (enumList == null || enumList.isEmpty()) {
+      return new String[0];
+    }
+    return enumList.stream().map(Enum::name).toArray(String[]::new);
   }
 }

@@ -204,13 +204,13 @@ class RecipeCollectionRepositoryTest {
     Page<RecipeCollection> expectedPage = new PageImpl<>(collections, pageable, 1);
 
     when(recipeCollectionRepository.searchCollections(
-            visibilityList, collaborationModeList, testUserId, null, null, pageable))
+            null, visibilityList, collaborationModeList, testUserId, null, null, pageable))
         .thenReturn(expectedPage);
 
     // When
     Page<RecipeCollection> result =
         recipeCollectionRepository.searchCollections(
-            visibilityList, collaborationModeList, testUserId, null, null, pageable);
+            null, visibilityList, collaborationModeList, testUserId, null, null, pageable);
 
     // Then
     assertThat(result.getContent()).hasSize(1);
@@ -227,12 +227,14 @@ class RecipeCollectionRepositoryTest {
         Arrays.asList(createTestCollection(1L), createTestCollection(2L), createTestCollection(3L));
     Page<RecipeCollection> expectedPage = new PageImpl<>(collections, pageable, 3);
 
-    when(recipeCollectionRepository.searchCollections(null, null, null, null, null, pageable))
+    when(recipeCollectionRepository.searchCollections(
+            null, null, null, null, null, null, pageable))
         .thenReturn(expectedPage);
 
     // When
     Page<RecipeCollection> result =
-        recipeCollectionRepository.searchCollections(null, null, null, null, null, pageable);
+        recipeCollectionRepository.searchCollections(
+            null, null, null, null, null, null, pageable);
 
     // Then
     assertThat(result.getContent()).hasSize(3);

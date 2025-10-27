@@ -26,6 +26,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import com.recipe_manager.model.dto.collection.CollectionRecipeDto;
+import com.recipe_manager.model.dto.request.SearchCollectionsRequest;
 import com.recipe_manager.model.dto.request.UpdateCollectionRequest;
 import com.recipe_manager.model.dto.response.CollectionDetailsDto;
 import com.recipe_manager.model.dto.response.CollectionDto;
@@ -590,5 +591,35 @@ class CollectionControllerTest {
     assertThat(response.getStatusCodeValue()).isEqualTo(204);
     assertThat(response.getBody()).isNull();
     verify(collectionService).deleteCollection(collectionId);
+  }
+
+  @Test
+  @DisplayName("Should delegate search to service layer")
+  @Tag("standard-processing")
+  void shouldDelegateSearchToServiceLayer() {
+    // Given
+    SearchCollectionsRequest request =
+        SearchCollectionsRequest.builder().query("italian").build();
+
+    Pageable pageable = PageRequest.of(0, 20);
+
+    Page<CollectionDto> expectedPage =
+        new PageImpl<>(
+            List.of(CollectionDto.builder().collectionId(1L).name("Italian Recipes").build()));
+
+    ResponseEntity<Page<CollectionDto>> expectedResponse = ResponseEntity.ok(expectedPage);
+
+    when(collectionService.searchCollections(request, pageable)).thenReturn(expectedResponse);
+
+    // When
+    ResponseEntity<Page<CollectionDto>> response =
+        collectionController.searchCollections(request, pageable);
+
+    // Then
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    assertThat(response.getBody()).isNotNull();
+    assertThat(response.getBody().getContent()).hasSize(1);
+    assertThat(response.getBody().getContent().get(0).getName()).isEqualTo("Italian Recipes");
+    verify(collectionService).searchCollections(request, pageable);
   }
 }

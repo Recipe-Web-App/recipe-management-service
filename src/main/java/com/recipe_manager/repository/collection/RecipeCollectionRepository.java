@@ -70,12 +70,13 @@ public interface RecipeCollectionRepository extends JpaRepository<RecipeCollecti
   Page<RecipeCollection> findByVisibility(CollectionVisibility visibility, Pageable pageable);
 
   /**
-   * Searches collections with advanced filtering. Supports filtering by visibility, collaboration
-   * mode, owner, and recipe count ranges. All parameters are optional (null means no filter for
-   * that criterion).
+   * Searches collections with advanced filtering. Supports filtering by text query (searches name
+   * and description), visibility, collaboration mode, owner, and recipe count ranges. All
+   * parameters are optional (null or empty means no filter for that criterion).
    *
-   * @param visibilityList list of visibility types to include (null = no filter)
-   * @param collaborationModeList list of collaboration modes to include (null = no filter)
+   * @param searchQuery text to search in collection name or description (null = no filter)
+   * @param visibilityList list of visibility types to include (null or empty = no filter)
+   * @param collaborationModeList list of collaboration modes to include (null or empty = no filter)
    * @param ownerUserId filter by owner user ID (null = no filter)
    * @param minRecipeCount minimum recipe count (null = no filter)
    * @param maxRecipeCount maximum recipe count (null = no filter)
@@ -87,9 +88,11 @@ public interface RecipeCollectionRepository extends JpaRepository<RecipeCollecti
           "SELECT DISTINCT c.* FROM recipe_manager.recipe_collections c "
               + "LEFT JOIN recipe_manager.recipe_collection_items rci ON c.collection_id ="
               + " rci.collection_id "
-              + "WHERE (:#{#visibilityList == null} = true OR c.visibility::text = ANY(CAST(:visibilityList AS"
+              + "WHERE (:searchQuery IS NULL OR LOWER(c.name) LIKE LOWER(CONCAT('%', :searchQuery, '%')) "
+              + "  OR LOWER(c.description) LIKE LOWER(CONCAT('%', :searchQuery, '%'))) "
+              + "AND (:#{#visibilityList == null || #visibilityList.length == 0} = true OR c.visibility::text = ANY(CAST(:visibilityList AS"
               + " text[]))) "
-              + "AND (:#{#collaborationModeList == null} = true OR c.collaboration_mode::text = ANY(CAST(:collaborationModeList AS"
+              + "AND (:#{#collaborationModeList == null || #collaborationModeList.length == 0} = true OR c.collaboration_mode::text = ANY(CAST(:collaborationModeList AS"
               + " text[]))) "
               + "AND (:ownerUserId IS NULL OR c.user_id = :ownerUserId) "
               + "GROUP BY c.collection_id "
@@ -100,9 +103,11 @@ public interface RecipeCollectionRepository extends JpaRepository<RecipeCollecti
           "SELECT COUNT(DISTINCT c.collection_id) FROM recipe_manager.recipe_collections c "
               + "LEFT JOIN recipe_manager.recipe_collection_items rci ON c.collection_id ="
               + " rci.collection_id "
-              + "WHERE (:#{#visibilityList == null} = true OR c.visibility::text = ANY(CAST(:visibilityList AS"
+              + "WHERE (:searchQuery IS NULL OR LOWER(c.name) LIKE LOWER(CONCAT('%', :searchQuery, '%')) "
+              + "  OR LOWER(c.description) LIKE LOWER(CONCAT('%', :searchQuery, '%'))) "
+              + "AND (:#{#visibilityList == null || #visibilityList.length == 0} = true OR c.visibility::text = ANY(CAST(:visibilityList AS"
               + " text[]))) "
-              + "AND (:#{#collaborationModeList == null} = true OR c.collaboration_mode::text = ANY(CAST(:collaborationModeList AS"
+              + "AND (:#{#collaborationModeList == null || #collaborationModeList.length == 0} = true OR c.collaboration_mode::text = ANY(CAST(:collaborationModeList AS"
               + " text[]))) "
               + "AND (:ownerUserId IS NULL OR c.user_id = :ownerUserId) "
               + "GROUP BY c.collection_id "
@@ -110,6 +115,7 @@ public interface RecipeCollectionRepository extends JpaRepository<RecipeCollecti
               + "AND (:maxRecipeCount IS NULL OR COUNT(rci.recipe_id) <= :maxRecipeCount)",
       nativeQuery = true)
   Page<RecipeCollection> searchCollections(
+      @Param("searchQuery") String searchQuery,
       @Param("visibilityList") String[] visibilityList,
       @Param("collaborationModeList") String[] collaborationModeList,
       @Param("ownerUserId") UUID ownerUserId,

@@ -20,12 +20,23 @@ import lombok.NoArgsConstructor;
 @Builder
 public final class UpdateCollectionRequest {
 
+  /** Maximum length for collection name. */
+  private static final int MAX_NAME_LENGTH = 255;
+
+  /** Maximum length for collection description. */
+  private static final int MAX_DESCRIPTION_LENGTH = 2000;
+
   /** Collection name. Must be between 1 and 255 characters if provided. */
-  @Size(min = 1, max = 255, message = "Collection name must be between 1 and 255 characters")
+  @Size(
+      min = 1,
+      max = MAX_NAME_LENGTH,
+      message = "Collection name must be between 1 and 255 characters")
   private String name;
 
   /** Collection description. Maximum 2000 characters. Can be set to null to clear description. */
-  @Size(max = 2000, message = "Collection description must not exceed 2000 characters")
+  @Size(
+      max = MAX_DESCRIPTION_LENGTH,
+      message = "Collection description must not exceed 2000 characters")
   private String description;
 
   /** Collection visibility setting. Controls who can view the collection. */

@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.recipe_manager.model.dto.request.CreateCollectionRequest;
+import com.recipe_manager.model.dto.request.SearchCollectionsRequest;
 import com.recipe_manager.model.dto.request.UpdateCollectionRequest;
 import com.recipe_manager.model.dto.response.CollectionDetailsDto;
 import com.recipe_manager.model.dto.response.CollectionDto;
@@ -133,5 +134,26 @@ public class CollectionController {
   @DeleteMapping("/{collectionId}")
   public ResponseEntity<Void> deleteCollection(@PathVariable final Long collectionId) {
     return collectionService.deleteCollection(collectionId);
+  }
+
+  /**
+   * Search collections with advanced filtering.
+   *
+   * <p>Supports filtering by text query (searches name and description), visibility, collaboration
+   * mode, owner, and recipe count ranges. All filters are optional and applied cumulatively using
+   * AND logic. Results are paginated.
+   *
+   * @param request the search request containing filter criteria
+   * @param pageable pagination parameters
+   * @return ResponseEntity containing paginated search results
+   */
+  @PostMapping(
+      value = "/search",
+      consumes = MediaType.APPLICATION_JSON_VALUE,
+      produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<Page<CollectionDto>> searchCollections(
+      @Valid @RequestBody final SearchCollectionsRequest request,
+      @PageableDefault(size = DEFAULT_PAGE_SIZE) final Pageable pageable) {
+    return collectionService.searchCollections(request, pageable);
   }
 }

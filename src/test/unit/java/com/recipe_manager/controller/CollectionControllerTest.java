@@ -571,4 +571,24 @@ class CollectionControllerTest {
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
     assertThat(response.getStatusCodeValue()).isEqualTo(200);
   }
+
+  @Test
+  @DisplayName("Should delegate delete to service layer")
+  @Tag("standard-processing")
+  void shouldDelegateDeleteToServiceLayer() {
+    // Given
+    Long collectionId = 4L;
+    ResponseEntity<Void> expectedResponse = ResponseEntity.noContent().build();
+
+    when(collectionService.deleteCollection(collectionId)).thenReturn(expectedResponse);
+
+    // When
+    ResponseEntity<Void> response = collectionController.deleteCollection(collectionId);
+
+    // Then
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+    assertThat(response.getStatusCodeValue()).isEqualTo(204);
+    assertThat(response.getBody()).isNull();
+    verify(collectionService).deleteCollection(collectionId);
+  }
 }

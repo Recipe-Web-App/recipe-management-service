@@ -1262,4 +1262,151 @@ class CollectionServiceTest {
       securityUtilsMock.verify(SecurityUtils::getCurrentUserId);
     }
   }
+
+  @Test
+  @DisplayName("Should delete collection successfully when user is owner")
+  @Tag("standard-processing")
+  void shouldDeleteCollectionSuccessfully() {
+    // Given
+    Long collectionId = 7L;
+    RecipeCollection existingCollection =
+        RecipeCollection.builder()
+            .collectionId(collectionId)
+            .userId(testUserId)
+            .name("Collection to Delete")
+            .visibility(CollectionVisibility.PUBLIC)
+            .collaborationMode(CollaborationMode.OWNER_ONLY)
+            .build();
+
+    when(recipeCollectionRepository.findById(collectionId))
+        .thenReturn(Optional.of(existingCollection));
+
+    // When
+    ResponseEntity<Void> response;
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
+      response = collectionService.deleteCollection(collectionId);
+    }
+
+    // Then
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+    assertThat(response.getBody()).isNull();
+    verify(recipeCollectionRepository).findById(collectionId);
+    verify(recipeCollectionRepository).delete(existingCollection);
+  }
+
+  @Test
+  @DisplayName("Should throw ResourceNotFoundException when collection not found on delete")
+  @Tag("error-handling")
+  void shouldThrowResourceNotFoundExceptionWhenCollectionNotFoundOnDelete() {
+    // Given
+    Long nonExistentId = 999L;
+
+    when(recipeCollectionRepository.findById(nonExistentId)).thenReturn(Optional.empty());
+
+    // When/Then
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
+
+      assertThatThrownBy(() -> collectionService.deleteCollection(nonExistentId))
+          .isInstanceOf(ResourceNotFoundException.class)
+          .hasMessage("Collection not found");
+    }
+
+    verify(recipeCollectionRepository).findById(nonExistentId);
+    verify(recipeCollectionRepository, never()).delete(any());
+  }
+
+  @Test
+  @DisplayName("Should throw AccessDeniedException when user is not owner on delete")
+  @Tag("error-handling")
+  void shouldThrowAccessDeniedExceptionWhenUserIsNotOwnerOnDelete() {
+    // Given
+    Long collectionId = 8L;
+    UUID otherUserId = UUID.randomUUID();
+    RecipeCollection existingCollection =
+        RecipeCollection.builder()
+            .collectionId(collectionId)
+            .userId(otherUserId) // Different owner
+            .name("Someone else's collection")
+            .build();
+
+    when(recipeCollectionRepository.findById(collectionId))
+        .thenReturn(Optional.of(existingCollection));
+
+    // When/Then
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
+
+      assertThatThrownBy(() -> collectionService.deleteCollection(collectionId))
+          .isInstanceOf(AccessDeniedException.class)
+          .hasMessage("Only the collection owner can delete it");
+    }
+
+    verify(recipeCollectionRepository).findById(collectionId);
+    verify(recipeCollectionRepository, never()).delete(any());
+  }
+
+  @Test
+  @DisplayName("Should extract correct user ID from security context for delete")
+  @Tag("standard-processing")
+  void shouldExtractCorrectUserIdFromSecurityContextForDelete() {
+    // Given
+    UUID specificUserId = UUID.randomUUID();
+    Long collectionId = 9L;
+    RecipeCollection existingCollection =
+        RecipeCollection.builder()
+            .collectionId(collectionId)
+            .userId(specificUserId)
+            .name("Collection to Delete")
+            .build();
+
+    when(recipeCollectionRepository.findById(collectionId))
+        .thenReturn(Optional.of(existingCollection));
+
+    // When
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(specificUserId);
+      collectionService.deleteCollection(collectionId);
+
+      // Then - Verify SecurityUtils.getCurrentUserId() was called
+      securityUtilsMock.verify(SecurityUtils::getCurrentUserId);
+    }
+
+    verify(recipeCollectionRepository).findById(collectionId);
+  }
+
+  @Test
+  @DisplayName("Should call repository delete method when deleting collection")
+  @Tag("standard-processing")
+  void shouldCallRepositoryDeleteMethod() {
+    // Given
+    Long collectionId = 10L;
+    RecipeCollection existingCollection =
+        RecipeCollection.builder()
+            .collectionId(collectionId)
+            .userId(testUserId)
+            .name("Collection to Delete")
+            .visibility(CollectionVisibility.PRIVATE)
+            .collaborationMode(CollaborationMode.SPECIFIC_USERS)
+            .build();
+
+    when(recipeCollectionRepository.findById(collectionId))
+        .thenReturn(Optional.of(existingCollection));
+
+    // When
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
+      collectionService.deleteCollection(collectionId);
+    }
+
+    // Then - Verify delete was called with the correct entity
+    ArgumentCaptor<RecipeCollection> captor = ArgumentCaptor.forClass(RecipeCollection.class);
+    verify(recipeCollectionRepository).delete(captor.capture());
+
+    RecipeCollection deletedCollection = captor.getValue();
+    assertThat(deletedCollection.getCollectionId()).isEqualTo(collectionId);
+    assertThat(deletedCollection.getUserId()).isEqualTo(testUserId);
+    assertThat(deletedCollection.getName()).isEqualTo("Collection to Delete");
+  }
 }

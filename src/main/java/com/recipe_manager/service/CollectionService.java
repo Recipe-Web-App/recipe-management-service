@@ -194,4 +194,38 @@ public class CollectionService {
 
     return ResponseEntity.ok(responseDto);
   }
+
+  /**
+   * Deletes a collection permanently.
+   *
+   * <p>This method permanently removes a collection and all associated items and collaborators (via
+   * JPA cascade delete). Only the collection owner can delete the collection.
+   *
+   * @param collectionId the ID of the collection to delete
+   * @return ResponseEntity with 204 No Content status
+   * @throws ResourceNotFoundException if the collection doesn't exist
+   * @throws AccessDeniedException if the user is not the collection owner
+   */
+  @Transactional
+  public ResponseEntity<Void> deleteCollection(final Long collectionId) {
+    // Get current authenticated user ID from security context
+    UUID currentUserId = SecurityUtils.getCurrentUserId();
+
+    // Fetch the collection
+    RecipeCollection collection =
+        recipeCollectionRepository
+            .findById(collectionId)
+            .orElseThrow(() -> new ResourceNotFoundException("Collection not found"));
+
+    // Verify ownership - only the owner can delete the collection
+    if (!collection.getUserId().equals(currentUserId)) {
+      throw new AccessDeniedException("Only the collection owner can delete it");
+    }
+
+    // Delete the collection (cascade will delete items and collaborators)
+    recipeCollectionRepository.delete(collection);
+
+    // Return 204 No Content
+    return ResponseEntity.noContent().build();
+  }
 }

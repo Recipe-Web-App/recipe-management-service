@@ -5,6 +5,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -19,6 +20,7 @@ import com.recipe_manager.model.dto.response.CollectionDetailsDto;
 import com.recipe_manager.model.dto.response.CollectionDto;
 import com.recipe_manager.service.CollectionService;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import jakarta.validation.Valid;
 
 /**
@@ -42,6 +44,9 @@ public class CollectionController {
    *
    * @param collectionService the collection service
    */
+  @SuppressFBWarnings(
+      value = "EI_EXPOSE_REP2",
+      justification = "CollectionService is a Spring-managed bean injected via constructor")
   public CollectionController(final CollectionService collectionService) {
     this.collectionService = collectionService;
   }
@@ -113,5 +118,20 @@ public class CollectionController {
       @PathVariable final Long collectionId,
       @Valid @RequestBody final UpdateCollectionRequest request) {
     return collectionService.updateCollection(collectionId, request);
+  }
+
+  /**
+   * Delete a collection permanently.
+   *
+   * <p>Permanently removes a collection and all associated items and collaborators. Only the
+   * collection owner can delete the collection. Deletion is performed via cascade in the database,
+   * ensuring all related data (recipe items and collaborators) are also removed.
+   *
+   * @param collectionId the ID of the collection to delete
+   * @return ResponseEntity with 204 No Content status
+   */
+  @DeleteMapping("/{collectionId}")
+  public ResponseEntity<Void> deleteCollection(@PathVariable final Long collectionId) {
+    return collectionService.deleteCollection(collectionId);
   }
 }

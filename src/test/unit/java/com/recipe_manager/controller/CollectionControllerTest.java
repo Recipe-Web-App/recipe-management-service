@@ -2,6 +2,7 @@ package com.recipe_manager.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -786,6 +787,110 @@ class CollectionControllerTest {
 
     // Then
     verify(collectionService).removeRecipeFromCollection(collectionId, recipeId);
+  }
+
+  @Test
+  @DisplayName("Should update recipe order successfully and return 200 OK")
+  @Tag("standard-processing")
+  void shouldUpdateRecipeOrderSuccessfully() {
+    // Given
+    Long collectionId = 1L;
+    Long recipeId = 100L;
+
+    com.recipe_manager.model.dto.request.UpdateRecipeOrderRequest request =
+        com.recipe_manager.model.dto.request.UpdateRecipeOrderRequest.builder()
+            .displayOrder(15)
+            .build();
+
+    CollectionRecipeDto responseDto =
+        CollectionRecipeDto.builder()
+            .recipeId(recipeId)
+            .recipeTitle("Test Recipe")
+            .recipeDescription("Test Description")
+            .displayOrder(15)
+            .addedBy(UUID.randomUUID())
+            .addedAt(LocalDateTime.now())
+            .build();
+
+    ResponseEntity<CollectionRecipeDto> expectedResponse = ResponseEntity.ok(responseDto);
+
+    when(collectionService.updateRecipeOrder(collectionId, recipeId, request))
+        .thenReturn(expectedResponse);
+
+    // When
+    ResponseEntity<CollectionRecipeDto> response =
+        collectionController.updateRecipeOrder(collectionId, recipeId, request);
+
+    // Then
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    assertThat(response.getStatusCodeValue()).isEqualTo(200);
+    assertThat(response.getBody()).isNotNull();
+    assertThat(response.getBody().getRecipeId()).isEqualTo(recipeId);
+    assertThat(response.getBody().getDisplayOrder()).isEqualTo(15);
+  }
+
+  @Test
+  @DisplayName("Should delegate update recipe order to service layer")
+  @Tag("standard-processing")
+  void shouldDelegateUpdateRecipeOrderToServiceLayer() {
+    // Given
+    Long collectionId = 5L;
+    Long recipeId = 500L;
+
+    com.recipe_manager.model.dto.request.UpdateRecipeOrderRequest request =
+        com.recipe_manager.model.dto.request.UpdateRecipeOrderRequest.builder()
+            .displayOrder(20)
+            .build();
+
+    CollectionRecipeDto responseDto =
+        CollectionRecipeDto.builder()
+            .recipeId(recipeId)
+            .recipeTitle("Test Recipe")
+            .displayOrder(20)
+            .build();
+
+    ResponseEntity<CollectionRecipeDto> expectedResponse = ResponseEntity.ok(responseDto);
+
+    when(collectionService.updateRecipeOrder(collectionId, recipeId, request))
+        .thenReturn(expectedResponse);
+
+    // When
+    collectionController.updateRecipeOrder(collectionId, recipeId, request);
+
+    // Then
+    verify(collectionService).updateRecipeOrder(collectionId, recipeId, request);
+  }
+
+  @Test
+  @DisplayName("Should pass correct parameters to service for update recipe order")
+  @Tag("standard-processing")
+  void shouldPassCorrectParametersToServiceForUpdateRecipeOrder() {
+    // Given
+    Long collectionId = 123L;
+    Long recipeId = 456L;
+
+    com.recipe_manager.model.dto.request.UpdateRecipeOrderRequest request =
+        com.recipe_manager.model.dto.request.UpdateRecipeOrderRequest.builder()
+            .displayOrder(30)
+            .build();
+
+    CollectionRecipeDto responseDto =
+        CollectionRecipeDto.builder()
+            .recipeId(recipeId)
+            .recipeTitle("Test Recipe")
+            .displayOrder(30)
+            .build();
+
+    ResponseEntity<CollectionRecipeDto> expectedResponse = ResponseEntity.ok(responseDto);
+
+    when(collectionService.updateRecipeOrder(collectionId, recipeId, request))
+        .thenReturn(expectedResponse);
+
+    // When
+    collectionController.updateRecipeOrder(collectionId, recipeId, request);
+
+    // Then
+    verify(collectionService).updateRecipeOrder(eq(collectionId), eq(recipeId), eq(request));
   }
 
   @Test

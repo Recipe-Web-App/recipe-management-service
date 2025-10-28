@@ -396,6 +396,65 @@ public class CollectionService {
   }
 
   /**
+   * Updates the display order for a single recipe in a collection. User must have edit permission
+   * on the collection.
+   *
+   * <p>This method updates the display order of a specific recipe without affecting other recipes
+   * in the collection. Gaps in display order are allowed.
+   *
+   * @param collectionId the ID of the collection
+   * @param recipeId the ID of the recipe to update
+   * @param request the update request containing the new display order
+   * @return ResponseEntity containing CollectionRecipeDto with updated display order and recipe
+   *     metadata
+   * @throws ResourceNotFoundException if collection or recipe not found in collection
+   * @throws AccessDeniedException if user doesn't have edit permission
+   */
+  @Transactional
+  public ResponseEntity<com.recipe_manager.model.dto.collection.CollectionRecipeDto>
+      updateRecipeOrder(
+          final Long collectionId,
+          final Long recipeId,
+          final com.recipe_manager.model.dto.request.UpdateRecipeOrderRequest request) {
+    // Get current authenticated user ID
+    UUID currentUserId = SecurityUtils.getCurrentUserId();
+
+    // Fetch the collection and verify it exists
+    RecipeCollection collection =
+        recipeCollectionRepository
+            .findById(collectionId)
+            .orElseThrow(() -> new ResourceNotFoundException("Collection not found"));
+
+    // Check if user has edit permission
+    checkEditPermission(collection, currentUserId);
+
+    // Find the recipe collection item
+    RecipeCollectionItem item =
+        recipeCollectionItemRepository
+            .findByIdCollectionIdAndIdRecipeId(collectionId, recipeId)
+            .orElseThrow(
+                () -> new ResourceNotFoundException("Recipe not found in this collection"));
+
+    // Update display order
+    item.setDisplayOrder(request.getDisplayOrder());
+    recipeCollectionItemRepository.save(item);
+
+    // Fetch the item with recipe metadata loaded
+    RecipeCollectionItem updatedItem =
+        recipeCollectionItemRepository.findByIdCollectionIdWithRecipe(collectionId).stream()
+            .filter(i -> i.getId().getRecipeId().equals(recipeId))
+            .findFirst()
+            .orElseThrow(
+                () -> new ResourceNotFoundException("Recipe not found in this collection"));
+
+    // Map to DTO and return 200 OK
+    com.recipe_manager.model.dto.collection.CollectionRecipeDto responseDto =
+        collectionMapper.toRecipeDto(updatedItem);
+
+    return ResponseEntity.ok(responseDto);
+  }
+
+  /**
    * Batch reorders recipes in a collection by updating their display orders. User must have edit
    * permission on the collection.
    *

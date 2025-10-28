@@ -7,6 +7,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -194,6 +195,32 @@ public class CollectionController {
   public ResponseEntity<Void> removeRecipeFromCollection(
       @PathVariable final Long collectionId, @PathVariable final Long recipeId) {
     return collectionService.removeRecipeFromCollection(collectionId, recipeId);
+  }
+
+  /**
+   * Update recipe display order in a collection.
+   *
+   * <p>Updates the display order for a single recipe in the collection. The user must have edit
+   * permission on the collection (owner, or collaborator based on collaboration mode).
+   *
+   * <p>Returns the updated recipe with metadata including title and description.
+   *
+   * @param collectionId the ID of the collection
+   * @param recipeId the ID of the recipe to update
+   * @param request the update request containing the new display order
+   * @return ResponseEntity containing the updated CollectionRecipeDto with recipe metadata
+   */
+  @PatchMapping(
+      value = "/{collectionId}/recipes/{recipeId}",
+      consumes = MediaType.APPLICATION_JSON_VALUE,
+      produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<com.recipe_manager.model.dto.collection.CollectionRecipeDto>
+      updateRecipeOrder(
+          @PathVariable final Long collectionId,
+          @PathVariable final Long recipeId,
+          @Valid @RequestBody
+              final com.recipe_manager.model.dto.request.UpdateRecipeOrderRequest request) {
+    return collectionService.updateRecipeOrder(collectionId, recipeId, request);
   }
 
   /**

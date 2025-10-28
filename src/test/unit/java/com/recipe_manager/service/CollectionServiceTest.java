@@ -2435,6 +2435,202 @@ class CollectionServiceTest {
   }
 
   @Test
+  @DisplayName("Should update recipe order when user is owner")
+  @Tag("standard-processing")
+  void shouldUpdateRecipeOrderWhenUserIsOwner() {
+    // Given
+    Long collectionId = 50L;
+    Long recipeId = 500L;
+    Integer newDisplayOrder = 25;
+
+    com.recipe_manager.model.dto.request.UpdateRecipeOrderRequest request =
+        com.recipe_manager.model.dto.request.UpdateRecipeOrderRequest.builder()
+            .displayOrder(newDisplayOrder)
+            .build();
+
+    RecipeCollection collection =
+        RecipeCollection.builder()
+            .collectionId(collectionId)
+            .userId(testUserId)
+            .collaborationMode(CollaborationMode.OWNER_ONLY)
+            .build();
+
+    RecipeCollectionItemId itemId =
+        RecipeCollectionItemId.builder().collectionId(collectionId).recipeId(recipeId).build();
+
+    RecipeCollectionItem item =
+        RecipeCollectionItem.builder()
+            .id(itemId)
+            .displayOrder(10) // Old display order
+            .addedBy(testUserId)
+            .addedAt(LocalDateTime.now())
+            .build();
+
+    com.recipe_manager.model.entity.recipe.Recipe recipe =
+        com.recipe_manager.model.entity.recipe.Recipe.builder()
+            .recipeId(recipeId)
+            .title("Test Recipe")
+            .description("Test Description")
+            .userId(testUserId)
+            .build();
+
+    RecipeCollectionItem updatedItem =
+        RecipeCollectionItem.builder()
+            .id(itemId)
+            .recipe(recipe)
+            .displayOrder(newDisplayOrder)
+            .addedBy(testUserId)
+            .addedAt(LocalDateTime.now())
+            .build();
+
+    CollectionRecipeDto expectedDto =
+        CollectionRecipeDto.builder()
+            .recipeId(recipeId)
+            .recipeTitle("Test Recipe")
+            .recipeDescription("Test Description")
+            .displayOrder(newDisplayOrder)
+            .addedBy(testUserId)
+            .addedAt(LocalDateTime.now())
+            .build();
+
+    when(recipeCollectionRepository.findById(collectionId)).thenReturn(Optional.of(collection));
+    when(recipeCollectionItemRepository.findByIdCollectionIdAndIdRecipeId(collectionId, recipeId))
+        .thenReturn(Optional.of(item));
+    when(recipeCollectionItemRepository.save(any(RecipeCollectionItem.class))).thenReturn(item);
+    when(recipeCollectionItemRepository.findByIdCollectionIdWithRecipe(collectionId))
+        .thenReturn(List.of(updatedItem));
+    when(collectionMapper.toRecipeDto(updatedItem)).thenReturn(expectedDto);
+
+    // When
+    ResponseEntity<CollectionRecipeDto> response;
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
+      response = collectionService.updateRecipeOrder(collectionId, recipeId, request);
+    }
+
+    // Then
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    assertThat(response.getBody()).isNotNull();
+    assertThat(response.getBody().getRecipeId()).isEqualTo(recipeId);
+    assertThat(response.getBody().getDisplayOrder()).isEqualTo(newDisplayOrder);
+
+    verify(recipeCollectionRepository).findById(collectionId);
+    verify(recipeCollectionItemRepository)
+        .findByIdCollectionIdAndIdRecipeId(collectionId, recipeId);
+    verify(recipeCollectionItemRepository).save(any(RecipeCollectionItem.class));
+    verify(recipeCollectionItemRepository).findByIdCollectionIdWithRecipe(collectionId);
+    verify(collectionMapper).toRecipeDto(updatedItem);
+  }
+
+  @Test
+  @DisplayName("Should throw exception when collection not found during order update")
+  @Tag("error-handling")
+  void shouldThrowExceptionWhenCollectionNotFoundDuringOrderUpdate() {
+    // Given
+    Long collectionId = 999L;
+    Long recipeId = 500L;
+
+    com.recipe_manager.model.dto.request.UpdateRecipeOrderRequest request =
+        com.recipe_manager.model.dto.request.UpdateRecipeOrderRequest.builder()
+            .displayOrder(15)
+            .build();
+
+    when(recipeCollectionRepository.findById(collectionId)).thenReturn(Optional.empty());
+
+    // When & Then
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
+
+      assertThatThrownBy(
+              () -> collectionService.updateRecipeOrder(collectionId, recipeId, request))
+          .isInstanceOf(ResourceNotFoundException.class)
+          .hasMessage("Collection not found");
+    }
+
+    verify(recipeCollectionRepository).findById(collectionId);
+    verify(recipeCollectionItemRepository, never())
+        .findByIdCollectionIdAndIdRecipeId(any(), any());
+  }
+
+  @Test
+  @DisplayName("Should throw exception when recipe not in collection during order update")
+  @Tag("error-handling")
+  void shouldThrowExceptionWhenRecipeNotInCollectionDuringOrderUpdate() {
+    // Given
+    Long collectionId = 50L;
+    Long recipeId = 999L;
+
+    com.recipe_manager.model.dto.request.UpdateRecipeOrderRequest request =
+        com.recipe_manager.model.dto.request.UpdateRecipeOrderRequest.builder()
+            .displayOrder(15)
+            .build();
+
+    RecipeCollection collection =
+        RecipeCollection.builder()
+            .collectionId(collectionId)
+            .userId(testUserId)
+            .collaborationMode(CollaborationMode.OWNER_ONLY)
+            .build();
+
+    when(recipeCollectionRepository.findById(collectionId)).thenReturn(Optional.of(collection));
+    when(recipeCollectionItemRepository.findByIdCollectionIdAndIdRecipeId(collectionId, recipeId))
+        .thenReturn(Optional.empty());
+
+    // When & Then
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
+
+      assertThatThrownBy(
+              () -> collectionService.updateRecipeOrder(collectionId, recipeId, request))
+          .isInstanceOf(ResourceNotFoundException.class)
+          .hasMessage("Recipe not found in this collection");
+    }
+
+    verify(recipeCollectionRepository).findById(collectionId);
+    verify(recipeCollectionItemRepository)
+        .findByIdCollectionIdAndIdRecipeId(collectionId, recipeId);
+    verify(recipeCollectionItemRepository, never()).save(any());
+  }
+
+  @Test
+  @DisplayName("Should throw exception when user lacks edit permission for order update")
+  @Tag("error-handling")
+  void shouldThrowExceptionWhenUserLacksEditPermissionForOrderUpdate() {
+    // Given
+    Long collectionId = 50L;
+    Long recipeId = 500L;
+    UUID otherUserId = UUID.randomUUID();
+
+    com.recipe_manager.model.dto.request.UpdateRecipeOrderRequest request =
+        com.recipe_manager.model.dto.request.UpdateRecipeOrderRequest.builder()
+            .displayOrder(15)
+            .build();
+
+    RecipeCollection collection =
+        RecipeCollection.builder()
+            .collectionId(collectionId)
+            .userId(otherUserId) // Different owner
+            .collaborationMode(CollaborationMode.OWNER_ONLY) // Only owner can edit
+            .build();
+
+    when(recipeCollectionRepository.findById(collectionId)).thenReturn(Optional.of(collection));
+
+    // When & Then
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
+
+      assertThatThrownBy(
+              () -> collectionService.updateRecipeOrder(collectionId, recipeId, request))
+          .isInstanceOf(AccessDeniedException.class)
+          .hasMessage("User doesn't have edit permission for this collection");
+    }
+
+    verify(recipeCollectionRepository).findById(collectionId);
+    verify(recipeCollectionItemRepository, never())
+        .findByIdCollectionIdAndIdRecipeId(any(), any());
+  }
+
+  @Test
   @DisplayName("Should reorder recipes successfully when user is owner")
   @Tag("standard-processing")
   void shouldReorderRecipesWhenUserIsOwner() {

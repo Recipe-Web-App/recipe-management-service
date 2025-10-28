@@ -355,6 +355,47 @@ public class CollectionService {
   }
 
   /**
+   * Removes a recipe from a collection. User must have edit permission on the collection.
+   *
+   * <p>This method permanently deletes the recipe-to-collection association. The remaining recipes
+   * in the collection maintain their display order (gaps are allowed and do not require
+   * reordering).
+   *
+   * @param collectionId the ID of the collection to remove the recipe from
+   * @param recipeId the ID of the recipe to remove
+   * @return ResponseEntity with 204 No Content status
+   * @throws ResourceNotFoundException if collection doesn't exist or recipe is not in collection
+   * @throws AccessDeniedException if user doesn't have edit permission
+   */
+  @Transactional
+  public ResponseEntity<Void> removeRecipeFromCollection(
+      final Long collectionId, final Long recipeId) {
+    // Get current authenticated user ID
+    UUID currentUserId = SecurityUtils.getCurrentUserId();
+
+    // Fetch the collection and verify it exists
+    RecipeCollection collection =
+        recipeCollectionRepository
+            .findById(collectionId)
+            .orElseThrow(() -> new ResourceNotFoundException("Collection not found"));
+
+    // Check if user has edit permission
+    checkEditPermission(collection, currentUserId);
+
+    // Verify recipe exists in the collection
+    if (!recipeCollectionItemRepository.existsByIdCollectionIdAndIdRecipeId(
+        collectionId, recipeId)) {
+      throw new ResourceNotFoundException("Recipe not found in this collection");
+    }
+
+    // Delete the recipe from the collection
+    recipeCollectionItemRepository.deleteByIdCollectionIdAndIdRecipeId(collectionId, recipeId);
+
+    // Return 204 No Content
+    return ResponseEntity.noContent().build();
+  }
+
+  /**
    * Checks if the given user has edit permission on the collection.
    *
    * <p>Edit permission is granted if:

@@ -177,4 +177,22 @@ public class CollectionController {
       @PathVariable final Long collectionId, @PathVariable final Long recipeId) {
     return collectionService.addRecipeToCollection(collectionId, recipeId);
   }
+
+  /**
+   * Remove a recipe from a collection.
+   *
+   * <p>Removes a recipe from a collection. The user must have edit permission on the collection
+   * (owner, or collaborator based on collaboration mode). The recipe-to-collection association is
+   * permanently deleted. Remaining recipes maintain their display order (gaps are allowed and do
+   * not need to be reordered).
+   *
+   * @param collectionId the ID of the collection to remove the recipe from
+   * @param recipeId the ID of the recipe to remove
+   * @return ResponseEntity with 204 No Content status
+   */
+  @DeleteMapping("/{collectionId}/recipes/{recipeId}")
+  public ResponseEntity<Void> removeRecipeFromCollection(
+      @PathVariable final Long collectionId, @PathVariable final Long recipeId) {
+    return collectionService.removeRecipeFromCollection(collectionId, recipeId);
+  }
 }

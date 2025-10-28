@@ -722,4 +722,69 @@ class CollectionControllerTest {
     // Then
     verify(collectionService).addRecipeToCollection(collectionId, recipeId);
   }
+
+  @Test
+  @DisplayName("Should return no content when removing recipe from collection")
+  @Tag("standard-processing")
+  void shouldReturnNoContentWhenRemovingRecipe() {
+    // Given
+    Long collectionId = 1L;
+    Long recipeId = 100L;
+
+    ResponseEntity<Void> expectedResponse = ResponseEntity.noContent().build();
+
+    when(collectionService.removeRecipeFromCollection(collectionId, recipeId))
+        .thenReturn(expectedResponse);
+
+    // When
+    ResponseEntity<Void> response =
+        collectionController.removeRecipeFromCollection(collectionId, recipeId);
+
+    // Then
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+    assertThat(response.getStatusCodeValue()).isEqualTo(204);
+    assertThat(response.getBody()).isNull();
+
+    verify(collectionService).removeRecipeFromCollection(collectionId, recipeId);
+  }
+
+  @Test
+  @DisplayName("Should delegate remove recipe to service layer")
+  @Tag("standard-processing")
+  void shouldDelegateRemoveRecipeToServiceLayer() {
+    // Given
+    Long collectionId = 5L;
+    Long recipeId = 500L;
+
+    ResponseEntity<Void> expectedResponse = ResponseEntity.noContent().build();
+
+    when(collectionService.removeRecipeFromCollection(collectionId, recipeId))
+        .thenReturn(expectedResponse);
+
+    // When
+    collectionController.removeRecipeFromCollection(collectionId, recipeId);
+
+    // Then
+    verify(collectionService).removeRecipeFromCollection(collectionId, recipeId);
+  }
+
+  @Test
+  @DisplayName("Should pass correct path variables to service for remove recipe")
+  @Tag("standard-processing")
+  void shouldPassCorrectPathVariablesToServiceForRemoveRecipe() {
+    // Given
+    Long collectionId = 123L;
+    Long recipeId = 456L;
+
+    ResponseEntity<Void> expectedResponse = ResponseEntity.noContent().build();
+
+    when(collectionService.removeRecipeFromCollection(collectionId, recipeId))
+        .thenReturn(expectedResponse);
+
+    // When
+    collectionController.removeRecipeFromCollection(collectionId, recipeId);
+
+    // Then
+    verify(collectionService).removeRecipeFromCollection(collectionId, recipeId);
+  }
 }

@@ -2191,4 +2191,245 @@ class CollectionServiceTest {
         .existsByIdCollectionIdAndIdUserId(collectionId, testUserId);
     verify(recipeCollectionItemRepository, never()).save(any());
   }
+
+  @Test
+  @DisplayName("Should remove recipe when user is owner")
+  @Tag("standard-processing")
+  void shouldRemoveRecipeWhenUserIsOwner() {
+    // Given
+    Long collectionId = 10L;
+    Long recipeId = 1000L;
+
+    RecipeCollection collection =
+        RecipeCollection.builder()
+            .collectionId(collectionId)
+            .userId(testUserId) // User is the owner
+            .name("My Collection")
+            .collaborationMode(CollaborationMode.OWNER_ONLY)
+            .build();
+
+    when(recipeCollectionRepository.findById(collectionId)).thenReturn(Optional.of(collection));
+    when(recipeCollectionItemRepository.existsByIdCollectionIdAndIdRecipeId(collectionId, recipeId))
+        .thenReturn(true);
+
+    // When
+    ResponseEntity<Void> response;
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
+      response = collectionService.removeRecipeFromCollection(collectionId, recipeId);
+    }
+
+    // Then
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+    assertThat(response.getBody()).isNull();
+    verify(recipeCollectionRepository).findById(collectionId);
+    verify(recipeCollectionItemRepository)
+        .existsByIdCollectionIdAndIdRecipeId(collectionId, recipeId);
+    verify(recipeCollectionItemRepository)
+        .deleteByIdCollectionIdAndIdRecipeId(collectionId, recipeId);
+  }
+
+  @Test
+  @DisplayName("Should remove recipe when user has edit permission in ALL_USERS mode")
+  @Tag("standard-processing")
+  void shouldRemoveRecipeWhenUserHasEditPermissionInAllUsersMode() {
+    // Given
+    Long collectionId = 11L;
+    Long recipeId = 1100L;
+    UUID otherUserId = UUID.randomUUID();
+
+    RecipeCollection collection =
+        RecipeCollection.builder()
+            .collectionId(collectionId)
+            .userId(otherUserId) // Different owner
+            .name("Public Collection")
+            .collaborationMode(CollaborationMode.ALL_USERS) // Any user can edit
+            .build();
+
+    when(recipeCollectionRepository.findById(collectionId)).thenReturn(Optional.of(collection));
+    when(recipeCollectionItemRepository.existsByIdCollectionIdAndIdRecipeId(collectionId, recipeId))
+        .thenReturn(true);
+
+    // When
+    ResponseEntity<Void> response;
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
+      response = collectionService.removeRecipeFromCollection(collectionId, recipeId);
+    }
+
+    // Then
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+    verify(recipeCollectionItemRepository)
+        .deleteByIdCollectionIdAndIdRecipeId(collectionId, recipeId);
+  }
+
+  @Test
+  @DisplayName("Should throw ResourceNotFoundException when collection not found for remove")
+  @Tag("error-handling")
+  void shouldThrowResourceNotFoundExceptionWhenRemovingFromNonExistentCollection() {
+    // Given
+    Long nonExistentCollectionId = 999L;
+    Long recipeId = 100L;
+
+    when(recipeCollectionRepository.findById(nonExistentCollectionId))
+        .thenReturn(Optional.empty());
+
+    // When/Then
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
+
+      assertThatThrownBy(
+              () ->
+                  collectionService.removeRecipeFromCollection(nonExistentCollectionId, recipeId))
+          .isInstanceOf(ResourceNotFoundException.class)
+          .hasMessage("Collection not found");
+    }
+
+    verify(recipeCollectionRepository).findById(nonExistentCollectionId);
+    verify(recipeCollectionItemRepository, never())
+        .deleteByIdCollectionIdAndIdRecipeId(any(), any());
+  }
+
+  @Test
+  @DisplayName("Should throw AccessDeniedException when user lacks edit permission for remove")
+  @Tag("error-handling")
+  void shouldThrowAccessDeniedExceptionWhenUserLacksEditPermissionForRemove() {
+    // Given
+    Long collectionId = 12L;
+    Long recipeId = 1200L;
+    UUID otherUserId = UUID.randomUUID();
+
+    RecipeCollection collection =
+        RecipeCollection.builder()
+            .collectionId(collectionId)
+            .userId(otherUserId) // Different owner
+            .name("Someone else's collection")
+            .collaborationMode(CollaborationMode.OWNER_ONLY) // Only owner can edit
+            .build();
+
+    when(recipeCollectionRepository.findById(collectionId)).thenReturn(Optional.of(collection));
+
+    // When/Then
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
+
+      assertThatThrownBy(() -> collectionService.removeRecipeFromCollection(collectionId, recipeId))
+          .isInstanceOf(AccessDeniedException.class)
+          .hasMessage("User doesn't have edit permission for this collection");
+    }
+
+    verify(recipeCollectionRepository).findById(collectionId);
+    verify(recipeCollectionItemRepository, never())
+        .deleteByIdCollectionIdAndIdRecipeId(any(), any());
+  }
+
+  @Test
+  @DisplayName("Should throw ResourceNotFoundException when recipe not in collection")
+  @Tag("error-handling")
+  void shouldThrowResourceNotFoundExceptionWhenRecipeNotInCollection() {
+    // Given
+    Long collectionId = 13L;
+    Long recipeId = 1300L;
+
+    RecipeCollection collection =
+        RecipeCollection.builder()
+            .collectionId(collectionId)
+            .userId(testUserId)
+            .name("My Collection")
+            .collaborationMode(CollaborationMode.OWNER_ONLY)
+            .build();
+
+    when(recipeCollectionRepository.findById(collectionId)).thenReturn(Optional.of(collection));
+    when(recipeCollectionItemRepository.existsByIdCollectionIdAndIdRecipeId(collectionId, recipeId))
+        .thenReturn(false); // Recipe is not in collection
+
+    // When/Then
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
+
+      assertThatThrownBy(() -> collectionService.removeRecipeFromCollection(collectionId, recipeId))
+          .isInstanceOf(ResourceNotFoundException.class)
+          .hasMessage("Recipe not found in this collection");
+    }
+
+    verify(recipeCollectionRepository).findById(collectionId);
+    verify(recipeCollectionItemRepository)
+        .existsByIdCollectionIdAndIdRecipeId(collectionId, recipeId);
+    verify(recipeCollectionItemRepository, never())
+        .deleteByIdCollectionIdAndIdRecipeId(any(), any());
+  }
+
+  @Test
+  @DisplayName("Should allow collaborator to remove recipe in SPECIFIC_USERS mode")
+  @Tag("standard-processing")
+  void shouldAllowCollaboratorToRemoveRecipeInSpecificUsersMode() {
+    // Given
+    Long collectionId = 14L;
+    Long recipeId = 1400L;
+    UUID otherUserId = UUID.randomUUID();
+
+    RecipeCollection collection =
+        RecipeCollection.builder()
+            .collectionId(collectionId)
+            .userId(otherUserId) // Different owner
+            .name("Collaborator Collection")
+            .collaborationMode(CollaborationMode.SPECIFIC_USERS)
+            .build();
+
+    when(recipeCollectionRepository.findById(collectionId)).thenReturn(Optional.of(collection));
+    when(collectionCollaboratorRepository.existsByIdCollectionIdAndIdUserId(collectionId, testUserId))
+        .thenReturn(true); // User is a collaborator
+    when(recipeCollectionItemRepository.existsByIdCollectionIdAndIdRecipeId(collectionId, recipeId))
+        .thenReturn(true);
+
+    // When
+    ResponseEntity<Void> response;
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
+      response = collectionService.removeRecipeFromCollection(collectionId, recipeId);
+    }
+
+    // Then
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+    verify(collectionCollaboratorRepository)
+        .existsByIdCollectionIdAndIdUserId(collectionId, testUserId);
+    verify(recipeCollectionItemRepository)
+        .deleteByIdCollectionIdAndIdRecipeId(collectionId, recipeId);
+  }
+
+  @Test
+  @DisplayName("Should check edit permission before removing recipe")
+  @Tag("standard-processing")
+  void shouldCheckEditPermissionBeforeRemovingRecipe() {
+    // Given
+    Long collectionId = 15L;
+    Long recipeId = 1500L;
+
+    RecipeCollection collection =
+        RecipeCollection.builder()
+            .collectionId(collectionId)
+            .userId(testUserId) // User is the owner
+            .name("My Collection")
+            .collaborationMode(CollaborationMode.OWNER_ONLY)
+            .build();
+
+    when(recipeCollectionRepository.findById(collectionId)).thenReturn(Optional.of(collection));
+    when(recipeCollectionItemRepository.existsByIdCollectionIdAndIdRecipeId(collectionId, recipeId))
+        .thenReturn(true);
+
+    // When
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
+      collectionService.removeRecipeFromCollection(collectionId, recipeId);
+    }
+
+    // Then - Verify permission check was performed (via findById)
+    verify(recipeCollectionRepository).findById(collectionId);
+    // Verify recipe existence check was performed
+    verify(recipeCollectionItemRepository)
+        .existsByIdCollectionIdAndIdRecipeId(collectionId, recipeId);
+    // Verify deletion was executed
+    verify(recipeCollectionItemRepository)
+        .deleteByIdCollectionIdAndIdRecipeId(collectionId, recipeId);
+  }
 }

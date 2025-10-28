@@ -38,24 +38,28 @@ class CollectionCollaboratorMapperTest {
         CollectionCollaboratorId.builder().collectionId(1L).userId(userId).build();
     LocalDateTime now = LocalDateTime.now();
     String username = "john_doe";
+    String grantedByUsername = "admin_user";
 
     CollectionCollaborator collaborator =
         CollectionCollaborator.builder().id(id).grantedBy(grantedBy).grantedAt(now).build();
 
-    CollectionCollaboratorDto result = collectionCollaboratorMapper.toDto(collaborator, username);
+    CollectionCollaboratorDto result =
+        collectionCollaboratorMapper.toDto(collaborator, username, grantedByUsername);
 
     assertThat(result).isNotNull();
     assertThat(result.getCollectionId()).isEqualTo(1L);
     assertThat(result.getUserId()).isEqualTo(userId);
     assertThat(result.getUsername()).isEqualTo("john_doe");
     assertThat(result.getGrantedBy()).isEqualTo(grantedBy);
+    assertThat(result.getGrantedByUsername()).isEqualTo("admin_user");
     assertThat(result.getGrantedAt()).isEqualTo(now);
   }
 
   @Test
   @DisplayName("Should handle null CollectionCollaborator entity")
   void shouldHandleNullCollectionCollaboratorEntity() {
-    CollectionCollaboratorDto result = collectionCollaboratorMapper.toDto(null, "test_user");
+    CollectionCollaboratorDto result =
+        collectionCollaboratorMapper.toDto(null, "test_user", "granted_user");
     assertThat(result).isNull();
   }
 
@@ -70,10 +74,12 @@ class CollectionCollaboratorMapperTest {
     CollectionCollaborator collaborator =
         CollectionCollaborator.builder().id(id).grantedBy(grantedBy).build();
 
-    CollectionCollaboratorDto result = collectionCollaboratorMapper.toDto(collaborator, null);
+    CollectionCollaboratorDto result =
+        collectionCollaboratorMapper.toDto(collaborator, null, "granted_user");
 
     assertThat(result).isNotNull();
     assertThat(result.getUsername()).isNull();
+    assertThat(result.getGrantedByUsername()).isEqualTo("granted_user");
   }
 
   @Test
@@ -86,17 +92,38 @@ class CollectionCollaboratorMapperTest {
     CollectionCollaborator collaborator =
         CollectionCollaborator.builder().id(id).grantedBy(UUID.randomUUID()).build();
 
-    CollectionCollaboratorDto result = collectionCollaboratorMapper.toDto(collaborator, "jane_smith");
+    CollectionCollaboratorDto result =
+        collectionCollaboratorMapper.toDto(collaborator, "jane_smith", "owner_user");
 
     assertThat(result.getCollectionId()).isEqualTo(5L);
     assertThat(result.getUserId()).isEqualTo(userId);
     assertThat(result.getUsername()).isEqualTo("jane_smith");
+    assertThat(result.getGrantedByUsername()).isEqualTo("owner_user");
   }
 
   @Test
   @DisplayName("Should handle both null parameters")
   void shouldHandleBothNull() {
-    CollectionCollaboratorDto result = collectionCollaboratorMapper.toDto(null, null);
+    CollectionCollaboratorDto result = collectionCollaboratorMapper.toDto(null, null, null);
     assertThat(result).isNull();
+  }
+
+  @Test
+  @DisplayName("Should handle null grantedByUsername")
+  void shouldHandleNullGrantedByUsername() {
+    UUID userId = UUID.randomUUID();
+    UUID grantedBy = UUID.randomUUID();
+    CollectionCollaboratorId id =
+        CollectionCollaboratorId.builder().collectionId(1L).userId(userId).build();
+
+    CollectionCollaborator collaborator =
+        CollectionCollaborator.builder().id(id).grantedBy(grantedBy).build();
+
+    CollectionCollaboratorDto result =
+        collectionCollaboratorMapper.toDto(collaborator, "test_user", null);
+
+    assertThat(result).isNotNull();
+    assertThat(result.getUsername()).isEqualTo("test_user");
+    assertThat(result.getGrantedByUsername()).isNull();
   }
 }

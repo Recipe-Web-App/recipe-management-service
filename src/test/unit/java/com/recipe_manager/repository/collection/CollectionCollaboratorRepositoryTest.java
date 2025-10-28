@@ -221,6 +221,53 @@ class CollectionCollaboratorRepositoryTest {
     assertThat(result).containsExactlyElementsOf(expectedCollaborators);
   }
 
+  @Test
+  @DisplayName("Should find collaborators with usernames ordered by granted date")
+  @Tag("standard-processing")
+  void shouldFindCollaboratorsWithUsernamesByCollectionId() {
+    // Given
+    UUID userId1 = UUID.randomUUID();
+    UUID userId2 = UUID.randomUUID();
+    UUID grantedBy = UUID.randomUUID();
+
+    // Result rows: collection_id, user_id, username, granted_by, granted_by_username, granted_at
+    List<Object[]> expectedRows =
+        Arrays.asList(
+            new Object[] {
+              testCollectionId, userId1, "user1", grantedBy, "admin", LocalDateTime.now()
+            },
+            new Object[] {
+              testCollectionId, userId2, "user2", grantedBy, "admin", LocalDateTime.now().minusDays(1)
+            });
+    when(collaboratorRepository.findCollaboratorsWithUsernamesByCollectionId(testCollectionId))
+        .thenReturn(expectedRows);
+
+    // When
+    List<Object[]> result =
+        collaboratorRepository.findCollaboratorsWithUsernamesByCollectionId(testCollectionId);
+
+    // Then
+    assertThat(result).hasSize(2);
+    assertThat(result).containsExactlyElementsOf(expectedRows);
+    verify(collaboratorRepository).findCollaboratorsWithUsernamesByCollectionId(testCollectionId);
+  }
+
+  @Test
+  @DisplayName("Should return empty list when no collaborators have usernames")
+  @Tag("standard-processing")
+  void shouldReturnEmptyListWhenNoCollaboratorsWithUsernames() {
+    // Given
+    when(collaboratorRepository.findCollaboratorsWithUsernamesByCollectionId(testCollectionId))
+        .thenReturn(Collections.emptyList());
+
+    // When
+    List<Object[]> result =
+        collaboratorRepository.findCollaboratorsWithUsernamesByCollectionId(testCollectionId);
+
+    // Then
+    assertThat(result).isEmpty();
+  }
+
   private CollectionCollaborator createTestCollaborator(Long collectionId, UUID userId) {
     CollectionCollaboratorId id =
         CollectionCollaboratorId.builder().collectionId(collectionId).userId(userId).build();

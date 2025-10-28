@@ -39,6 +39,7 @@ import org.springframework.security.access.AccessDeniedException;
 
 import com.recipe_manager.exception.DuplicateResourceException;
 import com.recipe_manager.exception.ResourceNotFoundException;
+import com.recipe_manager.model.dto.collection.CollectionCollaboratorDto;
 import com.recipe_manager.model.dto.collection.CollectionRecipeDto;
 import com.recipe_manager.model.dto.collection.RecipeCollectionItemDto;
 import com.recipe_manager.model.dto.request.CreateCollectionRequest;
@@ -77,6 +78,7 @@ class CollectionServiceTest {
   @Mock private RecipeCollectionMapper recipeCollectionMapper;
 
   @Mock private RecipeCollectionItemMapper recipeCollectionItemMapper;
+
 
   private CollectionService collectionService;
 
@@ -2933,5 +2935,248 @@ class CollectionServiceTest {
     verify(recipeCollectionRepository).findById(collectionId);
     verify(recipeCollectionItemRepository).findByIdCollectionId(collectionId);
     verify(recipeCollectionItemRepository, never()).save(any());
+  }
+
+  @Test
+  @DisplayName("Should get collaborators successfully for collection owner")
+  @Tag("standard-processing")
+  void shouldGetCollaboratorsSuccessfullyForOwner() {
+    // Given
+    Long collectionId = 1L;
+    UUID collaborator1Id = UUID.randomUUID();
+    UUID collaborator2Id = UUID.randomUUID();
+
+    RecipeCollection collection =
+        RecipeCollection.builder()
+            .collectionId(collectionId)
+            .userId(testUserId)
+            .collaborationMode(CollaborationMode.SPECIFIC_USERS)
+            .visibility(CollectionVisibility.PRIVATE)
+            .build();
+
+    // Mock repository result rows: collection_id, user_id, username, granted_by,
+    // granted_by_username, granted_at
+    java.sql.Timestamp now = java.sql.Timestamp.valueOf(LocalDateTime.now());
+    List<Object[]> collaboratorRows =
+        Arrays.asList(
+            new Object[] {collectionId, collaborator1Id, "user1", testUserId, "owner", now},
+            new Object[] {
+                collectionId,
+                collaborator2Id,
+                "user2",
+                testUserId,
+                "owner",
+                java.sql.Timestamp.valueOf(LocalDateTime.now().minusDays(1))
+            });
+
+    when(recipeCollectionRepository.findById(collectionId)).thenReturn(Optional.of(collection));
+    when(collectionCollaboratorRepository.findCollaboratorsWithUsernamesByCollectionId(
+            collectionId))
+        .thenReturn(collaboratorRows);
+
+    // When
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
+
+      ResponseEntity<List<CollectionCollaboratorDto>> response =
+          collectionService.getCollaborators(collectionId);
+
+      // Then
+      assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+      assertThat(response.getBody()).isNotNull();
+      assertThat(response.getBody()).hasSize(2);
+      assertThat(response.getBody().get(0).getUserId()).isEqualTo(collaborator1Id);
+      assertThat(response.getBody().get(0).getUsername()).isEqualTo("user1");
+      assertThat(response.getBody().get(0).getGrantedBy()).isEqualTo(testUserId);
+      assertThat(response.getBody().get(0).getGrantedByUsername()).isEqualTo("owner");
+      assertThat(response.getBody().get(1).getUserId()).isEqualTo(collaborator2Id);
+      assertThat(response.getBody().get(1).getUsername()).isEqualTo("user2");
+    }
+
+    verify(recipeCollectionRepository).findById(collectionId);
+    verify(collectionCollaboratorRepository)
+        .findCollaboratorsWithUsernamesByCollectionId(collectionId);
+    verify(collectionCollaboratorRepository, never())
+        .existsByIdCollectionIdAndIdUserId(any(), any());
+  }
+
+  @Test
+  @DisplayName("Should throw ResourceNotFoundException when collection not found for getCollaborators")
+  @Tag("error-handling")
+  void shouldThrowNotFoundWhenCollectionNotFoundForGetCollaborators() {
+    // Given
+    Long collectionId = 999L;
+
+    when(recipeCollectionRepository.findById(collectionId)).thenReturn(Optional.empty());
+
+    // When/Then
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
+
+      assertThatThrownBy(() -> collectionService.getCollaborators(collectionId))
+          .isInstanceOf(ResourceNotFoundException.class)
+          .hasMessageContaining("Collection not found");
+    }
+
+    verify(recipeCollectionRepository).findById(collectionId);
+    verify(collectionCollaboratorRepository, never())
+        .findCollaboratorsWithUsernamesByCollectionId(any());
+  }
+
+  @Test
+  @DisplayName(
+      "Should throw AccessDeniedException when user lacks view permission for getCollaborators")
+  @Tag("error-handling")
+  void shouldThrowAccessDeniedWhenNoViewPermissionForGetCollaborators() {
+    // Given
+    Long collectionId = 1L;
+    UUID otherUserId = UUID.randomUUID();
+
+    RecipeCollection collection =
+        RecipeCollection.builder()
+            .collectionId(collectionId)
+            .userId(otherUserId)
+            .collaborationMode(CollaborationMode.SPECIFIC_USERS)
+            .visibility(CollectionVisibility.PRIVATE)
+            .build();
+
+    when(recipeCollectionRepository.findById(collectionId)).thenReturn(Optional.of(collection));
+    when(collectionCollaboratorRepository.existsByIdCollectionIdAndIdUserId(collectionId, testUserId))
+        .thenReturn(false);
+
+    // When/Then
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
+
+      assertThatThrownBy(() -> collectionService.getCollaborators(collectionId))
+          .isInstanceOf(AccessDeniedException.class)
+          .hasMessageContaining("User doesn't have view permission");
+    }
+
+    verify(recipeCollectionRepository).findById(collectionId);
+    verify(collectionCollaboratorRepository)
+        .existsByIdCollectionIdAndIdUserId(collectionId, testUserId);
+    verify(collectionCollaboratorRepository, never())
+        .findCollaboratorsWithUsernamesByCollectionId(any());
+  }
+
+  @Test
+  @DisplayName(
+      "Should throw AccessDeniedException when collection doesn't use SPECIFIC_USERS mode")
+  @Tag("error-handling")
+  void shouldThrowAccessDeniedWhenNotSpecificUsersMode() {
+    // Given
+    Long collectionId = 1L;
+
+    RecipeCollection collection =
+        RecipeCollection.builder()
+            .collectionId(collectionId)
+            .userId(testUserId)
+            .collaborationMode(CollaborationMode.ALL_USERS)
+            .visibility(CollectionVisibility.PUBLIC)
+            .build();
+
+    when(recipeCollectionRepository.findById(collectionId)).thenReturn(Optional.of(collection));
+
+    // When/Then
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
+
+      assertThatThrownBy(() -> collectionService.getCollaborators(collectionId))
+          .isInstanceOf(AccessDeniedException.class)
+          .hasMessageContaining("doesn't use SPECIFIC_USERS collaboration mode");
+    }
+
+    verify(recipeCollectionRepository).findById(collectionId);
+    verify(collectionCollaboratorRepository, never())
+        .findCollaboratorsWithUsernamesByCollectionId(any());
+  }
+
+  @Test
+  @DisplayName("Should return empty list when collection has no collaborators")
+  @Tag("standard-processing")
+  void shouldReturnEmptyListWhenNoCollaborators() {
+    // Given
+    Long collectionId = 1L;
+
+    RecipeCollection collection =
+        RecipeCollection.builder()
+            .collectionId(collectionId)
+            .userId(testUserId)
+            .collaborationMode(CollaborationMode.SPECIFIC_USERS)
+            .visibility(CollectionVisibility.PRIVATE)
+            .build();
+
+    when(recipeCollectionRepository.findById(collectionId)).thenReturn(Optional.of(collection));
+    when(collectionCollaboratorRepository.findCollaboratorsWithUsernamesByCollectionId(
+            collectionId))
+        .thenReturn(Collections.emptyList());
+
+    // When
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
+
+      ResponseEntity<List<CollectionCollaboratorDto>> response =
+          collectionService.getCollaborators(collectionId);
+
+      // Then
+      assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+      assertThat(response.getBody()).isNotNull();
+      assertThat(response.getBody()).isEmpty();
+    }
+
+    verify(recipeCollectionRepository).findById(collectionId);
+    verify(collectionCollaboratorRepository)
+        .findCollaboratorsWithUsernamesByCollectionId(collectionId);
+  }
+
+  @Test
+  @DisplayName("Should allow collaborator to view collaborators list")
+  @Tag("standard-processing")
+  void shouldAllowCollaboratorToViewCollaboratorsList() {
+    // Given
+    Long collectionId = 1L;
+    UUID ownerId = UUID.randomUUID();
+    UUID collaboratorId = UUID.randomUUID();
+
+    RecipeCollection collection =
+        RecipeCollection.builder()
+            .collectionId(collectionId)
+            .userId(ownerId)
+            .collaborationMode(CollaborationMode.SPECIFIC_USERS)
+            .visibility(CollectionVisibility.PRIVATE)
+            .build();
+
+    java.sql.Timestamp now = java.sql.Timestamp.valueOf(LocalDateTime.now());
+    List<Object[]> collaboratorRows =
+        List.<Object[]>of(
+            new Object[] {collectionId, collaboratorId, "collaborator1", ownerId, "owner", now});
+
+    when(recipeCollectionRepository.findById(collectionId)).thenReturn(Optional.of(collection));
+    when(collectionCollaboratorRepository.existsByIdCollectionIdAndIdUserId(
+            collectionId, testUserId))
+        .thenReturn(true);
+    when(collectionCollaboratorRepository.findCollaboratorsWithUsernamesByCollectionId(
+            collectionId))
+        .thenReturn(collaboratorRows);
+
+    // When
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
+
+      ResponseEntity<List<CollectionCollaboratorDto>> response =
+          collectionService.getCollaborators(collectionId);
+
+      // Then
+      assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+      assertThat(response.getBody()).isNotNull();
+      assertThat(response.getBody()).hasSize(1);
+    }
+
+    verify(recipeCollectionRepository).findById(collectionId);
+    verify(collectionCollaboratorRepository)
+        .existsByIdCollectionIdAndIdUserId(collectionId, testUserId);
+    verify(collectionCollaboratorRepository)
+        .findCollaboratorsWithUsernamesByCollectionId(collectionId);
   }
 }

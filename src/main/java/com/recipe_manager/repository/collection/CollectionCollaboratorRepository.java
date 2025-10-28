@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.recipe_manager.model.entity.collection.CollectionCollaborator;
@@ -72,4 +74,24 @@ public interface CollectionCollaboratorRepository
    * @return list of collaborators
    */
   List<CollectionCollaborator> findByIdCollectionIdIn(List<Long> collectionIds);
+
+  /**
+   * Finds all collaborators for a collection ordered by granted date (newest first). This method
+   * uses a native query to join with the users table to fetch usernames.
+   *
+   * @param collectionId the collection ID
+   * @return list of collaborators ordered by granted_at DESC
+   */
+  @Query(
+      value =
+          "SELECT cc.collection_id, cc.user_id, u1.username, cc.granted_by, "
+              + "u2.username AS granted_by_username, cc.granted_at "
+              + "FROM recipe_manager.collection_collaborators cc "
+              + "JOIN recipe_manager.users u1 ON cc.user_id = u1.user_id "
+              + "JOIN recipe_manager.users u2 ON cc.granted_by = u2.user_id "
+              + "WHERE cc.collection_id = :collectionId "
+              + "ORDER BY cc.granted_at DESC",
+      nativeQuery = true)
+  List<Object[]> findCollaboratorsWithUsernamesByCollectionId(
+      @Param("collectionId") Long collectionId);
 }

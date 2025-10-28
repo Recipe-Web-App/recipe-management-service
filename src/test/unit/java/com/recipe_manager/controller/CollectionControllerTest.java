@@ -26,6 +26,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import com.recipe_manager.model.dto.collection.CollectionCollaboratorDto;
 import com.recipe_manager.model.dto.collection.CollectionRecipeDto;
 import com.recipe_manager.model.dto.collection.RecipeCollectionItemDto;
 import com.recipe_manager.model.dto.request.SearchCollectionsRequest;
@@ -1022,5 +1023,95 @@ class CollectionControllerTest {
 
     // Then
     verify(collectionService).reorderRecipes(collectionId, request);
+  }
+
+  @Test
+  @DisplayName("Should get collaborators successfully")
+  @Tag("standard-processing")
+  void shouldGetCollaboratorsSuccessfully() {
+    // Given
+    Long collectionId = 1L;
+    UUID collaboratorId1 = UUID.randomUUID();
+    UUID collaboratorId2 = UUID.randomUUID();
+    UUID grantedById = UUID.randomUUID();
+
+    List<CollectionCollaboratorDto> collaborators =
+        Arrays.asList(
+            CollectionCollaboratorDto.builder()
+                .collectionId(collectionId)
+                .userId(collaboratorId1)
+                .username("user1")
+                .grantedBy(grantedById)
+                .grantedByUsername("admin")
+                .grantedAt(LocalDateTime.now())
+                .build(),
+            CollectionCollaboratorDto.builder()
+                .collectionId(collectionId)
+                .userId(collaboratorId2)
+                .username("user2")
+                .grantedBy(grantedById)
+                .grantedByUsername("admin")
+                .grantedAt(LocalDateTime.now().minusDays(1))
+                .build());
+
+    ResponseEntity<List<CollectionCollaboratorDto>> expectedResponse =
+        ResponseEntity.ok(collaborators);
+
+    when(collectionService.getCollaborators(collectionId)).thenReturn(expectedResponse);
+
+    // When
+    ResponseEntity<List<CollectionCollaboratorDto>> response =
+        collectionController.getCollaborators(collectionId);
+
+    // Then
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    assertThat(response.getBody()).isNotNull();
+    assertThat(response.getBody()).hasSize(2);
+    assertThat(response.getBody().get(0).getUserId()).isEqualTo(collaboratorId1);
+    assertThat(response.getBody().get(0).getUsername()).isEqualTo("user1");
+    assertThat(response.getBody().get(0).getGrantedByUsername()).isEqualTo("admin");
+
+    verify(collectionService).getCollaborators(collectionId);
+  }
+
+  @Test
+  @DisplayName("Should get empty collaborators list")
+  @Tag("standard-processing")
+  void shouldGetEmptyCollaboratorsList() {
+    // Given
+    Long collectionId = 1L;
+    ResponseEntity<List<CollectionCollaboratorDto>> expectedResponse =
+        ResponseEntity.ok(Collections.emptyList());
+
+    when(collectionService.getCollaborators(collectionId)).thenReturn(expectedResponse);
+
+    // When
+    ResponseEntity<List<CollectionCollaboratorDto>> response =
+        collectionController.getCollaborators(collectionId);
+
+    // Then
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    assertThat(response.getBody()).isNotNull();
+    assertThat(response.getBody()).isEmpty();
+
+    verify(collectionService).getCollaborators(collectionId);
+  }
+
+  @Test
+  @DisplayName("Should call service with correct collection ID for getCollaborators")
+  @Tag("standard-processing")
+  void shouldCallServiceWithCorrectCollectionId() {
+    // Given
+    Long collectionId = 999L;
+    ResponseEntity<List<CollectionCollaboratorDto>> expectedResponse =
+        ResponseEntity.ok(Collections.emptyList());
+
+    when(collectionService.getCollaborators(collectionId)).thenReturn(expectedResponse);
+
+    // When
+    collectionController.getCollaborators(collectionId);
+
+    // Then
+    verify(collectionService).getCollaborators(eq(999L));
   }
 }

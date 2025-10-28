@@ -14,18 +14,21 @@ public interface CollectionCollaboratorMapper {
    *
    * @param collaborator the CollectionCollaborator entity
    * @param username the username of the collaborator
+   * @param grantedByUsername the username of the user who granted access
    * @return the mapped CollectionCollaboratorDto, or null if collaborator is null
    */
   @Mapping(target = "collectionId", source = "collaborator.id.collectionId")
   @Mapping(target = "userId", source = "collaborator.id.userId")
   @Mapping(target = "username", source = "username")
   @Mapping(target = "grantedBy", source = "collaborator.grantedBy")
+  @Mapping(target = "grantedByUsername", source = "grantedByUsername")
   @Mapping(target = "grantedAt", source = "collaborator.grantedAt")
-  default CollectionCollaboratorDto toDto(CollectionCollaborator collaborator, String username) {
+  default CollectionCollaboratorDto toDto(
+      CollectionCollaborator collaborator, String username, String grantedByUsername) {
     if (collaborator == null) {
       return null;
     }
-    return mapToDto(collaborator, username);
+    return mapToDto(collaborator, username, grantedByUsername);
   }
 
   /**
@@ -33,12 +36,15 @@ public interface CollectionCollaboratorMapper {
    *
    * @param collaborator the CollectionCollaborator entity
    * @param username the username of the collaborator
+   * @param grantedByUsername the username of the user who granted access
    * @return the mapped CollectionCollaboratorDto
    */
   @Mapping(target = "collectionId", source = "collaborator.id.collectionId")
   @Mapping(target = "userId", source = "collaborator.id.userId")
   @Mapping(target = "username", source = "username")
   @Mapping(target = "grantedBy", source = "collaborator.grantedBy")
+  @Mapping(target = "grantedByUsername", source = "grantedByUsername")
   @Mapping(target = "grantedAt", source = "collaborator.grantedAt")
-  CollectionCollaboratorDto mapToDto(CollectionCollaborator collaborator, String username);
+  CollectionCollaboratorDto mapToDto(
+      CollectionCollaborator collaborator, String username, String grantedByUsername);
 }

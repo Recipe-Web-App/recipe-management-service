@@ -29,6 +29,9 @@ public class CollectionCollaboratorDto {
   /** The user ID who granted access. */
   private UUID grantedBy;
 
+  /** The username of the user who granted access. */
+  private String grantedByUsername;
+
   /** The timestamp when access was granted. */
   private LocalDateTime grantedAt;
 }

@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.recipe_manager.model.dto.collection.CollectionCollaboratorDto;
 import com.recipe_manager.model.dto.collection.RecipeCollectionItemDto;
 import com.recipe_manager.model.dto.request.CreateCollectionRequest;
 import com.recipe_manager.model.dto.request.SearchCollectionsRequest;
@@ -255,5 +256,24 @@ public class CollectionController {
           @Valid @RequestBody
               final com.recipe_manager.model.dto.request.ReorderRecipesRequest request) {
     return collectionService.reorderRecipes(collectionId, request);
+  }
+
+  /**
+   * Get all collaborators for a specific collection.
+   *
+   * <p>Returns a list of users who have been granted collaborator access to the collection. This
+   * endpoint is only available for collections with SPECIFIC_USERS collaboration mode. The user
+   * must have view permission for the collection (owner, collaborator, or public visibility).
+   *
+   * <p>Collaborators are returned ordered by when they were granted access (newest first),
+   * including both the collaborator's username and the username of the user who granted access.
+   *
+   * @param collectionId the ID of the collection
+   * @return ResponseEntity containing a list of collaborators with usernames
+   */
+  @GetMapping(value = "/{collectionId}/collaborators", produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<java.util.List<CollectionCollaboratorDto>> getCollaborators(
+      @PathVariable final Long collectionId) {
+    return collectionService.getCollaborators(collectionId);
   }
 }

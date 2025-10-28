@@ -22,12 +22,13 @@ class CollectionCollaboratorDtoTest {
     LocalDateTime now = LocalDateTime.now();
 
     CollectionCollaboratorDto dto =
-        new CollectionCollaboratorDto(1L, userId, "john_doe", grantedBy, now);
+        new CollectionCollaboratorDto(1L, userId, "john_doe", grantedBy, "admin_user", now);
 
     assertThat(dto.getCollectionId()).isEqualTo(1L);
     assertThat(dto.getUserId()).isEqualTo(userId);
     assertThat(dto.getUsername()).isEqualTo("john_doe");
     assertThat(dto.getGrantedBy()).isEqualTo(grantedBy);
+    assertThat(dto.getGrantedByUsername()).isEqualTo("admin_user");
     assertThat(dto.getGrantedAt()).isEqualTo(now);
   }
 
@@ -41,6 +42,7 @@ class CollectionCollaboratorDtoTest {
     assertThat(dto.getUserId()).isNull();
     assertThat(dto.getUsername()).isNull();
     assertThat(dto.getGrantedBy()).isNull();
+    assertThat(dto.getGrantedByUsername()).isNull();
     assertThat(dto.getGrantedAt()).isNull();
   }
 
@@ -57,12 +59,14 @@ class CollectionCollaboratorDtoTest {
             .userId(userId)
             .username("jane_smith")
             .grantedBy(grantedBy)
+            .grantedByUsername("owner_user")
             .build();
 
     assertThat(dto.getCollectionId()).isEqualTo(2L);
     assertThat(dto.getUserId()).isEqualTo(userId);
     assertThat(dto.getUsername()).isEqualTo("jane_smith");
     assertThat(dto.getGrantedBy()).isEqualTo(grantedBy);
+    assertThat(dto.getGrantedByUsername()).isEqualTo("owner_user");
   }
 
   @Test
@@ -78,12 +82,14 @@ class CollectionCollaboratorDtoTest {
     dto.setUserId(userId);
     dto.setUsername("alice_wonder");
     dto.setGrantedBy(grantedBy);
+    dto.setGrantedByUsername("collection_owner");
     dto.setGrantedAt(now);
 
     assertThat(dto.getCollectionId()).isEqualTo(3L);
     assertThat(dto.getUserId()).isEqualTo(userId);
     assertThat(dto.getUsername()).isEqualTo("alice_wonder");
     assertThat(dto.getGrantedBy()).isEqualTo(grantedBy);
+    assertThat(dto.getGrantedByUsername()).isEqualTo("collection_owner");
     assertThat(dto.getGrantedAt()).isEqualTo(now);
   }
 
@@ -100,6 +106,7 @@ class CollectionCollaboratorDtoTest {
             .userId(userId)
             .username("bob_builder")
             .grantedBy(grantedBy)
+            .grantedByUsername("admin")
             .build();
 
     CollectionCollaboratorDto dto2 =
@@ -108,10 +115,12 @@ class CollectionCollaboratorDtoTest {
             .userId(userId)
             .username("bob_builder")
             .grantedBy(grantedBy)
+            .grantedByUsername("admin")
             .build();
 
     assertThat(dto1).isEqualTo(dto2);
     assertThat(dto1.hashCode()).isEqualTo(dto2.hashCode());
-    assertThat(dto1.toString()).contains("1", userId.toString(), "bob_builder", grantedBy.toString());
+    assertThat(dto1.toString())
+        .contains("1", userId.toString(), "bob_builder", grantedBy.toString(), "admin");
   }
 }

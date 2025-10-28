@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.recipe_manager.exception.DuplicateResourceException;
 import com.recipe_manager.exception.ResourceNotFoundException;
+import com.recipe_manager.model.dto.collection.CollectionCollaboratorDto;
 import com.recipe_manager.model.dto.collection.RecipeCollectionItemDto;
 import com.recipe_manager.model.dto.request.CreateCollectionRequest;
 import com.recipe_manager.model.dto.request.SearchCollectionsRequest;
@@ -548,6 +549,98 @@ public class CollectionService {
             .collect(java.util.stream.Collectors.toList());
 
     return ResponseEntity.ok(responseDtos);
+  }
+
+  /**
+   * Retrieves all collaborators for a specific collection.
+   *
+   * <p>This endpoint is only available for collections with SPECIFIC_USERS collaboration mode. User
+   * must have view permission for the collection.
+   *
+   * @param collectionId the ID of the collection
+   * @return ResponseEntity containing a list of collection collaborators with usernames
+   * @throws ResourceNotFoundException if collection is not found
+   * @throws AccessDeniedException if user lacks view permission or collection doesn't use
+   *     SPECIFIC_USERS mode
+   */
+  @Transactional(readOnly = true)
+  public ResponseEntity<List<CollectionCollaboratorDto>> getCollaborators(final Long collectionId) {
+    // Get current authenticated user ID
+    UUID currentUserId = SecurityUtils.getCurrentUserId();
+
+    // Fetch the collection and verify it exists
+    RecipeCollection collection =
+        recipeCollectionRepository
+            .findById(collectionId)
+            .orElseThrow(() -> new ResourceNotFoundException("Collection not found"));
+
+    // Check if user has view permission
+    verifyViewPermission(collection, currentUserId);
+
+    // Verify collection uses SPECIFIC_USERS collaboration mode
+    if (collection.getCollaborationMode() != CollaborationMode.SPECIFIC_USERS) {
+      throw new AccessDeniedException("Collection doesn't use SPECIFIC_USERS collaboration mode");
+    }
+
+    // Fetch collaborators with usernames ordered by granted_at DESC
+    List<Object[]> collaboratorRows =
+        collectionCollaboratorRepository.findCollaboratorsWithUsernamesByCollectionId(collectionId);
+
+    // Convert Object[] rows to DTOs
+    // Row format: collection_id, user_id, username, granted_by, granted_by_username, granted_at
+    List<CollectionCollaboratorDto> collaborators =
+        collaboratorRows.stream()
+            .map(
+                row ->
+                    CollectionCollaboratorDto.builder()
+                        .collectionId((Long) row[0])
+                        .userId((UUID) row[1])
+                        .username((String) row[2])
+                        .grantedBy((UUID) row[3])
+                        .grantedByUsername((String) row[4])
+                        .grantedAt(((java.sql.Timestamp) row[5]).toLocalDateTime())
+                        .build())
+            .collect(java.util.stream.Collectors.toList());
+
+    return ResponseEntity.ok(collaborators);
+  }
+
+  /**
+   * Verifies that the given user has view permission for the collection.
+   *
+   * <p>View permission is granted if:
+   *
+   * <ul>
+   *   <li>User is the collection owner, OR
+   *   <li>User is a collaborator, OR
+   *   <li>Collection visibility is PUBLIC
+   * </ul>
+   *
+   * @param collection the collection to check permission for
+   * @param userId the user ID to check
+   * @throws AccessDeniedException if user doesn't have view permission
+   */
+  private void verifyViewPermission(final RecipeCollection collection, final UUID userId) {
+    // Owner always has view permission
+    if (collection.getUserId().equals(userId)) {
+      return;
+    }
+
+    // Check if user is a collaborator
+    boolean isCollaborator =
+        collectionCollaboratorRepository.existsByIdCollectionIdAndIdUserId(
+            collection.getCollectionId(), userId);
+    if (isCollaborator) {
+      return;
+    }
+
+    // Check visibility
+    if (collection.getVisibility() == com.recipe_manager.model.enums.CollectionVisibility.PUBLIC) {
+      return;
+    }
+
+    // No view permission found
+    throw new AccessDeniedException("User doesn't have view permission for this collection");
   }
 
   /**

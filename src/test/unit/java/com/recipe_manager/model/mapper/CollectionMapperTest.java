@@ -781,4 +781,190 @@ class CollectionMapperTest {
     // Then
     assertThat(result).isNull();
   }
+
+  @Test
+  @DisplayName("Should map RecipeCollectionItem to CollectionRecipeDto with recipe metadata")
+  @Tag("standard-processing")
+  void shouldMapRecipeCollectionItemToCollectionRecipeDto() {
+    // Given
+    UUID userId = UUID.randomUUID();
+    LocalDateTime now = LocalDateTime.now();
+
+    com.recipe_manager.model.entity.recipe.Recipe recipe =
+        com.recipe_manager.model.entity.recipe.Recipe.builder()
+            .recipeId(1L)
+            .title("Test Recipe")
+            .description("A delicious test recipe")
+            .userId(userId)
+            .createdAt(now)
+            .updatedAt(now)
+            .build();
+
+    com.recipe_manager.model.entity.collection.RecipeCollectionItemId itemId =
+        com.recipe_manager.model.entity.collection.RecipeCollectionItemId.builder()
+            .collectionId(10L)
+            .recipeId(1L)
+            .build();
+
+    RecipeCollectionItem item =
+        RecipeCollectionItem.builder()
+            .id(itemId)
+            .recipe(recipe)
+            .displayOrder(5)
+            .addedBy(userId)
+            .addedAt(now)
+            .build();
+
+    // When
+    var result = collectionMapper.toRecipeDto(item);
+
+    // Then
+    assertThat(result).isNotNull();
+    assertThat(result.getRecipeId()).isEqualTo(1L);
+    assertThat(result.getRecipeTitle()).isEqualTo("Test Recipe");
+    assertThat(result.getRecipeDescription()).isEqualTo("A delicious test recipe");
+    assertThat(result.getDisplayOrder()).isEqualTo(5);
+    assertThat(result.getAddedBy()).isEqualTo(userId);
+    assertThat(result.getAddedAt()).isEqualTo(now);
+  }
+
+  @Test
+  @DisplayName("Should handle null RecipeCollectionItem for toRecipeDto")
+  @Tag("standard-processing")
+  void shouldHandleNullRecipeCollectionItemForToRecipeDto() {
+    // When
+    var result = collectionMapper.toRecipeDto(null);
+
+    // Then
+    assertThat(result).isNull();
+  }
+
+  @Test
+  @DisplayName("Should handle RecipeCollectionItem with null recipe")
+  @Tag("standard-processing")
+  void shouldHandleRecipeCollectionItemWithNullRecipe() {
+    // Given
+    UUID userId = UUID.randomUUID();
+    LocalDateTime now = LocalDateTime.now();
+
+    com.recipe_manager.model.entity.collection.RecipeCollectionItemId itemId =
+        com.recipe_manager.model.entity.collection.RecipeCollectionItemId.builder()
+            .collectionId(10L)
+            .recipeId(1L)
+            .build();
+
+    RecipeCollectionItem item =
+        RecipeCollectionItem.builder()
+            .id(itemId)
+            .recipe(null)
+            .displayOrder(5)
+            .addedBy(userId)
+            .addedAt(now)
+            .build();
+
+    // When
+    var result = collectionMapper.toRecipeDto(item);
+
+    // Then
+    assertThat(result).isNotNull();
+    assertThat(result.getRecipeId()).isEqualTo(1L);
+    assertThat(result.getRecipeTitle()).isNull();
+    assertThat(result.getRecipeDescription()).isNull();
+    assertThat(result.getDisplayOrder()).isEqualTo(5);
+  }
+
+  @Test
+  @DisplayName("Should map list of RecipeCollectionItems to list of CollectionRecipeDtos")
+  @Tag("standard-processing")
+  void shouldMapRecipeCollectionItemListToCollectionRecipeDtoList() {
+    // Given
+    UUID userId = UUID.randomUUID();
+    LocalDateTime now = LocalDateTime.now();
+
+    com.recipe_manager.model.entity.recipe.Recipe recipe1 =
+        com.recipe_manager.model.entity.recipe.Recipe.builder()
+            .recipeId(1L)
+            .title("Recipe 1")
+            .description("Description 1")
+            .userId(userId)
+            .createdAt(now)
+            .updatedAt(now)
+            .build();
+
+    com.recipe_manager.model.entity.recipe.Recipe recipe2 =
+        com.recipe_manager.model.entity.recipe.Recipe.builder()
+            .recipeId(2L)
+            .title("Recipe 2")
+            .description("Description 2")
+            .userId(userId)
+            .createdAt(now)
+            .updatedAt(now)
+            .build();
+
+    RecipeCollectionItem item1 =
+        RecipeCollectionItem.builder()
+            .id(
+                com.recipe_manager.model.entity.collection.RecipeCollectionItemId.builder()
+                    .collectionId(10L)
+                    .recipeId(1L)
+                    .build())
+            .recipe(recipe1)
+            .displayOrder(10)
+            .addedBy(userId)
+            .addedAt(now)
+            .build();
+
+    RecipeCollectionItem item2 =
+        RecipeCollectionItem.builder()
+            .id(
+                com.recipe_manager.model.entity.collection.RecipeCollectionItemId.builder()
+                    .collectionId(10L)
+                    .recipeId(2L)
+                    .build())
+            .recipe(recipe2)
+            .displayOrder(20)
+            .addedBy(userId)
+            .addedAt(now)
+            .build();
+
+    List<RecipeCollectionItem> items = List.of(item1, item2);
+
+    // When
+    var result = collectionMapper.toRecipeDtoList(items);
+
+    // Then
+    assertThat(result).isNotNull();
+    assertThat(result).hasSize(2);
+    assertThat(result.get(0).getRecipeId()).isEqualTo(1L);
+    assertThat(result.get(0).getRecipeTitle()).isEqualTo("Recipe 1");
+    assertThat(result.get(0).getRecipeDescription()).isEqualTo("Description 1");
+    assertThat(result.get(0).getDisplayOrder()).isEqualTo(10);
+    assertThat(result.get(1).getRecipeId()).isEqualTo(2L);
+    assertThat(result.get(1).getRecipeTitle()).isEqualTo("Recipe 2");
+    assertThat(result.get(1).getRecipeDescription()).isEqualTo("Description 2");
+    assertThat(result.get(1).getDisplayOrder()).isEqualTo(20);
+  }
+
+  @Test
+  @DisplayName("Should handle empty list for toRecipeDtoList")
+  @Tag("standard-processing")
+  void shouldHandleEmptyListForToRecipeDtoList() {
+    // When
+    var result = collectionMapper.toRecipeDtoList(new ArrayList<>());
+
+    // Then
+    assertThat(result).isNotNull();
+    assertThat(result).isEmpty();
+  }
+
+  @Test
+  @DisplayName("Should handle null list for toRecipeDtoList")
+  @Tag("standard-processing")
+  void shouldHandleNullListForToRecipeDtoList() {
+    // When
+    var result = collectionMapper.toRecipeDtoList(null);
+
+    // Then
+    assertThat(result).isNull();
+  }
 }

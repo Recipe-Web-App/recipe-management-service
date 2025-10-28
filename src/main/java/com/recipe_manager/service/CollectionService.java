@@ -396,6 +396,102 @@ public class CollectionService {
   }
 
   /**
+   * Batch reorders recipes in a collection by updating their display orders. User must have edit
+   * permission on the collection.
+   *
+   * <p>This method:
+   *
+   * <ul>
+   *   <li>Validates all recipes exist in the collection
+   *   <li>Validates no duplicate display orders in the request
+   *   <li>Updates all display orders atomically in a transaction
+   *   <li>Returns updated recipes with metadata (title, description) in display order
+   * </ul>
+   *
+   * @param collectionId the ID of the collection
+   * @param request the reorder request containing recipe IDs and new display orders
+   * @return ResponseEntity containing list of CollectionRecipeDto with updated orders
+   * @throws ResourceNotFoundException if collection not found or any recipe not in collection
+   * @throws AccessDeniedException if user lacks edit permission
+   * @throws IllegalArgumentException if request contains duplicate display orders or invalid data
+   */
+  @Transactional
+  public ResponseEntity<List<com.recipe_manager.model.dto.collection.CollectionRecipeDto>>
+      reorderRecipes(
+          final Long collectionId,
+          final com.recipe_manager.model.dto.request.ReorderRecipesRequest request) {
+    // Get current authenticated user ID
+    UUID currentUserId = SecurityUtils.getCurrentUserId();
+
+    // Fetch the collection and verify it exists
+    RecipeCollection collection =
+        recipeCollectionRepository
+            .findById(collectionId)
+            .orElseThrow(() -> new ResourceNotFoundException("Collection not found"));
+
+    // Check if user has edit permission
+    checkEditPermission(collection, currentUserId);
+
+    // Validate no duplicate display orders in the request
+    long uniqueDisplayOrders =
+        request.getRecipes().stream()
+            .map(
+                com.recipe_manager.model.dto.request.ReorderRecipesRequest.RecipeOrder
+                    ::getDisplayOrder)
+            .distinct()
+            .count();
+
+    if (uniqueDisplayOrders != request.getRecipes().size()) {
+      throw new IllegalArgumentException("Request contains duplicate display orders");
+    }
+
+    // Fetch all existing items in the collection to validate recipes exist
+    List<RecipeCollectionItem> existingItems =
+        recipeCollectionItemRepository.findByIdCollectionId(collectionId);
+
+    // Create a map of existing recipe IDs for quick lookup
+    java.util.Set<Long> existingRecipeIds =
+        existingItems.stream()
+            .map(item -> item.getId().getRecipeId())
+            .collect(java.util.stream.Collectors.toSet());
+
+    // Validate all requested recipes exist in the collection
+    for (com.recipe_manager.model.dto.request.ReorderRecipesRequest.RecipeOrder recipeOrder :
+        request.getRecipes()) {
+      if (!existingRecipeIds.contains(recipeOrder.getRecipeId())) {
+        throw new ResourceNotFoundException(
+            "Recipe with ID " + recipeOrder.getRecipeId() + " not found in this collection");
+      }
+    }
+
+    // Update display orders for all recipes in the request
+    for (com.recipe_manager.model.dto.request.ReorderRecipesRequest.RecipeOrder recipeOrder :
+        request.getRecipes()) {
+      RecipeCollectionItem item =
+          recipeCollectionItemRepository
+              .findByIdCollectionIdAndIdRecipeId(collectionId, recipeOrder.getRecipeId())
+              .orElseThrow(
+                  () ->
+                      new ResourceNotFoundException(
+                          "Recipe " + recipeOrder.getRecipeId() + " not found in collection"));
+      item.setDisplayOrder(recipeOrder.getDisplayOrder());
+      recipeCollectionItemRepository.save(item);
+    }
+
+    // Fetch all items with recipe metadata and return in display order
+    List<RecipeCollectionItem> updatedItems =
+        recipeCollectionItemRepository.findByIdCollectionIdWithRecipe(collectionId);
+
+    // Map to DTOs
+    List<com.recipe_manager.model.dto.collection.CollectionRecipeDto> responseDtos =
+        updatedItems.stream()
+            .map(collectionMapper::toRecipeDto)
+            .collect(java.util.stream.Collectors.toList());
+
+    return ResponseEntity.ok(responseDtos);
+  }
+
+  /**
    * Checks if the given user has edit permission on the collection.
    *
    * <p>Edit permission is granted if:

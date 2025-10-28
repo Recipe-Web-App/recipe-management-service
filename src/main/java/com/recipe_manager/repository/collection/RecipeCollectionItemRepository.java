@@ -103,4 +103,17 @@ public interface RecipeCollectionItemRepository
    * @param collectionId the collection ID
    */
   void deleteByIdCollectionId(Long collectionId);
+
+  /**
+   * Finds all items in a collection with recipe details eagerly loaded, ordered by display order.
+   * This is useful when recipe metadata (title, description) is needed.
+   *
+   * @param collectionId the collection ID
+   * @return list of collection items with recipes loaded, in display order
+   */
+  @Query(
+      "SELECT rci FROM RecipeCollectionItem rci JOIN FETCH rci.recipe WHERE rci.id.collectionId ="
+          + " :collectionId ORDER BY rci.displayOrder ASC")
+  List<RecipeCollectionItem> findByIdCollectionIdWithRecipe(
+      @Param("collectionId") Long collectionId);
 }

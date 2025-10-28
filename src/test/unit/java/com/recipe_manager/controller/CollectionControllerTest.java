@@ -787,4 +787,135 @@ class CollectionControllerTest {
     // Then
     verify(collectionService).removeRecipeFromCollection(collectionId, recipeId);
   }
+
+  @Test
+  @DisplayName("Should reorder recipes successfully and return 200 OK")
+  @Tag("standard-processing")
+  void shouldReorderRecipesSuccessfully() {
+    // Given
+    Long collectionId = 1L;
+
+    com.recipe_manager.model.dto.request.ReorderRecipesRequest.RecipeOrder order1 =
+        com.recipe_manager.model.dto.request.ReorderRecipesRequest.RecipeOrder.builder()
+            .recipeId(10L)
+            .displayOrder(5)
+            .build();
+
+    com.recipe_manager.model.dto.request.ReorderRecipesRequest.RecipeOrder order2 =
+        com.recipe_manager.model.dto.request.ReorderRecipesRequest.RecipeOrder.builder()
+            .recipeId(20L)
+            .displayOrder(10)
+            .build();
+
+    com.recipe_manager.model.dto.request.ReorderRecipesRequest request =
+        com.recipe_manager.model.dto.request.ReorderRecipesRequest.builder()
+            .recipes(Arrays.asList(order1, order2))
+            .build();
+
+    CollectionRecipeDto dto1 =
+        CollectionRecipeDto.builder()
+            .recipeId(10L)
+            .recipeTitle("Recipe One")
+            .recipeDescription("First recipe")
+            .displayOrder(5)
+            .addedBy(UUID.randomUUID())
+            .addedAt(LocalDateTime.now())
+            .build();
+
+    CollectionRecipeDto dto2 =
+        CollectionRecipeDto.builder()
+            .recipeId(20L)
+            .recipeTitle("Recipe Two")
+            .recipeDescription("Second recipe")
+            .displayOrder(10)
+            .addedBy(UUID.randomUUID())
+            .addedAt(LocalDateTime.now())
+            .build();
+
+    List<CollectionRecipeDto> responseDtos = Arrays.asList(dto1, dto2);
+    ResponseEntity<List<CollectionRecipeDto>> expectedResponse = ResponseEntity.ok(responseDtos);
+
+    when(collectionService.reorderRecipes(collectionId, request)).thenReturn(expectedResponse);
+
+    // When
+    ResponseEntity<List<CollectionRecipeDto>> response =
+        collectionController.reorderRecipes(collectionId, request);
+
+    // Then
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    assertThat(response.getBody()).isNotNull();
+    assertThat(response.getBody()).hasSize(2);
+    assertThat(response.getBody().get(0).getRecipeId()).isEqualTo(10L);
+    assertThat(response.getBody().get(0).getDisplayOrder()).isEqualTo(5);
+    assertThat(response.getBody().get(1).getRecipeId()).isEqualTo(20L);
+    assertThat(response.getBody().get(1).getDisplayOrder()).isEqualTo(10);
+
+    verify(collectionService).reorderRecipes(collectionId, request);
+  }
+
+  @Test
+  @DisplayName("Should delegate reorder recipes to service layer")
+  @Tag("standard-processing")
+  void shouldDelegateReorderRecipesToServiceLayer() {
+    // Given
+    Long collectionId = 5L;
+
+    com.recipe_manager.model.dto.request.ReorderRecipesRequest.RecipeOrder order1 =
+        com.recipe_manager.model.dto.request.ReorderRecipesRequest.RecipeOrder.builder()
+            .recipeId(100L)
+            .displayOrder(10)
+            .build();
+
+    com.recipe_manager.model.dto.request.ReorderRecipesRequest request =
+        com.recipe_manager.model.dto.request.ReorderRecipesRequest.builder()
+            .recipes(Collections.singletonList(order1))
+            .build();
+
+    ResponseEntity<List<CollectionRecipeDto>> expectedResponse =
+        ResponseEntity.ok(Collections.emptyList());
+
+    when(collectionService.reorderRecipes(collectionId, request)).thenReturn(expectedResponse);
+
+    // When
+    collectionController.reorderRecipes(collectionId, request);
+
+    // Then
+    verify(collectionService).reorderRecipes(collectionId, request);
+  }
+
+  @Test
+  @DisplayName("Should pass correct path variable and request body to service for reorder")
+  @Tag("standard-processing")
+  void shouldPassCorrectParametersToServiceForReorder() {
+    // Given
+    Long collectionId = 123L;
+
+    com.recipe_manager.model.dto.request.ReorderRecipesRequest.RecipeOrder order1 =
+        com.recipe_manager.model.dto.request.ReorderRecipesRequest.RecipeOrder.builder()
+            .recipeId(456L)
+            .displayOrder(20)
+            .build();
+
+    com.recipe_manager.model.dto.request.ReorderRecipesRequest.RecipeOrder order2 =
+        com.recipe_manager.model.dto.request.ReorderRecipesRequest.RecipeOrder.builder()
+            .recipeId(789L)
+            .displayOrder(30)
+            .build();
+
+    com.recipe_manager.model.dto.request.ReorderRecipesRequest request =
+        com.recipe_manager.model.dto.request.ReorderRecipesRequest.builder()
+            .recipes(Arrays.asList(order1, order2))
+            .build();
+
+    ResponseEntity<List<CollectionRecipeDto>> expectedResponse =
+        ResponseEntity.ok(Collections.emptyList());
+
+    when(collectionService.reorderRecipes(collectionId, request)).thenReturn(expectedResponse);
+
+    // When
+    collectionController.reorderRecipes(collectionId, request);
+
+    // Then
+    verify(collectionService).reorderRecipes(collectionId, request);
+  }
 }

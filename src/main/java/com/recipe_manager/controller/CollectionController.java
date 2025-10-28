@@ -195,4 +195,38 @@ public class CollectionController {
       @PathVariable final Long collectionId, @PathVariable final Long recipeId) {
     return collectionService.removeRecipeFromCollection(collectionId, recipeId);
   }
+
+  /**
+   * Batch reorder recipes in a collection.
+   *
+   * <p>Updates the display order for multiple recipes in a collection at once. The user must have
+   * edit permission on the collection. All recipes in the request must already exist in the
+   * collection. The request must not contain duplicate display orders.
+   *
+   * <p>The endpoint validates that:
+   *
+   * <ul>
+   *   <li>All requested recipes exist in the collection
+   *   <li>No duplicate display orders in the request
+   *   <li>User has edit permission on the collection
+   * </ul>
+   *
+   * <p>Returns all recipes in the collection (not just the reordered ones) with updated metadata
+   * including recipe titles and descriptions, sorted by display order.
+   *
+   * @param collectionId the ID of the collection
+   * @param request the reorder request containing recipe IDs and new display orders
+   * @return ResponseEntity containing list of all recipes in the collection with metadata
+   */
+  @PutMapping(
+      value = "/{collectionId}/recipes/reorder",
+      consumes = MediaType.APPLICATION_JSON_VALUE,
+      produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<java.util.List<com.recipe_manager.model.dto.collection.CollectionRecipeDto>>
+      reorderRecipes(
+          @PathVariable final Long collectionId,
+          @Valid @RequestBody
+              final com.recipe_manager.model.dto.request.ReorderRecipesRequest request) {
+    return collectionService.reorderRecipes(collectionId, request);
+  }
 }

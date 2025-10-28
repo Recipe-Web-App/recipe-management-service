@@ -7,6 +7,7 @@ import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -2431,5 +2432,310 @@ class CollectionServiceTest {
     // Verify deletion was executed
     verify(recipeCollectionItemRepository)
         .deleteByIdCollectionIdAndIdRecipeId(collectionId, recipeId);
+  }
+
+  @Test
+  @DisplayName("Should reorder recipes successfully when user is owner")
+  @Tag("standard-processing")
+  void shouldReorderRecipesWhenUserIsOwner() {
+    // Given
+    Long collectionId = 100L;
+    Long recipeId1 = 1L;
+    Long recipeId2 = 2L;
+
+    com.recipe_manager.model.dto.request.ReorderRecipesRequest.RecipeOrder order1 =
+        com.recipe_manager.model.dto.request.ReorderRecipesRequest.RecipeOrder.builder()
+            .recipeId(recipeId1)
+            .displayOrder(20)
+            .build();
+
+    com.recipe_manager.model.dto.request.ReorderRecipesRequest.RecipeOrder order2 =
+        com.recipe_manager.model.dto.request.ReorderRecipesRequest.RecipeOrder.builder()
+            .recipeId(recipeId2)
+            .displayOrder(10)
+            .build();
+
+    com.recipe_manager.model.dto.request.ReorderRecipesRequest request =
+        com.recipe_manager.model.dto.request.ReorderRecipesRequest.builder()
+            .recipes(java.util.Arrays.asList(order1, order2))
+            .build();
+
+    RecipeCollection collection =
+        RecipeCollection.builder()
+            .collectionId(collectionId)
+            .userId(testUserId)
+            .name("My Collection")
+            .collaborationMode(CollaborationMode.OWNER_ONLY)
+            .build();
+
+    RecipeCollectionItemId itemId1 =
+        RecipeCollectionItemId.builder().collectionId(collectionId).recipeId(recipeId1).build();
+    RecipeCollectionItemId itemId2 =
+        RecipeCollectionItemId.builder().collectionId(collectionId).recipeId(recipeId2).build();
+
+    com.recipe_manager.model.entity.recipe.Recipe recipe1 =
+        com.recipe_manager.model.entity.recipe.Recipe.builder()
+            .recipeId(recipeId1)
+            .title("Recipe 1")
+            .description("Description 1")
+            .build();
+
+    com.recipe_manager.model.entity.recipe.Recipe recipe2 =
+        com.recipe_manager.model.entity.recipe.Recipe.builder()
+            .recipeId(recipeId2)
+            .title("Recipe 2")
+            .description("Description 2")
+            .build();
+
+    RecipeCollectionItem item1 =
+        RecipeCollectionItem.builder()
+            .id(itemId1)
+            .recipe(recipe1)
+            .displayOrder(30)
+            .addedBy(testUserId)
+            .build();
+
+    RecipeCollectionItem item2 =
+        RecipeCollectionItem.builder()
+            .id(itemId2)
+            .recipe(recipe2)
+            .displayOrder(40)
+            .addedBy(testUserId)
+            .build();
+
+    when(recipeCollectionRepository.findById(collectionId)).thenReturn(Optional.of(collection));
+    when(recipeCollectionItemRepository.findByIdCollectionId(collectionId))
+        .thenReturn(java.util.Arrays.asList(item1, item2));
+    when(recipeCollectionItemRepository.findByIdCollectionIdAndIdRecipeId(collectionId, recipeId1))
+        .thenReturn(Optional.of(item1));
+    when(recipeCollectionItemRepository.findByIdCollectionIdAndIdRecipeId(collectionId, recipeId2))
+        .thenReturn(Optional.of(item2));
+    when(recipeCollectionItemRepository.save(any(RecipeCollectionItem.class)))
+        .thenAnswer(invocation -> invocation.getArgument(0));
+
+    // Update display orders after save
+    item1.setDisplayOrder(20);
+    item2.setDisplayOrder(10);
+
+    when(recipeCollectionItemRepository.findByIdCollectionIdWithRecipe(collectionId))
+        .thenReturn(java.util.Arrays.asList(item2, item1)); // Sorted by display order
+
+    com.recipe_manager.model.dto.collection.CollectionRecipeDto dto1 =
+        com.recipe_manager.model.dto.collection.CollectionRecipeDto.builder()
+            .recipeId(recipeId2)
+            .recipeTitle("Recipe 2")
+            .recipeDescription("Description 2")
+            .displayOrder(10)
+            .build();
+
+    com.recipe_manager.model.dto.collection.CollectionRecipeDto dto2 =
+        com.recipe_manager.model.dto.collection.CollectionRecipeDto.builder()
+            .recipeId(recipeId1)
+            .recipeTitle("Recipe 1")
+            .recipeDescription("Description 1")
+            .displayOrder(20)
+            .build();
+
+    when(collectionMapper.toRecipeDto(item2)).thenReturn(dto1);
+    when(collectionMapper.toRecipeDto(item1)).thenReturn(dto2);
+
+    // When
+    ResponseEntity<java.util.List<com.recipe_manager.model.dto.collection.CollectionRecipeDto>>
+        response;
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
+      response = collectionService.reorderRecipes(collectionId, request);
+    }
+
+    // Then
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    assertThat(response.getBody()).isNotNull();
+    assertThat(response.getBody()).hasSize(2);
+    assertThat(response.getBody().get(0).getRecipeId()).isEqualTo(recipeId2);
+    assertThat(response.getBody().get(0).getDisplayOrder()).isEqualTo(10);
+    assertThat(response.getBody().get(1).getRecipeId()).isEqualTo(recipeId1);
+    assertThat(response.getBody().get(1).getDisplayOrder()).isEqualTo(20);
+
+    verify(recipeCollectionRepository).findById(collectionId);
+    verify(recipeCollectionItemRepository).findByIdCollectionId(collectionId);
+    verify(recipeCollectionItemRepository, times(2)).save(any(RecipeCollectionItem.class));
+    verify(recipeCollectionItemRepository).findByIdCollectionIdWithRecipe(collectionId);
+  }
+
+  @Test
+  @DisplayName("Should throw exception when collection not found during reorder")
+  @Tag("error-handling")
+  void shouldThrowExceptionWhenCollectionNotFoundDuringReorder() {
+    // Given
+    Long collectionId = 999L;
+
+    com.recipe_manager.model.dto.request.ReorderRecipesRequest.RecipeOrder order1 =
+        com.recipe_manager.model.dto.request.ReorderRecipesRequest.RecipeOrder.builder()
+            .recipeId(1L)
+            .displayOrder(10)
+            .build();
+
+    com.recipe_manager.model.dto.request.ReorderRecipesRequest request =
+        com.recipe_manager.model.dto.request.ReorderRecipesRequest.builder()
+            .recipes(java.util.Collections.singletonList(order1))
+            .build();
+
+    when(recipeCollectionRepository.findById(collectionId)).thenReturn(Optional.empty());
+
+    // When/Then
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
+
+      assertThatThrownBy(() -> collectionService.reorderRecipes(collectionId, request))
+          .isInstanceOf(ResourceNotFoundException.class)
+          .hasMessage("Collection not found");
+    }
+
+    verify(recipeCollectionRepository).findById(collectionId);
+    verify(recipeCollectionItemRepository, never()).save(any());
+  }
+
+  @Test
+  @DisplayName("Should throw exception when user lacks edit permission for reorder")
+  @Tag("error-handling")
+  void shouldThrowExceptionWhenUserLacksEditPermissionForReorder() {
+    // Given
+    Long collectionId = 200L;
+    UUID otherUserId = UUID.randomUUID();
+
+    com.recipe_manager.model.dto.request.ReorderRecipesRequest.RecipeOrder order1 =
+        com.recipe_manager.model.dto.request.ReorderRecipesRequest.RecipeOrder.builder()
+            .recipeId(1L)
+            .displayOrder(10)
+            .build();
+
+    com.recipe_manager.model.dto.request.ReorderRecipesRequest request =
+        com.recipe_manager.model.dto.request.ReorderRecipesRequest.builder()
+            .recipes(java.util.Collections.singletonList(order1))
+            .build();
+
+    RecipeCollection collection =
+        RecipeCollection.builder()
+            .collectionId(collectionId)
+            .userId(otherUserId) // Different owner
+            .name("Someone else's collection")
+            .collaborationMode(CollaborationMode.OWNER_ONLY)
+            .build();
+
+    when(recipeCollectionRepository.findById(collectionId)).thenReturn(Optional.of(collection));
+
+    // When/Then
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
+
+      assertThatThrownBy(() -> collectionService.reorderRecipes(collectionId, request))
+          .isInstanceOf(AccessDeniedException.class)
+          .hasMessage("User doesn't have edit permission for this collection");
+    }
+
+    verify(recipeCollectionRepository).findById(collectionId);
+    verify(recipeCollectionItemRepository, never()).save(any());
+  }
+
+  @Test
+  @DisplayName("Should throw exception when request contains duplicate display orders")
+  @Tag("error-handling")
+  void shouldThrowExceptionWhenRequestContainsDuplicateDisplayOrders() {
+    // Given
+    Long collectionId = 300L;
+
+    com.recipe_manager.model.dto.request.ReorderRecipesRequest.RecipeOrder order1 =
+        com.recipe_manager.model.dto.request.ReorderRecipesRequest.RecipeOrder.builder()
+            .recipeId(1L)
+            .displayOrder(10)
+            .build();
+
+    com.recipe_manager.model.dto.request.ReorderRecipesRequest.RecipeOrder order2 =
+        com.recipe_manager.model.dto.request.ReorderRecipesRequest.RecipeOrder.builder()
+            .recipeId(2L)
+            .displayOrder(10) // Duplicate display order
+            .build();
+
+    com.recipe_manager.model.dto.request.ReorderRecipesRequest request =
+        com.recipe_manager.model.dto.request.ReorderRecipesRequest.builder()
+            .recipes(java.util.Arrays.asList(order1, order2))
+            .build();
+
+    RecipeCollection collection =
+        RecipeCollection.builder()
+            .collectionId(collectionId)
+            .userId(testUserId)
+            .name("My Collection")
+            .collaborationMode(CollaborationMode.OWNER_ONLY)
+            .build();
+
+    when(recipeCollectionRepository.findById(collectionId)).thenReturn(Optional.of(collection));
+
+    // When/Then
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
+
+      assertThatThrownBy(() -> collectionService.reorderRecipes(collectionId, request))
+          .isInstanceOf(IllegalArgumentException.class)
+          .hasMessage("Request contains duplicate display orders");
+    }
+
+    verify(recipeCollectionRepository).findById(collectionId);
+    verify(recipeCollectionItemRepository, never()).findByIdCollectionId(any());
+  }
+
+  @Test
+  @DisplayName("Should throw exception when recipe not in collection during reorder")
+  @Tag("error-handling")
+  void shouldThrowExceptionWhenRecipeNotInCollectionDuringReorder() {
+    // Given
+    Long collectionId = 400L;
+    Long existingRecipeId = 1L;
+    Long nonExistentRecipeId = 999L;
+
+    com.recipe_manager.model.dto.request.ReorderRecipesRequest.RecipeOrder order1 =
+        com.recipe_manager.model.dto.request.ReorderRecipesRequest.RecipeOrder.builder()
+            .recipeId(nonExistentRecipeId)
+            .displayOrder(10)
+            .build();
+
+    com.recipe_manager.model.dto.request.ReorderRecipesRequest request =
+        com.recipe_manager.model.dto.request.ReorderRecipesRequest.builder()
+            .recipes(java.util.Collections.singletonList(order1))
+            .build();
+
+    RecipeCollection collection =
+        RecipeCollection.builder()
+            .collectionId(collectionId)
+            .userId(testUserId)
+            .name("My Collection")
+            .collaborationMode(CollaborationMode.OWNER_ONLY)
+            .build();
+
+    RecipeCollectionItemId itemId1 =
+        RecipeCollectionItemId.builder()
+            .collectionId(collectionId)
+            .recipeId(existingRecipeId)
+            .build();
+
+    RecipeCollectionItem item1 =
+        RecipeCollectionItem.builder().id(itemId1).displayOrder(10).addedBy(testUserId).build();
+
+    when(recipeCollectionRepository.findById(collectionId)).thenReturn(Optional.of(collection));
+    when(recipeCollectionItemRepository.findByIdCollectionId(collectionId))
+        .thenReturn(java.util.Collections.singletonList(item1));
+
+    // When/Then
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
+
+      assertThatThrownBy(() -> collectionService.reorderRecipes(collectionId, request))
+          .isInstanceOf(ResourceNotFoundException.class)
+          .hasMessageContaining("not found in this collection");
+    }
+
+    verify(recipeCollectionRepository).findById(collectionId);
+    verify(recipeCollectionItemRepository).findByIdCollectionId(collectionId);
+    verify(recipeCollectionItemRepository, never()).save(any());
   }
 }

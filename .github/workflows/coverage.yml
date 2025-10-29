@@ -16,7 +16,7 @@ permissions:
   pull-requests: write
 
 env:
-  JAVA_VERSION: '21'
+  JAVA_VERSION: '25'
   COVERAGE_THRESHOLD: 90
 
 jobs:
@@ -28,7 +28,7 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v5
 
-    - name: Set up JDK 21
+    - name: Set up JDK 25
       uses: actions/setup-java@v5
       with:
         distribution: 'temurin'

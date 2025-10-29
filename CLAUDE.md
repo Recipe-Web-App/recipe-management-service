@@ -32,7 +32,7 @@ code in this repository.
 
 ### Technology Stack
 
-- **Java 21** with Spring Boot 3.5.6
+- **Java 25** with Spring Boot 3.5.7
 - **PostgreSQL 15+** database with Flyway migrations
 - **Maven** build system with comprehensive quality plugins
 - **JWT authentication** with OAuth2 introspection support

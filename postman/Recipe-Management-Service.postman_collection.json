@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Recipe Management Service API",
-    "description": "Complete API collection for Recipe Management Service - Generated from accurate OpenAPI specification with all 46 endpoints",
+    "description": "Complete API collection for Recipe Management Service - Generated from accurate OpenAPI specification with all 59 endpoints (including 13 Recipe Collections endpoints)",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "version": "2.0.0"
   },
@@ -51,6 +51,18 @@
       "value": "1",
       "type": "string",
       "description": "Sample media ID for testing"
+    },
+    {
+      "key": "testCollectionId",
+      "value": "1",
+      "type": "string",
+      "description": "Sample collection ID for testing"
+    },
+    {
+      "key": "testCollaboratorUserId",
+      "value": "550e8400-e29b-41d4-a716-446655440000",
+      "type": "string",
+      "description": "Sample collaborator user ID (UUID) for testing"
     }
   ],
   "item": [
@@ -1616,6 +1628,583 @@
           }
         }
       ]
+    },
+    {
+      "name": "Collections",
+      "item": [
+        {
+          "name": "Core Collection Operations",
+          "item": [
+            {
+              "name": "Get Accessible Collections",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/collections?page=0&size=20&sort=createdAt,desc",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["collections"],
+                  "query": [
+                    {"key": "page", "value": "0", "description": "Page number (0-based)"},
+                    {"key": "size", "value": "20", "description": "Number of items per page"},
+                    {"key": "sort", "value": "createdAt,desc", "description": "Sort criteria (property,direction)"}
+                  ]
+                },
+                "description": "Retrieves all collections that the authenticated user can access based on permissions"
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 200', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Response has pageable structure', function () {",
+                      "    const responseJson = pm.response.json();",
+                      "    pm.expect(responseJson).to.have.property('content');",
+                      "    pm.expect(responseJson).to.have.property('pageable');",
+                      "    pm.expect(responseJson).to.have.property('totalElements');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Create Collection",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"My Favorite Recipes\",\n  \"description\": \"A collection of my favorite recipes from around the world\",\n  \"visibility\": \"PUBLIC\",\n  \"collaborationMode\": \"SPECIFIC_USERS\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/collections",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["collections"]
+                },
+                "description": "Creates a new recipe collection owned by the authenticated user"
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 201', function () {",
+                      "    pm.response.to.have.status(201);",
+                      "});",
+                      "",
+                      "pm.test('Extract collection ID', function () {",
+                      "    const responseJson = pm.response.json();",
+                      "    pm.expect(responseJson).to.have.property('collectionId');",
+                      "    if (responseJson.collectionId) {",
+                      "        pm.collectionVariables.set('createdCollectionId', responseJson.collectionId);",
+                      "        console.log('Created collection ID:', responseJson.collectionId);",
+                      "    }",
+                      "});",
+                      "",
+                      "pm.test('Collection has required fields', function () {",
+                      "    const responseJson = pm.response.json();",
+                      "    pm.expect(responseJson).to.have.property('userId');",
+                      "    pm.expect(responseJson).to.have.property('name');",
+                      "    pm.expect(responseJson).to.have.property('visibility');",
+                      "    pm.expect(responseJson).to.have.property('collaborationMode');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Get Collection Details",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/collections/{{testCollectionId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["collections", "{{testCollectionId}}"]
+                },
+                "description": "Retrieves complete collection details including all recipes in display order"
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 200', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Collection has detailed fields', function () {",
+                      "    const responseJson = pm.response.json();",
+                      "    pm.expect(responseJson).to.have.property('collectionId');",
+                      "    pm.expect(responseJson).to.have.property('recipes');",
+                      "    pm.expect(responseJson).to.have.property('recipeCount');",
+                      "    pm.expect(responseJson).to.have.property('collaboratorCount');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Update Collection",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"My Updated Collection\",\n  \"description\": \"Updated description\",\n  \"visibility\": \"PRIVATE\",\n  \"collaborationMode\": \"OWNER_ONLY\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/collections/{{testCollectionId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["collections", "{{testCollectionId}}"]
+                },
+                "description": "Updates collection metadata. Only the collection owner can update the collection"
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 200', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Collection was updated', function () {",
+                      "    const responseJson = pm.response.json();",
+                      "    pm.expect(responseJson.name).to.exist;",
+                      "    pm.expect(responseJson.updatedAt).to.exist;",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Delete Collection",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/collections/{{testCollectionId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["collections", "{{testCollectionId}}"]
+                },
+                "description": "Permanently deletes a collection and all associated items and collaborators"
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 204', function () {",
+                      "    pm.response.to.have.status(204);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Search Collections",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"query\": \"favorite\",\n  \"visibility\": [\"PUBLIC\", \"PRIVATE\"],\n  \"collaborationMode\": [\"SPECIFIC_USERS\"],\n  \"minRecipeCount\": 1,\n  \"maxRecipeCount\": 100\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/collections/search?page=0&size=20&sort=createdAt,desc",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["collections", "search"],
+                  "query": [
+                    {"key": "page", "value": "0"},
+                    {"key": "size", "value": "20"},
+                    {"key": "sort", "value": "createdAt,desc"}
+                  ]
+                },
+                "description": "Advanced collection search with multiple filter criteria"
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 200', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Response has pageable structure', function () {",
+                      "    const responseJson = pm.response.json();",
+                      "    pm.expect(responseJson).to.have.property('content');",
+                      "    pm.expect(responseJson).to.have.property('totalElements');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Recipe Management",
+          "item": [
+            {
+              "name": "Add Recipe to Collection",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/collections/{{testCollectionId}}/recipes/{{testRecipeId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["collections", "{{testCollectionId}}", "recipes", "{{testRecipeId}}"]
+                },
+                "description": "Adds a recipe to a collection with automatic display order assignment"
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 201', function () {",
+                      "    pm.response.to.have.status(201);",
+                      "});",
+                      "",
+                      "pm.test('Recipe added to collection', function () {",
+                      "    const responseJson = pm.response.json();",
+                      "    pm.expect(responseJson).to.have.property('collectionId');",
+                      "    pm.expect(responseJson).to.have.property('recipeId');",
+                      "    pm.expect(responseJson).to.have.property('displayOrder');",
+                      "    pm.expect(responseJson).to.have.property('addedAt');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Remove Recipe from Collection",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/collections/{{testCollectionId}}/recipes/{{testRecipeId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["collections", "{{testCollectionId}}", "recipes", "{{testRecipeId}}"]
+                },
+                "description": "Removes a recipe from a collection"
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 204', function () {",
+                      "    pm.response.to.have.status(204);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Update Recipe Display Order",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"displayOrder\": 15\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/collections/{{testCollectionId}}/recipes/{{testRecipeId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["collections", "{{testCollectionId}}", "recipes", "{{testRecipeId}}"]
+                },
+                "description": "Updates the display order for a single recipe in the collection"
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 200', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Display order updated', function () {",
+                      "    const responseJson = pm.response.json();",
+                      "    pm.expect(responseJson).to.have.property('displayOrder');",
+                      "    pm.expect(responseJson).to.have.property('recipeId');",
+                      "    pm.expect(responseJson).to.have.property('title');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Batch Reorder Recipes",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"recipeOrders\": [\n    {\n      \"recipeId\": 1,\n      \"displayOrder\": 10\n    },\n    {\n      \"recipeId\": 2,\n      \"displayOrder\": 20\n    },\n    {\n      \"recipeId\": 3,\n      \"displayOrder\": 30\n    }\n  ]\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/collections/{{testCollectionId}}/recipes/reorder",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["collections", "{{testCollectionId}}", "recipes", "reorder"]
+                },
+                "description": "Updates display order for multiple recipes in a collection at once"
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 200', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('All recipes reordered', function () {",
+                      "    const responseJson = pm.response.json();",
+                      "    pm.expect(Array.isArray(responseJson)).to.be.true;",
+                      "    if (responseJson.length > 0) {",
+                      "        pm.expect(responseJson[0]).to.have.property('recipeId');",
+                      "        pm.expect(responseJson[0]).to.have.property('displayOrder');",
+                      "        pm.expect(responseJson[0]).to.have.property('title');",
+                      "    }",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Collaborator Management",
+          "item": [
+            {
+              "name": "Get Collection Collaborators",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/collections/{{testCollectionId}}/collaborators",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["collections", "{{testCollectionId}}", "collaborators"]
+                },
+                "description": "Retrieves all collaborators for a collection"
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 200', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Response is array', function () {",
+                      "    const responseJson = pm.response.json();",
+                      "    pm.expect(Array.isArray(responseJson)).to.be.true;",
+                      "});",
+                      "",
+                      "pm.test('Collaborators have required fields', function () {",
+                      "    const responseJson = pm.response.json();",
+                      "    if (responseJson.length > 0) {",
+                      "        pm.expect(responseJson[0]).to.have.property('userId');",
+                      "        pm.expect(responseJson[0]).to.have.property('grantedBy');",
+                      "        pm.expect(responseJson[0]).to.have.property('grantedAt');",
+                      "    }",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Add Collaborator",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"userId\": \"{{testCollaboratorUserId}}\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/collections/{{testCollectionId}}/collaborators",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["collections", "{{testCollectionId}}", "collaborators"]
+                },
+                "description": "Adds a collaborator to a collection. Collection must have SPECIFIC_USERS collaboration mode"
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 201', function () {",
+                      "    pm.response.to.have.status(201);",
+                      "});",
+                      "",
+                      "pm.test('Collaborator added successfully', function () {",
+                      "    const responseJson = pm.response.json();",
+                      "    pm.expect(responseJson).to.have.property('userId');",
+                      "    pm.expect(responseJson).to.have.property('grantedBy');",
+                      "    pm.expect(responseJson).to.have.property('grantedAt');",
+                      "    ",
+                      "    // Save the added collaborator's userId for later use",
+                      "    if (responseJson.userId) {",
+                      "        pm.collectionVariables.set('addedCollaboratorUserId', responseJson.userId);",
+                      "    }",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Remove Collaborator",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/collections/{{testCollectionId}}/collaborators/{{testCollaboratorUserId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["collections", "{{testCollectionId}}", "collaborators", "{{testCollaboratorUserId}}"]
+                },
+                "description": "Removes a collaborator from a collection. User must be the collection owner"
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 204', function () {",
+                      "    pm.response.to.have.status(204);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "description": "Recipe Collections API - Manage collections of recipes with visibility control, collaboration modes, and custom ordering"
     },
     {
       "name": "Actuator - Health & Monitoring",

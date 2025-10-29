@@ -37,6 +37,8 @@ security:
 tags:
   - name: recipes
     description: Recipe CRUD operations and management
+  - name: collections
+    description: Recipe collection management and organization
   - name: ingredients
     description: Ingredient management and scaling
   - name: steps
@@ -1144,6 +1146,397 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /collections:
+    get:
+      tags: [collections]
+      summary: Get accessible collections
+      description: |
+        Retrieves all collections that the authenticated user can access based on
+        permissions. This includes collections they own, collections they collaborate on,
+        and public collections.
+      operationId: getCollections
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+        - $ref: '#/components/parameters/SortParam'
+      responses:
+        '200':
+          description: Collections retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageCollectionDto'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    post:
+      tags: [collections]
+      summary: Create new collection
+      description: |
+        Creates a new recipe collection owned by the authenticated user.
+      operationId: createCollection
+      requestBody:
+        description: Collection creation data
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCollectionRequest'
+      responses:
+        '201':
+          description: Collection created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CollectionDto'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /collections/{collectionId}:
+    get:
+      tags: [collections]
+      summary: Get collection details
+      description: |
+        Retrieves complete collection details including all recipes in display order.
+        User must have view permission for the collection.
+      operationId: getCollectionById
+      parameters:
+        - $ref: '#/components/parameters/CollectionIdParam'
+      responses:
+        '200':
+          description: Collection retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CollectionDetailsDto'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    put:
+      tags: [collections]
+      summary: Update collection
+      description: |
+        Updates collection metadata (name, description, visibility, collaboration mode).
+        User must own the collection or have edit permission.
+      operationId: updateCollection
+      parameters:
+        - $ref: '#/components/parameters/CollectionIdParam'
+      requestBody:
+        description: Collection update data
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCollectionRequest'
+      responses:
+        '200':
+          description: Collection updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CollectionDto'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    delete:
+      tags: [collections]
+      summary: Delete collection
+      description: |
+        Permanently deletes a collection and all associated items and collaborators.
+        User must own the collection to delete it.
+      operationId: deleteCollection
+      parameters:
+        - $ref: '#/components/parameters/CollectionIdParam'
+      responses:
+        '204':
+          description: Collection deleted successfully
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /collections/search:
+    post:
+      tags: [collections]
+      summary: Search collections
+      description: |
+        Advanced collection search with multiple filter criteria including visibility,
+        collaboration mode, owner, and recipe count ranges.
+      operationId: searchCollections
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+        - $ref: '#/components/parameters/SortParam'
+      requestBody:
+        description: Search criteria
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SearchCollectionsRequest'
+      responses:
+        '200':
+          description: Search completed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageCollectionDto'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /collections/{collectionId}/recipes/{recipeId}:
+    post:
+      tags: [collections]
+      summary: Add recipe to collection
+      description: |
+        Adds a recipe to a collection with automatic display order assignment.
+        User must have edit permission for the collection.
+      operationId: addRecipeToCollection
+      parameters:
+        - $ref: '#/components/parameters/CollectionIdParam'
+        - $ref: '#/components/parameters/RecipeIdParam'
+      responses:
+        '201':
+          description: Recipe added to collection successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CollectionRecipeDto'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    delete:
+      tags: [collections]
+      summary: Remove recipe from collection
+      description: |
+        Removes a recipe from a collection. User must have edit permission.
+      operationId: removeRecipeFromCollection
+      parameters:
+        - $ref: '#/components/parameters/CollectionIdParam'
+        - $ref: '#/components/parameters/RecipeIdParam'
+      responses:
+        '204':
+          description: Recipe removed from collection successfully
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    patch:
+      tags: [collections]
+      summary: Update recipe display order
+      description: |
+        Updates the display order for a single recipe in the collection.
+        User must have edit permission.
+      operationId: updateRecipeOrder
+      parameters:
+        - $ref: '#/components/parameters/CollectionIdParam'
+        - $ref: '#/components/parameters/RecipeIdParam'
+      requestBody:
+        description: New display order
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateRecipeOrderRequest'
+      responses:
+        '200':
+          description: Display order updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CollectionRecipeDto'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /collections/{collectionId}/recipes/reorder:
+    put:
+      tags: [collections]
+      summary: Batch reorder recipes
+      description: |
+        Updates display order for multiple recipes in a collection at once.
+        User must have edit permission.
+      operationId: reorderRecipes
+      parameters:
+        - $ref: '#/components/parameters/CollectionIdParam'
+      requestBody:
+        description: Recipe order updates
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReorderRecipesRequest'
+      responses:
+        '200':
+          description: Recipes reordered successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CollectionRecipeDto'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /collections/{collectionId}/collaborators:
+    get:
+      tags: [collections]
+      summary: Get collection collaborators
+      description: |
+        Retrieves all collaborators for a collection. Only available for collections
+        with SPECIFIC_USERS collaboration mode. User must have view permission.
+      operationId: getCollaborators
+      parameters:
+        - $ref: '#/components/parameters/CollectionIdParam'
+      responses:
+        '200':
+          description: Collaborators retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CollaboratorDto'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    post:
+      tags: [collections]
+      summary: Add collaborator
+      description: |
+        Adds a collaborator to a collection. Collection must have SPECIFIC_USERS
+        collaboration mode. User must be the collection owner.
+      operationId: addCollaborator
+      parameters:
+        - $ref: '#/components/parameters/CollectionIdParam'
+      requestBody:
+        description: Collaborator data
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddCollaboratorRequest'
+      responses:
+        '201':
+          description: Collaborator added successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CollaboratorDto'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /collections/{collectionId}/collaborators/{userId}:
+    delete:
+      tags: [collections]
+      summary: Remove collaborator
+      description: |
+        Removes a collaborator from a collection. User must be the collection owner.
+      operationId: removeCollaborator
+      parameters:
+        - $ref: '#/components/parameters/CollectionIdParam'
+        - name: userId
+          in: path
+          description: User ID of collaborator to remove
+          required: true
+          schema:
+            type: string
+            format: uuid
+            example: "123e4567-e89b-12d3-a456-426614174000"
+      responses:
+        '204':
+          description: Collaborator removed successfully
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /actuator/health:
     get:
       tags: [health]
@@ -1447,6 +1840,16 @@ components:
         type: integer
         format: int64
         example: 201
+
+    CollectionIdParam:
+      name: collectionId
+      in: path
+      description: Collection identifier
+      required: true
+      schema:
+        type: integer
+        format: int64
+        example: 301
 
   schemas:
     RecipeDto:
@@ -3016,6 +3419,405 @@ components:
       enum: [INGREDIENT, STEP]
       description: Category of revised entity
       example: INGREDIENT
+
+    CollectionVisibility:
+      type: string
+      enum: [PUBLIC, PRIVATE, FRIENDS_ONLY]
+      description: |
+        Controls who can VIEW a collection:
+        - PUBLIC: Anyone can view
+        - PRIVATE: Only owner and collaborators can view
+        - FRIENDS_ONLY: Only owner, collaborators, and friends can view
+      example: PUBLIC
+
+    CollaborationMode:
+      type: string
+      enum: [OWNER_ONLY, ALL_USERS, SPECIFIC_USERS]
+      description: |
+        Controls who can EDIT a collection (add/remove recipes):
+        - OWNER_ONLY: Only the owner can edit
+        - ALL_USERS: Any authenticated user can edit
+        - SPECIFIC_USERS: Only users in collection_collaborators table can edit
+      example: OWNER_ONLY
+
+    CreateCollectionRequest:
+      type: object
+      required:
+        - name
+        - visibility
+        - collaborationMode
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+          description: Collection name
+          example: "My Favorite Desserts"
+        description:
+          type: string
+          maxLength: 2000
+          description: Collection description
+          example: "Collection of my go-to dessert recipes"
+        visibility:
+          $ref: '#/components/schemas/CollectionVisibility'
+        collaborationMode:
+          $ref: '#/components/schemas/CollaborationMode'
+
+    UpdateCollectionRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+          description: Collection name
+        description:
+          type: string
+          maxLength: 2000
+          description: Collection description
+        visibility:
+          $ref: '#/components/schemas/CollectionVisibility'
+        collaborationMode:
+          $ref: '#/components/schemas/CollaborationMode'
+
+    SearchCollectionsRequest:
+      type: object
+      properties:
+        query:
+          type: string
+          description: Text search query for collection name or description
+          example: "dessert"
+        visibility:
+          type: array
+          items:
+            $ref: '#/components/schemas/CollectionVisibility'
+          description: Filter by visibility types
+        collaborationMode:
+          type: array
+          items:
+            $ref: '#/components/schemas/CollaborationMode'
+          description: Filter by collaboration modes
+        ownerUserId:
+          type: string
+          format: uuid
+          description: Filter by collection owner
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        minRecipeCount:
+          type: integer
+          minimum: 0
+          description: Minimum number of recipes in collection
+          example: 1
+        maxRecipeCount:
+          type: integer
+          minimum: 0
+          description: Maximum number of recipes in collection
+          example: 100
+
+    AddCollaboratorRequest:
+      type: object
+      required:
+        - userId
+      properties:
+        userId:
+          type: string
+          format: uuid
+          description: UUID of user to add as collaborator
+          example: "123e4567-e89b-12d3-a456-426614174000"
+
+    UpdateRecipeOrderRequest:
+      type: object
+      required:
+        - displayOrder
+      properties:
+        displayOrder:
+          type: integer
+          minimum: 1
+          description: New display order position
+          example: 15
+
+    ReorderRecipesRequest:
+      type: object
+      required:
+        - recipes
+      properties:
+        recipes:
+          type: array
+          minItems: 1
+          items:
+            type: object
+            required:
+              - recipeId
+              - displayOrder
+            properties:
+              recipeId:
+                type: integer
+                format: int64
+                description: Recipe identifier
+                example: 123
+              displayOrder:
+                type: integer
+                minimum: 1
+                description: New display order
+                example: 10
+
+    CollectionDto:
+      type: object
+      required:
+        - collectionId
+        - userId
+        - name
+        - visibility
+        - collaborationMode
+        - recipeCount
+        - collaboratorCount
+        - createdAt
+        - updatedAt
+      properties:
+        collectionId:
+          type: integer
+          format: int64
+          description: Unique collection identifier
+          example: 301
+        userId:
+          type: string
+          format: uuid
+          description: UUID of the collection owner
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        name:
+          type: string
+          description: Collection name
+          example: "My Favorite Desserts"
+        description:
+          type: string
+          description: Collection description
+          example: "Collection of my go-to dessert recipes"
+        visibility:
+          $ref: '#/components/schemas/CollectionVisibility'
+        collaborationMode:
+          $ref: '#/components/schemas/CollaborationMode'
+        recipeCount:
+          type: integer
+          minimum: 0
+          description: Number of recipes in collection
+          example: 12
+        collaboratorCount:
+          type: integer
+          minimum: 0
+          description: Number of collaborators
+          example: 3
+        createdAt:
+          type: string
+          format: date-time
+          description: Creation timestamp
+          example: "2024-08-28T10:30:00Z"
+        updatedAt:
+          type: string
+          format: date-time
+          description: Last update timestamp
+          example: "2024-08-28T10:30:00Z"
+
+    CollectionDetailsDto:
+      type: object
+      required:
+        - collectionId
+        - userId
+        - name
+        - visibility
+        - collaborationMode
+        - recipeCount
+        - collaboratorCount
+        - createdAt
+        - updatedAt
+        - recipes
+      properties:
+        collectionId:
+          type: integer
+          format: int64
+          description: Unique collection identifier
+          example: 301
+        userId:
+          type: string
+          format: uuid
+          description: UUID of the collection owner
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        name:
+          type: string
+          description: Collection name
+          example: "My Favorite Desserts"
+        description:
+          type: string
+          description: Collection description
+          example: "Collection of my go-to dessert recipes"
+        visibility:
+          $ref: '#/components/schemas/CollectionVisibility'
+        collaborationMode:
+          $ref: '#/components/schemas/CollaborationMode'
+        recipeCount:
+          type: integer
+          minimum: 0
+          description: Number of recipes in collection
+          example: 12
+        collaboratorCount:
+          type: integer
+          minimum: 0
+          description: Number of collaborators
+          example: 3
+        createdAt:
+          type: string
+          format: date-time
+          description: Creation timestamp
+          example: "2024-08-28T10:30:00Z"
+        updatedAt:
+          type: string
+          format: date-time
+          description: Last update timestamp
+          example: "2024-08-28T10:30:00Z"
+        recipes:
+          type: array
+          description: Recipes in collection, ordered by displayOrder
+          items:
+            $ref: '#/components/schemas/CollectionRecipeDto'
+
+    CollectionRecipeDto:
+      type: object
+      required:
+        - recipeId
+        - recipeTitle
+        - displayOrder
+        - addedBy
+        - addedAt
+      properties:
+        recipeId:
+          type: integer
+          format: int64
+          description: Recipe identifier
+          example: 123
+        recipeTitle:
+          type: string
+          description: Recipe title
+          example: "Chocolate Chip Cookies"
+        recipeDescription:
+          type: string
+          description: Recipe description
+          example: "Classic homemade cookies"
+        displayOrder:
+          type: integer
+          minimum: 1
+          description: Display order within collection
+          example: 10
+        addedBy:
+          type: string
+          format: uuid
+          description: UUID of user who added the recipe
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        addedAt:
+          type: string
+          format: date-time
+          description: Timestamp when recipe was added
+          example: "2024-08-28T10:35:00Z"
+
+    CollaboratorDto:
+      type: object
+      required:
+        - userId
+        - username
+        - grantedBy
+        - grantedAt
+      properties:
+        userId:
+          type: string
+          format: uuid
+          description: UUID of collaborator user
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        username:
+          type: string
+          description: Collaborator username
+          example: "john_doe"
+        grantedBy:
+          type: string
+          format: uuid
+          description: UUID of user who granted access
+          example: "456e7890-e89b-12d3-a456-426614174000"
+        grantedAt:
+          type: string
+          format: date-time
+          description: Timestamp when access was granted
+          example: "2024-08-28T10:40:00Z"
+
+    PageCollectionDto:
+      type: object
+      description: Paginated collection response matching Spring Page structure
+      properties:
+        content:
+          type: array
+          description: Collection items for current page
+          items:
+            $ref: '#/components/schemas/CollectionDto'
+        pageable:
+          type: object
+          description: Pagination information
+          properties:
+            pageNumber:
+              type: integer
+              description: Current page number (0-based)
+            pageSize:
+              type: integer
+              description: Size of the page
+            sort:
+              type: object
+              description: Sort information
+              properties:
+                sorted:
+                  type: boolean
+                unsorted:
+                  type: boolean
+                empty:
+                  type: boolean
+            offset:
+              type: integer
+              format: int64
+              description: Offset of the first item
+            paged:
+              type: boolean
+              description: Whether pagination is enabled
+            unpaged:
+              type: boolean
+              description: Whether pagination is disabled
+        totalElements:
+          type: integer
+          format: int64
+          description: Total number of elements
+        totalPages:
+          type: integer
+          description: Total number of pages
+        last:
+          type: boolean
+          description: Whether this is the last page
+        first:
+          type: boolean
+          description: Whether this is the first page
+        numberOfElements:
+          type: integer
+          description: Number of elements in current page
+        size:
+          type: integer
+          description: Size of the page
+        number:
+          type: integer
+          description: Current page number (0-based)
+        sort:
+          type: object
+          description: Sort information
+          properties:
+            sorted:
+              type: boolean
+            unsorted:
+              type: boolean
+            empty:
+              type: boolean
+        empty:
+          type: boolean
+          description: Whether the page is empty
 
     ErrorResponse:
       type: object

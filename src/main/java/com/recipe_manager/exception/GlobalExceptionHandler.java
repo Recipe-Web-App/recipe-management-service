@@ -155,6 +155,24 @@ public class GlobalExceptionHandler {
   }
 
   /**
+   * Handles duplicate resource exceptions.
+   *
+   * @param ex The duplicate resource exception
+   * @param request The HTTP request
+   * @return Error response
+   */
+  @ExceptionHandler(DuplicateResourceException.class)
+  public ResponseEntity<ErrorResponse> handleDuplicateResourceException(
+      final DuplicateResourceException ex, final HttpServletRequest request) {
+
+    ErrorResponse errorResponse =
+        createErrorResponse("Resource conflict", ex.getMessage(), null, request);
+
+    LOGGER.warn("Resource conflict: {}", errorResponse);
+    return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
+  }
+
+  /**
    * Handles business logic exceptions.
    *
    * @param ex The business exception
@@ -232,6 +250,24 @@ public class GlobalExceptionHandler {
             request);
 
     LOGGER.warn("Missing parameter: {}", errorResponse);
+    return ResponseEntity.badRequest().body(errorResponse);
+  }
+
+  /**
+   * Handles illegal argument exceptions.
+   *
+   * @param ex The illegal argument exception
+   * @param request The HTTP request
+   * @return Error response
+   */
+  @ExceptionHandler(IllegalArgumentException.class)
+  public ResponseEntity<ErrorResponse> handleIllegalArgument(
+      final IllegalArgumentException ex, final HttpServletRequest request) {
+
+    ErrorResponse errorResponse =
+        createErrorResponse("Bad request", ex.getMessage(), null, request);
+
+    LOGGER.warn("Illegal argument: {}", errorResponse);
     return ResponseEntity.badRequest().body(errorResponse);
   }
 

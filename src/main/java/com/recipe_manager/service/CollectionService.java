@@ -16,10 +16,13 @@ import com.recipe_manager.exception.ResourceNotFoundException;
 import com.recipe_manager.model.dto.collection.CollectionCollaboratorDto;
 import com.recipe_manager.model.dto.collection.RecipeCollectionItemDto;
 import com.recipe_manager.model.dto.request.CreateCollectionRequest;
+import com.recipe_manager.model.dto.request.ReorderRecipesRequest.RecipeOrder;
 import com.recipe_manager.model.dto.request.SearchCollectionsRequest;
 import com.recipe_manager.model.dto.request.UpdateCollectionRequest;
 import com.recipe_manager.model.dto.response.CollectionDetailsDto;
 import com.recipe_manager.model.dto.response.CollectionDto;
+import com.recipe_manager.model.entity.collection.CollectionCollaborator;
+import com.recipe_manager.model.entity.collection.CollectionCollaboratorId;
 import com.recipe_manager.model.entity.collection.RecipeCollection;
 import com.recipe_manager.model.entity.collection.RecipeCollectionItem;
 import com.recipe_manager.model.entity.collection.RecipeCollectionItemId;
@@ -44,6 +47,15 @@ public class CollectionService {
 
   /** Default display order increment for recipes in collections. */
   private static final int DISPLAY_ORDER_INCREMENT = 10;
+
+  /** Array index for grantedBy field in collaborator query results. */
+  private static final int GRANTED_BY_INDEX = 3;
+
+  /** Array index for grantedByUsername field in collaborator query results. */
+  private static final int GRANTED_BY_USERNAME_INDEX = 4;
+
+  /** Array index for grantedAt field in collaborator query results. */
+  private static final int GRANTED_AT_INDEX = 5;
 
   /** Repository used for accessing recipe collection data. */
   private final RecipeCollectionRepository recipeCollectionRepository;
@@ -516,8 +528,7 @@ public class CollectionService {
             .collect(java.util.stream.Collectors.toSet());
 
     // Validate all requested recipes exist in the collection
-    for (com.recipe_manager.model.dto.request.ReorderRecipesRequest.RecipeOrder recipeOrder :
-        request.getRecipes()) {
+    for (RecipeOrder recipeOrder : request.getRecipes()) {
       if (!existingRecipeIds.contains(recipeOrder.getRecipeId())) {
         throw new ResourceNotFoundException(
             "Recipe with ID " + recipeOrder.getRecipeId() + " not found in this collection");
@@ -525,8 +536,7 @@ public class CollectionService {
     }
 
     // Update display orders for all recipes in the request
-    for (com.recipe_manager.model.dto.request.ReorderRecipesRequest.RecipeOrder recipeOrder :
-        request.getRecipes()) {
+    for (RecipeOrder recipeOrder : request.getRecipes()) {
       RecipeCollectionItem item =
           recipeCollectionItemRepository
               .findByIdCollectionIdAndIdRecipeId(collectionId, recipeOrder.getRecipeId())
@@ -587,7 +597,8 @@ public class CollectionService {
         collectionCollaboratorRepository.findCollaboratorsWithUsernamesByCollectionId(collectionId);
 
     // Convert Object[] rows to DTOs
-    // Row format: collection_id, user_id, username, granted_by, granted_by_username, granted_at
+    // Row format: collection_id, user_id, username, granted_by,
+    // granted_by_username, granted_at
     List<CollectionCollaboratorDto> collaborators =
         collaboratorRows.stream()
             .map(
@@ -596,13 +607,107 @@ public class CollectionService {
                         .collectionId((Long) row[0])
                         .userId((UUID) row[1])
                         .username((String) row[2])
-                        .grantedBy((UUID) row[3])
-                        .grantedByUsername((String) row[4])
-                        .grantedAt(((java.sql.Timestamp) row[5]).toLocalDateTime())
+                        .grantedBy((UUID) row[GRANTED_BY_INDEX])
+                        .grantedByUsername((String) row[GRANTED_BY_USERNAME_INDEX])
+                        .grantedAt(((java.sql.Timestamp) row[GRANTED_AT_INDEX]).toLocalDateTime())
                         .build())
             .collect(java.util.stream.Collectors.toList());
 
     return ResponseEntity.ok(collaborators);
+  }
+
+  /**
+   * Adds a collaborator to a collection.
+   *
+   * <p>Only the collection owner can add collaborators. The collection must use SPECIFIC_USERS
+   * collaboration mode.
+   *
+   * @param collectionId the ID of the collection
+   * @param request the request containing the user ID to add
+   * @return ResponseEntity with the newly added collaborator details and 201 status
+   * @throws ResourceNotFoundException if collection or user not found
+   * @throws AccessDeniedException if user is not the owner or wrong collaboration mode
+   * @throws DuplicateResourceException if user is already a collaborator or is the owner
+   */
+  @Transactional
+  public ResponseEntity<CollectionCollaboratorDto> addCollaborator(
+      final Long collectionId,
+      final com.recipe_manager.model.dto.request.AddCollaboratorRequest request) {
+    // Get current authenticated user ID
+    UUID currentUserId = SecurityUtils.getCurrentUserId();
+
+    // Fetch the collection and verify it exists
+    RecipeCollection collection =
+        recipeCollectionRepository
+            .findById(collectionId)
+            .orElseThrow(() -> new ResourceNotFoundException("Collection not found"));
+
+    // Verify current user is the collection owner
+    if (!collection.getUserId().equals(currentUserId)) {
+      throw new AccessDeniedException("Only the collection owner can add collaborators");
+    }
+
+    // Verify collection uses SPECIFIC_USERS collaboration mode
+    if (collection.getCollaborationMode() != CollaborationMode.SPECIFIC_USERS) {
+      throw new AccessDeniedException(
+          "Can only add collaborators to collections with SPECIFIC_USERS mode");
+    }
+
+    UUID targetUserId = request.getUserId();
+
+    // Prevent owner from being added as collaborator
+    if (collection.getUserId().equals(targetUserId)) {
+      throw new DuplicateResourceException("Collection owner cannot be added as a collaborator");
+    }
+
+    // Check if user is already a collaborator
+    if (collectionCollaboratorRepository.existsByIdCollectionIdAndIdUserId(
+        collectionId, targetUserId)) {
+      throw new DuplicateResourceException("User is already a collaborator on this collection");
+    }
+
+    // Create new collaborator entity
+    CollectionCollaboratorId collaboratorId =
+        new CollectionCollaboratorId(collectionId, targetUserId);
+    CollectionCollaborator collaborator =
+        CollectionCollaborator.builder()
+            .id(collaboratorId)
+            .collection(collection)
+            .grantedBy(currentUserId)
+            .build(); // grantedAt will be set by @CreationTimestamp
+
+    // Save the collaborator
+    try {
+      collectionCollaboratorRepository.save(collaborator);
+
+      // Fetch with usernames using the native query
+      List<Object[]> collaboratorRows =
+          collectionCollaboratorRepository.findCollaboratorsWithUsernamesByCollectionId(
+              collectionId);
+
+      // Find the newly added collaborator in the results
+      CollectionCollaboratorDto dto =
+          collaboratorRows.stream()
+              .filter(row -> ((UUID) row[1]).equals(targetUserId))
+              .map(
+                  row ->
+                      CollectionCollaboratorDto.builder()
+                          .collectionId((Long) row[0])
+                          .userId((UUID) row[1])
+                          .username((String) row[2])
+                          .grantedBy((UUID) row[GRANTED_BY_INDEX])
+                          .grantedByUsername((String) row[GRANTED_BY_USERNAME_INDEX])
+                          .grantedAt(((java.sql.Timestamp) row[GRANTED_AT_INDEX]).toLocalDateTime())
+                          .build())
+              .findFirst()
+              .orElseThrow(
+                  () -> new RuntimeException("Failed to retrieve newly added collaborator"));
+
+      return ResponseEntity.status(HttpStatus.CREATED).body(dto);
+    } catch (org.springframework.dao.DataIntegrityViolationException e) {
+      // Handle FK constraint violation (user doesn't exist)
+      throw new ResourceNotFoundException("User with ID " + targetUserId + " not found");
+    }
   }
 
   /**

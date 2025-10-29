@@ -276,4 +276,33 @@ public class CollectionController {
       @PathVariable final Long collectionId) {
     return collectionService.getCollaborators(collectionId);
   }
+
+  /**
+   * Adds a collaborator to a collection.
+   *
+   * <p>POST /collections/{collectionId}/collaborators
+   *
+   * <p>Only the collection owner can add collaborators. The collection must use SPECIFIC_USERS
+   * collaboration mode.
+   *
+   * @param collectionId the collection ID
+   * @param request the request containing the user ID to add as collaborator
+   * @return ResponseEntity with the newly added collaborator details and 201 Created status
+   * @throws com.recipe_manager.exception.ResourceNotFoundException if collection or user not found
+   *     (404)
+   * @throws org.springframework.security.access.AccessDeniedException if user is not the owner or
+   *     wrong collaboration mode (403)
+   * @throws com.recipe_manager.exception.DuplicateResourceException if user is already a
+   *     collaborator or is the owner (409)
+   */
+  @PostMapping(
+      value = "/{collectionId}/collaborators",
+      consumes = MediaType.APPLICATION_JSON_VALUE,
+      produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<CollectionCollaboratorDto> addCollaborator(
+      @PathVariable final Long collectionId,
+      @Valid @RequestBody
+          final com.recipe_manager.model.dto.request.AddCollaboratorRequest request) {
+    return collectionService.addCollaborator(collectionId, request);
+  }
 }

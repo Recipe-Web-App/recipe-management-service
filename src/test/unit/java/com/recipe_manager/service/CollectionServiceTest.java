@@ -47,6 +47,7 @@ import com.recipe_manager.model.dto.request.SearchCollectionsRequest;
 import com.recipe_manager.model.dto.request.UpdateCollectionRequest;
 import com.recipe_manager.model.dto.response.CollectionDetailsDto;
 import com.recipe_manager.model.dto.response.CollectionDto;
+import com.recipe_manager.model.entity.collection.CollectionCollaborator;
 import com.recipe_manager.model.entity.collection.RecipeCollection;
 import com.recipe_manager.model.entity.collection.RecipeCollectionItem;
 import com.recipe_manager.model.entity.recipe.Recipe;
@@ -3178,5 +3179,281 @@ class CollectionServiceTest {
         .existsByIdCollectionIdAndIdUserId(collectionId, testUserId);
     verify(collectionCollaboratorRepository)
         .findCollaboratorsWithUsernamesByCollectionId(collectionId);
+  }
+
+  @Test
+  @DisplayName("addCollaborator - success")
+  @Tag("standard-processing")
+  void addCollaboratorSuccess() {
+    // Given
+    Long collectionId = 1L;
+    UUID ownerId = UUID.randomUUID();
+    UUID collaboratorId = UUID.randomUUID();
+
+    com.recipe_manager.model.dto.request.AddCollaboratorRequest request =
+        com.recipe_manager.model.dto.request.AddCollaboratorRequest.builder()
+            .userId(collaboratorId)
+            .build();
+
+    RecipeCollection collection =
+        RecipeCollection.builder()
+            .collectionId(collectionId)
+            .userId(ownerId)
+            .collaborationMode(CollaborationMode.SPECIFIC_USERS)
+            .visibility(CollectionVisibility.PRIVATE)
+            .build();
+
+    java.sql.Timestamp now = java.sql.Timestamp.valueOf(LocalDateTime.now());
+    List<Object[]> collaboratorRows =
+        List.<Object[]>of(
+            new Object[] {
+              collectionId, collaboratorId, "collaborator1", ownerId, "owner", now
+            });
+
+    when(recipeCollectionRepository.findById(collectionId)).thenReturn(Optional.of(collection));
+    when(collectionCollaboratorRepository.existsByIdCollectionIdAndIdUserId(
+            collectionId, collaboratorId))
+        .thenReturn(false);
+    when(collectionCollaboratorRepository.findCollaboratorsWithUsernamesByCollectionId(
+            collectionId))
+        .thenReturn(collaboratorRows);
+
+    // When
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(ownerId);
+
+      ResponseEntity<CollectionCollaboratorDto> response =
+          collectionService.addCollaborator(collectionId, request);
+
+      // Then
+      assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+      assertThat(response.getBody()).isNotNull();
+      assertThat(response.getBody().getUserId()).isEqualTo(collaboratorId);
+      assertThat(response.getBody().getGrantedBy()).isEqualTo(ownerId);
+    }
+
+    verify(recipeCollectionRepository).findById(collectionId);
+    verify(collectionCollaboratorRepository)
+        .existsByIdCollectionIdAndIdUserId(collectionId, collaboratorId);
+    verify(collectionCollaboratorRepository).save(any(CollectionCollaborator.class));
+  }
+
+  @Test
+  @DisplayName("addCollaborator - collection not found")
+  @Tag("error-handling")
+  void addCollaboratorCollectionNotFound() {
+    // Given
+    Long collectionId = 999L;
+    UUID collaboratorId = UUID.randomUUID();
+
+    com.recipe_manager.model.dto.request.AddCollaboratorRequest request =
+        com.recipe_manager.model.dto.request.AddCollaboratorRequest.builder()
+            .userId(collaboratorId)
+            .build();
+
+    when(recipeCollectionRepository.findById(collectionId)).thenReturn(Optional.empty());
+
+    // When/Then
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
+
+      assertThatThrownBy(() -> collectionService.addCollaborator(collectionId, request))
+          .isInstanceOf(ResourceNotFoundException.class)
+          .hasMessage("Collection not found");
+    }
+
+    verify(recipeCollectionRepository).findById(collectionId);
+    verify(collectionCollaboratorRepository, never()).save(any());
+  }
+
+  @Test
+  @DisplayName("addCollaborator - user is not owner")
+  @Tag("error-handling")
+  void addCollaboratorUserIsNotOwner() {
+    // Given
+    Long collectionId = 1L;
+    UUID ownerId = UUID.randomUUID();
+    UUID nonOwnerId = UUID.randomUUID();
+    UUID collaboratorId = UUID.randomUUID();
+
+    com.recipe_manager.model.dto.request.AddCollaboratorRequest request =
+        com.recipe_manager.model.dto.request.AddCollaboratorRequest.builder()
+            .userId(collaboratorId)
+            .build();
+
+    RecipeCollection collection =
+        RecipeCollection.builder()
+            .collectionId(collectionId)
+            .userId(ownerId)
+            .collaborationMode(CollaborationMode.SPECIFIC_USERS)
+            .build();
+
+    when(recipeCollectionRepository.findById(collectionId)).thenReturn(Optional.of(collection));
+
+    // When/Then
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(nonOwnerId);
+
+      assertThatThrownBy(() -> collectionService.addCollaborator(collectionId, request))
+          .isInstanceOf(AccessDeniedException.class)
+          .hasMessage("Only the collection owner can add collaborators");
+    }
+
+    verify(recipeCollectionRepository).findById(collectionId);
+    verify(collectionCollaboratorRepository, never()).save(any());
+  }
+
+  @Test
+  @DisplayName("addCollaborator - wrong collaboration mode")
+  @Tag("error-handling")
+  void addCollaboratorWrongCollaborationMode() {
+    // Given
+    Long collectionId = 1L;
+    UUID ownerId = UUID.randomUUID();
+    UUID collaboratorId = UUID.randomUUID();
+
+    com.recipe_manager.model.dto.request.AddCollaboratorRequest request =
+        com.recipe_manager.model.dto.request.AddCollaboratorRequest.builder()
+            .userId(collaboratorId)
+            .build();
+
+    RecipeCollection collection =
+        RecipeCollection.builder()
+            .collectionId(collectionId)
+            .userId(ownerId)
+            .collaborationMode(CollaborationMode.OWNER_ONLY) // Wrong mode
+            .build();
+
+    when(recipeCollectionRepository.findById(collectionId)).thenReturn(Optional.of(collection));
+
+    // When/Then
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(ownerId);
+
+      assertThatThrownBy(() -> collectionService.addCollaborator(collectionId, request))
+          .isInstanceOf(AccessDeniedException.class)
+          .hasMessage("Can only add collaborators to collections with SPECIFIC_USERS mode");
+    }
+
+    verify(recipeCollectionRepository).findById(collectionId);
+    verify(collectionCollaboratorRepository, never()).save(any());
+  }
+
+  @Test
+  @DisplayName("addCollaborator - owner cannot be added as collaborator")
+  @Tag("error-handling")
+  void addCollaboratorOwnerCannotBeAdded() {
+    // Given
+    Long collectionId = 1L;
+    UUID ownerId = UUID.randomUUID();
+
+    com.recipe_manager.model.dto.request.AddCollaboratorRequest request =
+        com.recipe_manager.model.dto.request.AddCollaboratorRequest.builder()
+            .userId(ownerId) // Trying to add owner as collaborator
+            .build();
+
+    RecipeCollection collection =
+        RecipeCollection.builder()
+            .collectionId(collectionId)
+            .userId(ownerId)
+            .collaborationMode(CollaborationMode.SPECIFIC_USERS)
+            .build();
+
+    when(recipeCollectionRepository.findById(collectionId)).thenReturn(Optional.of(collection));
+
+    // When/Then
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(ownerId);
+
+      assertThatThrownBy(() -> collectionService.addCollaborator(collectionId, request))
+          .isInstanceOf(DuplicateResourceException.class)
+          .hasMessage("Collection owner cannot be added as a collaborator");
+    }
+
+    verify(recipeCollectionRepository).findById(collectionId);
+    verify(collectionCollaboratorRepository, never()).save(any());
+  }
+
+  @Test
+  @DisplayName("addCollaborator - user already is collaborator")
+  @Tag("error-handling")
+  void addCollaboratorUserAlreadyCollaborator() {
+    // Given
+    Long collectionId = 1L;
+    UUID ownerId = UUID.randomUUID();
+    UUID collaboratorId = UUID.randomUUID();
+
+    com.recipe_manager.model.dto.request.AddCollaboratorRequest request =
+        com.recipe_manager.model.dto.request.AddCollaboratorRequest.builder()
+            .userId(collaboratorId)
+            .build();
+
+    RecipeCollection collection =
+        RecipeCollection.builder()
+            .collectionId(collectionId)
+            .userId(ownerId)
+            .collaborationMode(CollaborationMode.SPECIFIC_USERS)
+            .build();
+
+    when(recipeCollectionRepository.findById(collectionId)).thenReturn(Optional.of(collection));
+    when(collectionCollaboratorRepository.existsByIdCollectionIdAndIdUserId(
+            collectionId, collaboratorId))
+        .thenReturn(true);
+
+    // When/Then
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(ownerId);
+
+      assertThatThrownBy(() -> collectionService.addCollaborator(collectionId, request))
+          .isInstanceOf(DuplicateResourceException.class)
+          .hasMessage("User is already a collaborator on this collection");
+    }
+
+    verify(recipeCollectionRepository).findById(collectionId);
+    verify(collectionCollaboratorRepository)
+        .existsByIdCollectionIdAndIdUserId(collectionId, collaboratorId);
+    verify(collectionCollaboratorRepository, never()).save(any());
+  }
+
+  @Test
+  @DisplayName("addCollaborator - target user does not exist")
+  @Tag("error-handling")
+  void addCollaboratorTargetUserDoesNotExist() {
+    // Given
+    Long collectionId = 1L;
+    UUID ownerId = UUID.randomUUID();
+    UUID nonExistentUserId = UUID.randomUUID();
+
+    com.recipe_manager.model.dto.request.AddCollaboratorRequest request =
+        com.recipe_manager.model.dto.request.AddCollaboratorRequest.builder()
+            .userId(nonExistentUserId)
+            .build();
+
+    RecipeCollection collection =
+        RecipeCollection.builder()
+            .collectionId(collectionId)
+            .userId(ownerId)
+            .collaborationMode(CollaborationMode.SPECIFIC_USERS)
+            .build();
+
+    when(recipeCollectionRepository.findById(collectionId)).thenReturn(Optional.of(collection));
+    when(collectionCollaboratorRepository.existsByIdCollectionIdAndIdUserId(
+            collectionId, nonExistentUserId))
+        .thenReturn(false);
+    when(collectionCollaboratorRepository.save(any(CollectionCollaborator.class)))
+        .thenThrow(new org.springframework.dao.DataIntegrityViolationException("FK violation"));
+
+    // When/Then
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(ownerId);
+
+      assertThatThrownBy(() -> collectionService.addCollaborator(collectionId, request))
+          .isInstanceOf(ResourceNotFoundException.class)
+          .hasMessageContaining("User with ID")
+          .hasMessageContaining("not found");
+    }
+
+    verify(recipeCollectionRepository).findById(collectionId);
+    verify(collectionCollaboratorRepository).save(any(CollectionCollaborator.class));
   }
 }

@@ -2,6 +2,7 @@ package com.recipe_manager.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -1113,5 +1114,155 @@ class CollectionControllerTest {
 
     // Then
     verify(collectionService).getCollaborators(eq(999L));
+  }
+
+  @Test
+  @DisplayName("Should delegate to service for addCollaborator")
+  @Tag("standard-processing")
+  void shouldDelegateToServiceForAddCollaborator() {
+    // Given
+    Long collectionId = 1L;
+    UUID collaboratorId = UUID.randomUUID();
+
+    com.recipe_manager.model.dto.request.AddCollaboratorRequest request =
+        com.recipe_manager.model.dto.request.AddCollaboratorRequest.builder()
+            .userId(collaboratorId)
+            .build();
+
+    CollectionCollaboratorDto responseDto =
+        CollectionCollaboratorDto.builder()
+            .collectionId(collectionId)
+            .userId(collaboratorId)
+            .username("testuser")
+            .grantedBy(UUID.randomUUID())
+            .grantedByUsername("owner")
+            .grantedAt(java.time.LocalDateTime.now())
+            .build();
+
+    ResponseEntity<CollectionCollaboratorDto> expectedResponse =
+        ResponseEntity.status(org.springframework.http.HttpStatus.CREATED).body(responseDto);
+
+    when(collectionService.addCollaborator(collectionId, request)).thenReturn(expectedResponse);
+
+    // When
+    ResponseEntity<CollectionCollaboratorDto> response =
+        collectionController.addCollaborator(collectionId, request);
+
+    // Then
+    assertThat(response).isEqualTo(expectedResponse);
+    assertThat(response.getStatusCode()).isEqualTo(org.springframework.http.HttpStatus.CREATED);
+    assertThat(response.getBody()).isEqualTo(responseDto);
+    verify(collectionService).addCollaborator(collectionId, request);
+  }
+
+  @Test
+  @DisplayName("Should call service with correct parameters for addCollaborator")
+  @Tag("standard-processing")
+  void shouldCallServiceWithCorrectParametersForAddCollaborator() {
+    // Given
+    Long collectionId = 123L;
+    UUID userId = UUID.randomUUID();
+
+    com.recipe_manager.model.dto.request.AddCollaboratorRequest request =
+        com.recipe_manager.model.dto.request.AddCollaboratorRequest.builder()
+            .userId(userId)
+            .build();
+
+    CollectionCollaboratorDto responseDto =
+        CollectionCollaboratorDto.builder()
+            .collectionId(collectionId)
+            .userId(userId)
+            .username("collaborator")
+            .grantedBy(UUID.randomUUID())
+            .grantedByUsername("owner")
+            .grantedAt(java.time.LocalDateTime.now())
+            .build();
+
+    ResponseEntity<CollectionCollaboratorDto> expectedResponse =
+        ResponseEntity.status(org.springframework.http.HttpStatus.CREATED).body(responseDto);
+
+    when(collectionService.addCollaborator(collectionId, request)).thenReturn(expectedResponse);
+
+    // When
+    collectionController.addCollaborator(collectionId, request);
+
+    // Then
+    verify(collectionService).addCollaborator(eq(123L), argThat(r -> r.getUserId().equals(userId)));
+  }
+
+  @Test
+  @DisplayName("Should return 201 Created for successful addCollaborator")
+  @Tag("standard-processing")
+  void shouldReturn201CreatedForSuccessfulAddCollaborator() {
+    // Given
+    Long collectionId = 1L;
+    UUID collaboratorId = UUID.randomUUID();
+
+    com.recipe_manager.model.dto.request.AddCollaboratorRequest request =
+        com.recipe_manager.model.dto.request.AddCollaboratorRequest.builder()
+            .userId(collaboratorId)
+            .build();
+
+    CollectionCollaboratorDto responseDto =
+        CollectionCollaboratorDto.builder()
+            .collectionId(collectionId)
+            .userId(collaboratorId)
+            .username("newuser")
+            .grantedBy(UUID.randomUUID())
+            .grantedByUsername("owner")
+            .grantedAt(java.time.LocalDateTime.now())
+            .build();
+
+    ResponseEntity<CollectionCollaboratorDto> expectedResponse =
+        ResponseEntity.status(org.springframework.http.HttpStatus.CREATED).body(responseDto);
+
+    when(collectionService.addCollaborator(collectionId, request)).thenReturn(expectedResponse);
+
+    // When
+    ResponseEntity<CollectionCollaboratorDto> response =
+        collectionController.addCollaborator(collectionId, request);
+
+    // Then
+    assertThat(response.getStatusCode()).isEqualTo(org.springframework.http.HttpStatus.CREATED);
+    assertThat(response.getBody()).isNotNull();
+    assertThat(response.getBody().getUserId()).isEqualTo(collaboratorId);
+  }
+
+  @Test
+  @DisplayName("Should pass validation on valid request for addCollaborator")
+  @Tag("standard-processing")
+  void shouldPassValidationOnValidRequestForAddCollaborator() {
+    // Given
+    Long collectionId = 1L;
+    UUID userId = UUID.randomUUID();
+
+    com.recipe_manager.model.dto.request.AddCollaboratorRequest validRequest =
+        com.recipe_manager.model.dto.request.AddCollaboratorRequest.builder()
+            .userId(userId)
+            .build();
+
+    CollectionCollaboratorDto responseDto =
+        CollectionCollaboratorDto.builder()
+            .collectionId(collectionId)
+            .userId(userId)
+            .username("valid")
+            .grantedBy(UUID.randomUUID())
+            .grantedByUsername("owner")
+            .grantedAt(java.time.LocalDateTime.now())
+            .build();
+
+    ResponseEntity<CollectionCollaboratorDto> expectedResponse =
+        ResponseEntity.status(org.springframework.http.HttpStatus.CREATED).body(responseDto);
+
+    when(collectionService.addCollaborator(collectionId, validRequest))
+        .thenReturn(expectedResponse);
+
+    // When
+    ResponseEntity<CollectionCollaboratorDto> response =
+        collectionController.addCollaborator(collectionId, validRequest);
+
+    // Then
+    assertThat(response).isNotNull();
+    verify(collectionService).addCollaborator(collectionId, validRequest);
   }
 }

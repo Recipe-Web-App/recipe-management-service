@@ -15,7 +15,7 @@ Spring Boot, designed for cloud-native deployment on Kubernetes.
 
 ## Tech Stack
 
-- Java 21, Spring Boot 3, PostgreSQL, Maven, Docker, Kubernetes
+- Java 25, Spring Boot 3, PostgreSQL, Maven, Docker, Kubernetes
 
 ## Quick Start (5 minutes)
 
@@ -68,7 +68,7 @@ Spring Boot, designed for cloud-native deployment on Kubernetes.
 
 ### Software Requirements
 
-- **Java**: 21+ (Eclipse Temurin LTS recommended)
+- **Java**: 25+ (Eclipse Temurin recommended)
 - **Maven**: 3.9.0+
 - **Docker**: 24.0+ with Compose v2
 - **PostgreSQL**: 15+ (for local development)
@@ -92,7 +92,7 @@ For detailed installation instructions, see [INSTALL.md](INSTALL.md).
 
 ### Prerequisites
 
-- Java 21+
+- Java 25+
 - Maven 3.9+
 - Docker
 - PostgreSQL 15+

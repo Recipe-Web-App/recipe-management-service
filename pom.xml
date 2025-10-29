@@ -21,13 +21,13 @@
     <checkstyle.version>3.6.0</checkstyle.version>
     <flyway.version>10.10.0</flyway.version>
     <jacoco.version>0.8.14</jacoco.version>
-    <java.version>21</java.version>
+    <java.version>25</java.version>
     <jjwt.version>0.13.0</jjwt.version>
     <junit-jupiter.version>5.10.2</junit-jupiter.version>
     <lombok.version>1.18.42</lombok.version>
     <mapstruct.version>1.6.3</mapstruct.version>
-    <maven.compiler.source>21</maven.compiler.source>
-    <maven.compiler.target>21</maven.compiler.target>
+    <maven.compiler.source>25</maven.compiler.source>
+    <maven.compiler.target>25</maven.compiler.target>
     <pmd.version>3.28.0</pmd.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -446,7 +446,7 @@
         <artifactId>maven-pmd-plugin</artifactId>
         <version>${pmd.version}</version>
         <configuration>
-          <targetJdk>17</targetJdk>
+          <targetJdk>25</targetJdk>
           <analysisCache>true</analysisCache>
           <linkXRef>false</linkXRef>
           <minimumTokens>100</minimumTokens>

@@ -1265,4 +1265,76 @@ class CollectionControllerTest {
     assertThat(response).isNotNull();
     verify(collectionService).addCollaborator(collectionId, validRequest);
   }
+
+  @Test
+  @DisplayName("Should delegate to service for removeCollaborator")
+  void shouldDelegateToServiceForRemoveCollaborator() {
+    // Given
+    Long collectionId = 1L;
+    UUID userId = UUID.randomUUID();
+    ResponseEntity<Void> mockResponse = ResponseEntity.noContent().build();
+    when(collectionService.removeCollaborator(collectionId, userId)).thenReturn(mockResponse);
+
+    // When
+    ResponseEntity<Void> response = collectionController.removeCollaborator(collectionId, userId);
+
+    // Then
+    assertThat(response).isNotNull();
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+    verify(collectionService).removeCollaborator(collectionId, userId);
+  }
+
+  @Test
+  @DisplayName("Should call service with correct parameters for removeCollaborator")
+  void shouldCallServiceWithCorrectParametersForRemoveCollaborator() {
+    // Given
+    Long collectionId = 123L;
+    UUID userId = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
+    ResponseEntity<Void> mockResponse = ResponseEntity.noContent().build();
+    when(collectionService.removeCollaborator(collectionId, userId)).thenReturn(mockResponse);
+
+    // When
+    collectionController.removeCollaborator(collectionId, userId);
+
+    // Then
+    verify(collectionService)
+        .removeCollaborator(
+            argThat(id -> id.equals(123L)),
+            argThat(uid -> uid.equals(UUID.fromString("550e8400-e29b-41d4-a716-446655440000"))));
+  }
+
+  @Test
+  @DisplayName("Should return 204 No Content for successful removeCollaborator")
+  void shouldReturn204NoContentForSuccessfulRemoveCollaborator() {
+    // Given
+    Long collectionId = 1L;
+    UUID userId = UUID.randomUUID();
+    ResponseEntity<Void> mockResponse = ResponseEntity.noContent().build();
+    when(collectionService.removeCollaborator(collectionId, userId)).thenReturn(mockResponse);
+
+    // When
+    ResponseEntity<Void> response = collectionController.removeCollaborator(collectionId, userId);
+
+    // Then
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+    assertThat(response.getBody()).isNull();
+  }
+
+  @Test
+  @DisplayName("Should handle UUID parameter correctly for removeCollaborator")
+  void shouldHandleUuidParameterCorrectlyForRemoveCollaborator() {
+    // Given
+    Long collectionId = 1L;
+    UUID validUserId = UUID.fromString("a1b2c3d4-e5f6-7890-abcd-ef1234567890");
+    ResponseEntity<Void> mockResponse = ResponseEntity.noContent().build();
+    when(collectionService.removeCollaborator(collectionId, validUserId)).thenReturn(mockResponse);
+
+    // When
+    ResponseEntity<Void> response =
+        collectionController.removeCollaborator(collectionId, validUserId);
+
+    // Then
+    assertThat(response).isNotNull();
+    verify(collectionService).removeCollaborator(collectionId, validUserId);
+  }
 }

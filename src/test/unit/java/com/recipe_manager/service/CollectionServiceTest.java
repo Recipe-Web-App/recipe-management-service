@@ -3,6 +3,7 @@ package com.recipe_manager.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
@@ -3455,5 +3456,216 @@ class CollectionServiceTest {
 
     verify(recipeCollectionRepository).findById(collectionId);
     verify(collectionCollaboratorRepository).save(any(CollectionCollaborator.class));
+  }
+
+  @Test
+  @DisplayName("removeCollaborator - Success")
+  @Tag("standard-processing")
+  void removeCollaboratorSuccess() {
+    // Given
+    Long collectionId = 1L;
+    UUID ownerId = UUID.randomUUID();
+    UUID collaboratorId = UUID.randomUUID();
+
+    RecipeCollection collection =
+        RecipeCollection.builder()
+            .collectionId(collectionId)
+            .userId(ownerId)
+            .collaborationMode(CollaborationMode.SPECIFIC_USERS)
+            .build();
+
+    when(recipeCollectionRepository.findById(collectionId)).thenReturn(Optional.of(collection));
+    when(collectionCollaboratorRepository.existsByIdCollectionIdAndIdUserId(
+            collectionId, collaboratorId))
+        .thenReturn(true);
+
+    // When/Then
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(ownerId);
+
+      ResponseEntity<Void> response =
+          collectionService.removeCollaborator(collectionId, collaboratorId);
+
+      assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+      assertThat(response.getBody()).isNull();
+    }
+
+    verify(recipeCollectionRepository).findById(collectionId);
+    verify(collectionCollaboratorRepository)
+        .existsByIdCollectionIdAndIdUserId(collectionId, collaboratorId);
+    verify(collectionCollaboratorRepository)
+        .deleteByIdCollectionIdAndIdUserId(collectionId, collaboratorId);
+  }
+
+  @Test
+  @DisplayName("removeCollaborator - Collection not found")
+  @Tag("error-handling")
+  void removeCollaboratorCollectionNotFound() {
+    // Given
+    Long collectionId = 999L;
+    UUID ownerId = UUID.randomUUID();
+    UUID collaboratorId = UUID.randomUUID();
+
+    when(recipeCollectionRepository.findById(collectionId)).thenReturn(Optional.empty());
+
+    // When/Then
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(ownerId);
+
+      assertThatThrownBy(() -> collectionService.removeCollaborator(collectionId, collaboratorId))
+          .isInstanceOf(ResourceNotFoundException.class)
+          .hasMessage("Collection not found");
+    }
+
+    verify(recipeCollectionRepository).findById(collectionId);
+    verify(collectionCollaboratorRepository, never())
+        .existsByIdCollectionIdAndIdUserId(anyLong(), any(UUID.class));
+    verify(collectionCollaboratorRepository, never())
+        .deleteByIdCollectionIdAndIdUserId(anyLong(), any(UUID.class));
+  }
+
+  @Test
+  @DisplayName("removeCollaborator - User is not owner")
+  @Tag("error-handling")
+  void removeCollaboratorUserIsNotOwner() {
+    // Given
+    Long collectionId = 1L;
+    UUID ownerId = UUID.randomUUID();
+    UUID otherUserId = UUID.randomUUID();
+    UUID collaboratorId = UUID.randomUUID();
+
+    RecipeCollection collection =
+        RecipeCollection.builder()
+            .collectionId(collectionId)
+            .userId(ownerId) // Different from current user
+            .collaborationMode(CollaborationMode.SPECIFIC_USERS)
+            .build();
+
+    when(recipeCollectionRepository.findById(collectionId)).thenReturn(Optional.of(collection));
+
+    // When/Then
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(otherUserId);
+
+      assertThatThrownBy(() -> collectionService.removeCollaborator(collectionId, collaboratorId))
+          .isInstanceOf(AccessDeniedException.class)
+          .hasMessage("Only the collection owner can remove collaborators");
+    }
+
+    verify(recipeCollectionRepository).findById(collectionId);
+    verify(collectionCollaboratorRepository, never())
+        .existsByIdCollectionIdAndIdUserId(anyLong(), any(UUID.class));
+    verify(collectionCollaboratorRepository, never())
+        .deleteByIdCollectionIdAndIdUserId(anyLong(), any(UUID.class));
+  }
+
+  @Test
+  @DisplayName("removeCollaborator - Collaborator not found")
+  @Tag("error-handling")
+  void removeCollaboratorCollaboratorNotFound() {
+    // Given
+    Long collectionId = 1L;
+    UUID ownerId = UUID.randomUUID();
+    UUID nonCollaboratorId = UUID.randomUUID();
+
+    RecipeCollection collection =
+        RecipeCollection.builder()
+            .collectionId(collectionId)
+            .userId(ownerId)
+            .collaborationMode(CollaborationMode.SPECIFIC_USERS)
+            .build();
+
+    when(recipeCollectionRepository.findById(collectionId)).thenReturn(Optional.of(collection));
+    when(collectionCollaboratorRepository.existsByIdCollectionIdAndIdUserId(
+            collectionId, nonCollaboratorId))
+        .thenReturn(false);
+
+    // When/Then
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(ownerId);
+
+      assertThatThrownBy(
+              () -> collectionService.removeCollaborator(collectionId, nonCollaboratorId))
+          .isInstanceOf(ResourceNotFoundException.class)
+          .hasMessageContaining("User with ID")
+          .hasMessageContaining("is not a collaborator on this collection");
+    }
+
+    verify(recipeCollectionRepository).findById(collectionId);
+    verify(collectionCollaboratorRepository)
+        .existsByIdCollectionIdAndIdUserId(collectionId, nonCollaboratorId);
+    verify(collectionCollaboratorRepository, never())
+        .deleteByIdCollectionIdAndIdUserId(anyLong(), any(UUID.class));
+  }
+
+  @Test
+  @DisplayName("removeCollaborator - Works regardless of collaboration mode")
+  @Tag("standard-processing")
+  void removeCollaboratorWorksRegardlessOfCollaborationMode() {
+    // Given
+    Long collectionId = 1L;
+    UUID ownerId = UUID.randomUUID();
+    UUID collaboratorId = UUID.randomUUID();
+
+    // Collection with OWNER_ONLY mode (not SPECIFIC_USERS)
+    RecipeCollection collection =
+        RecipeCollection.builder()
+            .collectionId(collectionId)
+            .userId(ownerId)
+            .collaborationMode(CollaborationMode.OWNER_ONLY) // Different mode
+            .build();
+
+    when(recipeCollectionRepository.findById(collectionId)).thenReturn(Optional.of(collection));
+    when(collectionCollaboratorRepository.existsByIdCollectionIdAndIdUserId(
+            collectionId, collaboratorId))
+        .thenReturn(true);
+
+    // When/Then
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(ownerId);
+
+      ResponseEntity<Void> response =
+          collectionService.removeCollaborator(collectionId, collaboratorId);
+
+      // Should succeed - owner can remove collaborators regardless of mode
+      assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+    }
+
+    verify(recipeCollectionRepository).findById(collectionId);
+    verify(collectionCollaboratorRepository)
+        .deleteByIdCollectionIdAndIdUserId(collectionId, collaboratorId);
+  }
+
+  @Test
+  @DisplayName("removeCollaborator - Verifies deletion occurs")
+  @Tag("standard-processing")
+  void removeCollaboratorVerifiesDeletion() {
+    // Given
+    Long collectionId = 1L;
+    UUID ownerId = UUID.randomUUID();
+    UUID collaboratorId = UUID.randomUUID();
+
+    RecipeCollection collection =
+        RecipeCollection.builder()
+            .collectionId(collectionId)
+            .userId(ownerId)
+            .collaborationMode(CollaborationMode.SPECIFIC_USERS)
+            .build();
+
+    when(recipeCollectionRepository.findById(collectionId)).thenReturn(Optional.of(collection));
+    when(collectionCollaboratorRepository.existsByIdCollectionIdAndIdUserId(
+            collectionId, collaboratorId))
+        .thenReturn(true);
+
+    // When
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(ownerId);
+
+      collectionService.removeCollaborator(collectionId, collaboratorId);
+    }
+
+    // Then - Verify the delete method was called with correct parameters
+    verify(collectionCollaboratorRepository)
+        .deleteByIdCollectionIdAndIdUserId(collectionId, collaboratorId);
   }
 }

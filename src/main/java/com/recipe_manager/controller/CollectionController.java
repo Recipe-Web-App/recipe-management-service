@@ -305,4 +305,26 @@ public class CollectionController {
           final com.recipe_manager.model.dto.request.AddCollaboratorRequest request) {
     return collectionService.addCollaborator(collectionId, request);
   }
+
+  /**
+   * Removes a collaborator from a collection.
+   *
+   * <p>DELETE /collections/{collectionId}/collaborators/{userId}
+   *
+   * <p>Only the collection owner can remove collaborators. This endpoint removes a specific user
+   * from the collection's collaborator list, regardless of the collection's collaboration mode.
+   *
+   * @param collectionId the collection ID
+   * @param userId the user ID of the collaborator to remove
+   * @return ResponseEntity with 204 No Content status
+   * @throws com.recipe_manager.exception.ResourceNotFoundException if collection not found (404)
+   * @throws com.recipe_manager.exception.ResourceNotFoundException if collaborator not found (404)
+   * @throws org.springframework.security.access.AccessDeniedException if user is not the owner
+   *     (403)
+   */
+  @DeleteMapping("/{collectionId}/collaborators/{userId}")
+  public ResponseEntity<Void> removeCollaborator(
+      @PathVariable final Long collectionId, @PathVariable final java.util.UUID userId) {
+    return collectionService.removeCollaborator(collectionId, userId);
+  }
 }

@@ -711,6 +711,51 @@ public class CollectionService {
   }
 
   /**
+   * Removes a collaborator from a collection.
+   *
+   * <p>Only the collection owner can remove collaborators. This endpoint removes a specific user
+   * from the collection's collaborator list. No collaboration mode check is required - the owner
+   * can always remove collaborators regardless of the collection's collaboration mode.
+   *
+   * @param collectionId the ID of the collection
+   * @param userId the ID of the user to remove as collaborator
+   * @return ResponseEntity with 204 No Content status
+   * @throws ResourceNotFoundException if the collection is not found (404)
+   * @throws ResourceNotFoundException if the collaborator is not found in the collection (404)
+   * @throws AccessDeniedException if the current user is not the collection owner (403)
+   */
+  @Transactional
+  public ResponseEntity<Void> removeCollaborator(final Long collectionId, final UUID userId) {
+    // Get current authenticated user ID
+    UUID currentUserId = SecurityUtils.getCurrentUserId();
+
+    // Fetch the collection and verify it exists
+    RecipeCollection collection =
+        recipeCollectionRepository
+            .findById(collectionId)
+            .orElseThrow(() -> new ResourceNotFoundException("Collection not found"));
+
+    // Verify current user is the collection owner
+    if (!collection.getUserId().equals(currentUserId)) {
+      throw new AccessDeniedException("Only the collection owner can remove collaborators");
+    }
+
+    // Check if the collaborator exists in the collection
+    boolean collaboratorExists =
+        collectionCollaboratorRepository.existsByIdCollectionIdAndIdUserId(collectionId, userId);
+
+    if (!collaboratorExists) {
+      throw new ResourceNotFoundException(
+          "User with ID " + userId + " is not a collaborator on this collection");
+    }
+
+    // Delete the collaborator
+    collectionCollaboratorRepository.deleteByIdCollectionIdAndIdUserId(collectionId, userId);
+
+    return ResponseEntity.noContent().build();
+  }
+
+  /**
    * Verifies that the given user has view permission for the collection.
    *
    * <p>View permission is granted if:

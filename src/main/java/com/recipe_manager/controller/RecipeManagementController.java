@@ -15,9 +15,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.recipe_manager.model.dto.recipe.RecipeCommentDto;
 import com.recipe_manager.model.dto.recipe.RecipeDto;
 import com.recipe_manager.model.dto.recipe.StepCommentDto;
 import com.recipe_manager.model.dto.request.AddIngredientCommentRequest;
+import com.recipe_manager.model.dto.request.AddRecipeCommentRequest;
 import com.recipe_manager.model.dto.request.AddReviewRequest;
 import com.recipe_manager.model.dto.request.AddStepCommentRequest;
 import com.recipe_manager.model.dto.request.AddTagRequest;
@@ -25,6 +27,7 @@ import com.recipe_manager.model.dto.request.CreateRecipeRequest;
 import com.recipe_manager.model.dto.request.DeleteIngredientCommentRequest;
 import com.recipe_manager.model.dto.request.DeleteStepCommentRequest;
 import com.recipe_manager.model.dto.request.EditIngredientCommentRequest;
+import com.recipe_manager.model.dto.request.EditRecipeCommentRequest;
 import com.recipe_manager.model.dto.request.EditReviewRequest;
 import com.recipe_manager.model.dto.request.EditStepCommentRequest;
 import com.recipe_manager.model.dto.request.RemoveTagRequest;
@@ -32,6 +35,7 @@ import com.recipe_manager.model.dto.request.SearchRecipesRequest;
 import com.recipe_manager.model.dto.request.UpdateRecipeRequest;
 import com.recipe_manager.model.dto.response.IngredientCommentResponse;
 import com.recipe_manager.model.dto.response.IngredientRevisionsResponse;
+import com.recipe_manager.model.dto.response.RecipeCommentsResponse;
 import com.recipe_manager.model.dto.response.RecipeIngredientsResponse;
 import com.recipe_manager.model.dto.response.RecipeRevisionsResponse;
 import com.recipe_manager.model.dto.response.ReviewResponse;
@@ -510,5 +514,64 @@ public class RecipeManagementController {
     IngredientRevisionsResponse response =
         ingredientService.getIngredientRevisions(recipeId, ingredientId);
     return ResponseEntity.ok(response);
+  }
+
+  /**
+   * Get all comments for a recipe.
+   *
+   * @param recipeId the recipe ID
+   * @return response with all comments for the recipe
+   */
+  @GetMapping(value = "/{recipeId}/comments", produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<RecipeCommentsResponse> getRecipeComments(
+      @PathVariable final Long recipeId) {
+    RecipeCommentsResponse response = recipeService.getRecipeComments(recipeId);
+    return ResponseEntity.ok(response);
+  }
+
+  /**
+   * Add a comment to a recipe.
+   *
+   * @param recipeId the recipe ID
+   * @param request the add comment request
+   * @return the created comment
+   */
+  @PostMapping("/{recipeId}/comments")
+  public ResponseEntity<RecipeCommentDto> addRecipeComment(
+      @PathVariable final Long recipeId,
+      @RequestBody @Valid final AddRecipeCommentRequest request) {
+    RecipeCommentDto comment = recipeService.addRecipeComment(recipeId, request);
+    return ResponseEntity.status(HttpStatus.CREATED).body(comment);
+  }
+
+  /**
+   * Edit a comment on a recipe.
+   *
+   * @param recipeId the recipe ID
+   * @param commentId the comment ID
+   * @param request the edit comment request
+   * @return the updated comment
+   */
+  @PutMapping("/{recipeId}/comments/{commentId}")
+  public ResponseEntity<RecipeCommentDto> editRecipeComment(
+      @PathVariable final Long recipeId,
+      @PathVariable final Long commentId,
+      @RequestBody @Valid final EditRecipeCommentRequest request) {
+    RecipeCommentDto comment = recipeService.editRecipeComment(recipeId, commentId, request);
+    return ResponseEntity.ok(comment);
+  }
+
+  /**
+   * Delete a comment from a recipe.
+   *
+   * @param recipeId the recipe ID
+   * @param commentId the comment ID
+   * @return empty response
+   */
+  @DeleteMapping("/{recipeId}/comments/{commentId}")
+  public ResponseEntity<Void> deleteRecipeComment(
+      @PathVariable final Long recipeId, @PathVariable final Long commentId) {
+    recipeService.deleteRecipeComment(recipeId, commentId);
+    return ResponseEntity.noContent().build();
   }
 }

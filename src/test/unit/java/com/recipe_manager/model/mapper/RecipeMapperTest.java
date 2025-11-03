@@ -42,7 +42,8 @@ import org.springframework.test.context.TestPropertySource;
     RecipeStepMapperImpl.class,
     RecipeFavoriteMapperImpl.class,
     RecipeRevisionMapperImpl.class,
-    RecipeTagMapperImpl.class
+    RecipeTagMapperImpl.class,
+    RecipeCommentMapperImpl.class
 })
 @TestPropertySource(properties = {
     "spring.datasource.url=jdbc:h2:mem:testdb",

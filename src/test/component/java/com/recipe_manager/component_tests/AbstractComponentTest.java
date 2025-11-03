@@ -4,6 +4,7 @@ import com.recipe_manager.config.RequestIdFilter;
 import com.recipe_manager.controller.RecipeManagementController;
 import com.recipe_manager.exception.GlobalExceptionHandler;
 import com.recipe_manager.model.mapper.IngredientCommentMapper;
+import com.recipe_manager.model.mapper.RecipeCommentMapper;
 import com.recipe_manager.model.mapper.RecipeIngredientMapper;
 import com.recipe_manager.model.mapper.RecipeMapper;
 import com.recipe_manager.model.mapper.RecipeRevisionMapper;
@@ -13,6 +14,7 @@ import com.recipe_manager.model.mapper.ShoppingListMapper;
 import com.recipe_manager.model.mapper.StepCommentMapper;
 import com.recipe_manager.repository.ingredient.IngredientCommentRepository;
 import com.recipe_manager.repository.ingredient.IngredientRepository;
+import com.recipe_manager.repository.recipe.RecipeCommentRepository;
 import com.recipe_manager.repository.recipe.RecipeIngredientRepository;
 import com.recipe_manager.repository.recipe.RecipeRepository;
 import com.recipe_manager.repository.recipe.RecipeRevisionRepository;
@@ -82,6 +84,9 @@ public abstract class AbstractComponentTest {
   @Mock
   protected StepCommentRepository stepCommentRepository;
 
+  @Mock
+  protected RecipeCommentRepository recipeCommentRepository;
+
   // Real mappers for component testing
   @Autowired(required = false)
   protected RecipeMapper recipeMapper;
@@ -107,6 +112,9 @@ public abstract class AbstractComponentTest {
   @Autowired(required = false)
   protected RecipeRevisionMapper recipeRevisionMapper;
 
+  @Autowired(required = false)
+  protected RecipeCommentMapper recipeCommentMapper;
+
   @InjectMocks
   protected RecipeManagementController controller;
 
@@ -124,7 +132,7 @@ public abstract class AbstractComponentTest {
     if (recipeMapper != null && recipeRevisionMapper != null) {
       realRecipeService = new RecipeService(
           recipeRepository, ingredientRepository, recipeTagRepository, recipeRevisionRepository, recipeMapper,
-          recipeRevisionMapper, recipeStepMapper);
+          recipeRevisionMapper, recipeStepMapper, recipeCommentRepository, recipeCommentMapper);
     }
     if (recipeIngredientMapper != null && recipeRevisionMapper != null) {
       realIngredientService = new IngredientService(recipeIngredientRepository, ingredientRepository,

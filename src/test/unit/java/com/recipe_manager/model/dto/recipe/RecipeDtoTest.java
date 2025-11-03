@@ -26,11 +26,12 @@ class RecipeDtoTest {
     List<RecipeTagDto> tags = new ArrayList<>();
     List<RecipeRevisionDto> revisions = new ArrayList<>();
     List<RecipeFavoriteDto> favorites = new ArrayList<>();
+    List<RecipeCommentDto> comments = new ArrayList<>();
     UUID userId = UUID.randomUUID();
     LocalDateTime now = LocalDateTime.now();
     RecipeDto dto = new RecipeDto(1L, userId, "title", "desc", "url",
         BigDecimal.ONE, 10, 20, DifficultyLevel.EASY, now, now,
-        ingredients, steps, tags, revisions, favorites);
+        ingredients, steps, tags, revisions, favorites, comments);
     assertThat(dto.getRecipeId()).isEqualTo(1L);
     assertThat(dto.getUserId()).isEqualTo(userId);
     assertThat(dto.getTitle()).isEqualTo("title");
@@ -47,6 +48,7 @@ class RecipeDtoTest {
     assertThat(dto.getTags()).isSameAs(tags);
     assertThat(dto.getRevisions()).isSameAs(revisions);
     assertThat(dto.getFavorites()).isSameAs(favorites);
+    assertThat(dto.getComments()).isSameAs(comments);
   }
 
   @Test
@@ -60,6 +62,7 @@ class RecipeDtoTest {
     assertThat(dto.getTags()).isNotNull();
     assertThat(dto.getRevisions()).isNotNull();
     assertThat(dto.getFavorites()).isNotNull();
+    assertThat(dto.getComments()).isNotNull();
     assertThat(dto.getTitle()).isNull();
     assertThat(dto.getUserId()).isNull();
   }
@@ -76,6 +79,7 @@ class RecipeDtoTest {
     assertThat(dto.getTags()).isNotNull();
     assertThat(dto.getRevisions()).isNotNull();
     assertThat(dto.getFavorites()).isNotNull();
+    assertThat(dto.getComments()).isNotNull();
   }
 
   @Test
@@ -134,5 +138,6 @@ class RecipeDtoTest {
     assertThat(dto.getTags()).isEmpty();
     assertThat(dto.getRevisions()).isEmpty();
     assertThat(dto.getFavorites()).isEmpty();
+    assertThat(dto.getComments()).isEmpty();
   }
 }

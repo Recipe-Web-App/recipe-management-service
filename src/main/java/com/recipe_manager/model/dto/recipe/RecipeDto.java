@@ -76,4 +76,7 @@ public final class RecipeDto {
 
   /** The list of favorites. */
   @Valid @Default private List<RecipeFavoriteDto> favorites = new ArrayList<>();
+
+  /** The list of comments. */
+  @Valid @Default private List<RecipeCommentDto> comments = new ArrayList<>();
 }

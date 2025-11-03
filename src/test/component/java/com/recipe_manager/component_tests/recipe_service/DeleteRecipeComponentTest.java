@@ -25,6 +25,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.TestPropertySource;
 
+import com.recipe_manager.model.mapper.RecipeCommentMapperImpl;
 import com.recipe_manager.model.mapper.RecipeFavoriteMapperImpl;
 import com.recipe_manager.model.mapper.RecipeIngredientMapperImpl;
 import com.recipe_manager.model.mapper.RecipeMapperImpl;
@@ -42,7 +43,8 @@ import com.recipe_manager.model.mapper.RecipeTagMapperImpl;
     RecipeStepMapperImpl.class,
     RecipeFavoriteMapperImpl.class,
     RecipeRevisionMapperImpl.class,
-    RecipeTagMapperImpl.class
+    RecipeTagMapperImpl.class,
+    RecipeCommentMapperImpl.class
 })
 @TestPropertySource(properties = {
     "spring.datasource.url=jdbc:h2:mem:testdb",

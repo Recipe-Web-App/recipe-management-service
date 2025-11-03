@@ -27,10 +27,12 @@ import com.recipe_manager.model.entity.recipe.RecipeStep;
 import com.recipe_manager.model.enums.IngredientUnit;
 import com.recipe_manager.model.enums.RevisionCategory;
 import com.recipe_manager.model.enums.RevisionType;
+import com.recipe_manager.model.mapper.RecipeCommentMapper;
 import com.recipe_manager.model.mapper.RecipeMapper;
 import com.recipe_manager.model.mapper.RecipeRevisionMapper;
 import com.recipe_manager.model.mapper.RecipeStepMapper;
 import com.recipe_manager.repository.ingredient.IngredientRepository;
+import com.recipe_manager.repository.recipe.RecipeCommentRepository;
 import com.recipe_manager.repository.recipe.RecipeRepository;
 import com.recipe_manager.repository.recipe.RecipeRevisionRepository;
 import com.recipe_manager.repository.recipe.RecipeTagRepository;
@@ -68,6 +70,10 @@ class RecipeServiceRevisionTest {
   private RecipeRevisionMapper recipeRevisionMapper;
   @Mock
   private RecipeStepMapper recipeStepMapper;
+  @Mock
+  private RecipeCommentRepository recipeCommentRepository;
+  @Mock
+  private RecipeCommentMapper recipeCommentMapper;
 
   private RecipeService recipeService;
   private UUID currentUserId;
@@ -82,7 +88,9 @@ class RecipeServiceRevisionTest {
         recipeRevisionRepository,
         recipeMapper,
         recipeRevisionMapper,
-        recipeStepMapper);
+        recipeStepMapper,
+        recipeCommentRepository,
+        recipeCommentMapper);
 
     currentUserId = UUID.randomUUID();
     setupExistingRecipe();

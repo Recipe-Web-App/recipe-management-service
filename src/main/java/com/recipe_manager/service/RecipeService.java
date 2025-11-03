@@ -3,6 +3,7 @@ package com.recipe_manager.service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
@@ -14,12 +15,16 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.recipe_manager.exception.BusinessException;
 import com.recipe_manager.exception.ResourceNotFoundException;
+import com.recipe_manager.model.dto.recipe.RecipeCommentDto;
 import com.recipe_manager.model.dto.recipe.RecipeDto;
 import com.recipe_manager.model.dto.recipe.RecipeIngredientDto;
 import com.recipe_manager.model.dto.recipe.RecipeStepDto;
+import com.recipe_manager.model.dto.request.AddRecipeCommentRequest;
 import com.recipe_manager.model.dto.request.CreateRecipeRequest;
+import com.recipe_manager.model.dto.request.EditRecipeCommentRequest;
 import com.recipe_manager.model.dto.request.SearchRecipesRequest;
 import com.recipe_manager.model.dto.request.UpdateRecipeRequest;
+import com.recipe_manager.model.dto.response.RecipeCommentsResponse;
 import com.recipe_manager.model.dto.response.RecipeRevisionsResponse;
 import com.recipe_manager.model.dto.response.SearchRecipesResponse;
 import com.recipe_manager.model.dto.revision.IngredientAddRevision;
@@ -30,6 +35,7 @@ import com.recipe_manager.model.dto.revision.StepDeleteRevision;
 import com.recipe_manager.model.dto.revision.StepUpdateRevision;
 import com.recipe_manager.model.entity.ingredient.Ingredient;
 import com.recipe_manager.model.entity.recipe.Recipe;
+import com.recipe_manager.model.entity.recipe.RecipeComment;
 import com.recipe_manager.model.entity.recipe.RecipeIngredient;
 import com.recipe_manager.model.entity.recipe.RecipeIngredientId;
 import com.recipe_manager.model.entity.recipe.RecipeRevision;
@@ -39,10 +45,12 @@ import com.recipe_manager.model.enums.IngredientField;
 import com.recipe_manager.model.enums.RevisionCategory;
 import com.recipe_manager.model.enums.RevisionType;
 import com.recipe_manager.model.enums.StepField;
+import com.recipe_manager.model.mapper.RecipeCommentMapper;
 import com.recipe_manager.model.mapper.RecipeMapper;
 import com.recipe_manager.model.mapper.RecipeRevisionMapper;
 import com.recipe_manager.model.mapper.RecipeStepMapper;
 import com.recipe_manager.repository.ingredient.IngredientRepository;
+import com.recipe_manager.repository.recipe.RecipeCommentRepository;
 import com.recipe_manager.repository.recipe.RecipeRepository;
 import com.recipe_manager.repository.recipe.RecipeRevisionRepository;
 import com.recipe_manager.repository.recipe.RecipeTagRepository;
@@ -77,6 +85,12 @@ public class RecipeService {
   /** Mapper used for converting between recipe step entities and DTOs. */
   private final RecipeStepMapper recipeStepMapper;
 
+  /** Repository used for accessing recipe comment data. */
+  private final RecipeCommentRepository recipeCommentRepository;
+
+  /** Mapper used for converting between recipe comment entities and DTOs. */
+  private final RecipeCommentMapper recipeCommentMapper;
+
   /**
    * Service class for managing recipes.
    *
@@ -88,6 +102,9 @@ public class RecipeService {
    * @param recipeRevisionMapper the mapper used for converting between recipe revision entities and
    *     DTOs
    * @param recipeStepMapper the mapper used for converting between recipe step entities and DTOs
+   * @param recipeCommentRepository the repository used for accessing recipe comment data
+   * @param recipeCommentMapper the mapper used for converting between recipe comment entities and
+   *     DTOs
    */
   public RecipeService(
       final RecipeRepository recipeRepository,
@@ -96,7 +113,9 @@ public class RecipeService {
       final RecipeRevisionRepository recipeRevisionRepository,
       final RecipeMapper recipeMapper,
       final RecipeRevisionMapper recipeRevisionMapper,
-      final RecipeStepMapper recipeStepMapper) {
+      final RecipeStepMapper recipeStepMapper,
+      final RecipeCommentRepository recipeCommentRepository,
+      final RecipeCommentMapper recipeCommentMapper) {
     this.recipeRepository = recipeRepository;
     this.ingredientRepository = ingredientRepository;
     this.recipeTagRepository = recipeTagRepository;
@@ -104,6 +123,8 @@ public class RecipeService {
     this.recipeMapper = recipeMapper;
     this.recipeRevisionMapper = recipeRevisionMapper;
     this.recipeStepMapper = recipeStepMapper;
+    this.recipeCommentRepository = recipeCommentRepository;
+    this.recipeCommentMapper = recipeCommentMapper;
   }
 
   /**
@@ -131,7 +152,8 @@ public class RecipeService {
             null, // steps (handled separately)
             null, // revisions (empty on create)
             null, // favorites (empty on create)
-            null // tags (empty on create)
+            null, // tags (empty on create)
+            null // comments (empty on create)
             );
 
     // Map and persist ingredients
@@ -761,7 +783,7 @@ public class RecipeService {
    */
   private List<RecipeRevision> createIngredientUpdateRevisions(
       final Recipe recipe,
-      final java.util.UUID currentUserId,
+      final UUID currentUserId,
       final RecipeIngredient existingIngredient,
       final RecipeIngredientDto newIngredient) {
     List<RecipeRevision> revisions = new ArrayList<>();
@@ -853,7 +875,7 @@ public class RecipeService {
    */
   private List<RecipeRevision> createStepUpdateRevisions(
       final Recipe recipe,
-      final java.util.UUID currentUserId,
+      final UUID currentUserId,
       final RecipeStep existingStep,
       final RecipeStepDto newStep) {
     List<RecipeRevision> revisions = new ArrayList<>();
@@ -898,7 +920,7 @@ public class RecipeService {
    */
   private RecipeRevision createRevisionEntity(
       final Recipe recipe,
-      final java.util.UUID userId,
+      final UUID userId,
       final RevisionCategory category,
       final RevisionType type,
       final com.recipe_manager.model.dto.revision.AbstractRevision previousData,
@@ -946,5 +968,121 @@ public class RecipeService {
         .revisions(revisionDtos)
         .totalCount(revisionDtos.size())
         .build();
+  }
+
+  /**
+   * Add a comment to a recipe.
+   *
+   * @param recipeId the recipe ID
+   * @param request the add comment request
+   * @return the created comment
+   * @throws ResourceNotFoundException if recipe not found
+   */
+  @Transactional
+  public RecipeCommentDto addRecipeComment(
+      final Long recipeId, final AddRecipeCommentRequest request) {
+    Recipe recipe =
+        recipeRepository
+            .findById(recipeId)
+            .orElseThrow(
+                () -> new ResourceNotFoundException("Recipe not found with id: " + recipeId));
+
+    UUID currentUserId = SecurityUtils.getCurrentUserId();
+
+    RecipeComment comment =
+        RecipeComment.builder()
+            .recipe(recipe)
+            .userId(currentUserId)
+            .commentText(request.getCommentText())
+            .isPublic(request.getIsPublic())
+            .build();
+
+    RecipeComment savedComment = recipeCommentRepository.save(comment);
+    return recipeCommentMapper.toDto(savedComment);
+  }
+
+  /**
+   * Edit a comment on a recipe.
+   *
+   * @param recipeId the recipe ID
+   * @param commentId the comment ID
+   * @param request the edit comment request
+   * @return the updated comment
+   * @throws ResourceNotFoundException if recipe or comment not found
+   * @throws AccessDeniedException if user doesn't own the comment
+   */
+  @Transactional
+  public RecipeCommentDto editRecipeComment(
+      final Long recipeId, final Long commentId, final EditRecipeCommentRequest request) {
+    // Verify recipe exists
+    if (!recipeRepository.existsById(recipeId)) {
+      throw new ResourceNotFoundException("Recipe not found with id: " + recipeId);
+    }
+
+    UUID currentUserId = SecurityUtils.getCurrentUserId();
+
+    RecipeComment comment =
+        recipeCommentRepository
+            .findByCommentIdAndRecipeId(commentId, recipeId)
+            .orElseThrow(
+                () -> new ResourceNotFoundException("Comment not found with ID: " + commentId));
+
+    if (!comment.getUserId().equals(currentUserId)) {
+      throw new AccessDeniedException("You can only edit your own comments");
+    }
+
+    comment.setCommentText(request.getCommentText());
+    RecipeComment savedComment = recipeCommentRepository.save(comment);
+    return recipeCommentMapper.toDto(savedComment);
+  }
+
+  /**
+   * Delete a comment from a recipe.
+   *
+   * @param recipeId the recipe ID
+   * @param commentId the comment ID
+   * @throws ResourceNotFoundException if recipe or comment not found
+   * @throws AccessDeniedException if user doesn't own the comment
+   */
+  @Transactional
+  public void deleteRecipeComment(final Long recipeId, final Long commentId) {
+    // Verify recipe exists
+    if (!recipeRepository.existsById(recipeId)) {
+      throw new ResourceNotFoundException("Recipe not found with id: " + recipeId);
+    }
+
+    UUID currentUserId = SecurityUtils.getCurrentUserId();
+
+    RecipeComment comment =
+        recipeCommentRepository
+            .findByCommentIdAndRecipeId(commentId, recipeId)
+            .orElseThrow(
+                () -> new ResourceNotFoundException("Comment not found with ID: " + commentId));
+
+    if (!comment.getUserId().equals(currentUserId)) {
+      throw new AccessDeniedException("You can only delete your own comments");
+    }
+
+    recipeCommentRepository.delete(comment);
+  }
+
+  /**
+   * Get all comments for a recipe.
+   *
+   * @param recipeId the recipe ID
+   * @return response containing all comments for the recipe
+   * @throws ResourceNotFoundException if recipe not found
+   */
+  public RecipeCommentsResponse getRecipeComments(final Long recipeId) {
+    // Verify recipe exists
+    if (!recipeRepository.existsById(recipeId)) {
+      throw new ResourceNotFoundException("Recipe not found with id: " + recipeId);
+    }
+
+    List<RecipeComment> comments =
+        recipeCommentRepository.findByRecipeIdOrderByCreatedAtAsc(recipeId);
+    List<RecipeCommentDto> commentDtos = recipeCommentMapper.toDtoList(comments);
+
+    return RecipeCommentsResponse.builder().recipeId(recipeId).comments(commentDtos).build();
   }
 }

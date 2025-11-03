@@ -16,7 +16,8 @@ import com.recipe_manager.model.entity.recipe.Recipe;
       RecipeStepMapper.class,
       RecipeFavoriteMapper.class,
       RecipeRevisionMapper.class,
-      RecipeTagMapper.class
+      RecipeTagMapper.class,
+      RecipeCommentMapper.class
     })
 public interface RecipeMapper {
   /**
@@ -30,6 +31,7 @@ public interface RecipeMapper {
   @Mapping(target = "favorites", source = "recipeFavorites")
   @Mapping(target = "revisions", source = "recipeRevisions")
   @Mapping(target = "tags", source = "recipeTags")
+  @Mapping(target = "comments", source = "recipeComments")
   RecipeDto toDto(Recipe recipe);
 
   /**
@@ -46,6 +48,7 @@ public interface RecipeMapper {
   @Mapping(target = "recipeFavorites", ignore = true)
   @Mapping(target = "recipeRevisions", ignore = true)
   @Mapping(target = "recipeTags", ignore = true)
+  @Mapping(target = "recipeComments", ignore = true)
   @Mapping(target = "recipeIngredients", source = "ingredients")
   @Mapping(target = "recipeSteps", source = "steps")
   void updateRecipeFromRequest(UpdateRecipeRequest request, @MappingTarget Recipe recipe);

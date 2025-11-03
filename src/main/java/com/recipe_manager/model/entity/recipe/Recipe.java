@@ -52,7 +52,8 @@ import lombok.ToString;
       "recipeSteps",
       "recipeRevisions",
       "recipeFavorites",
-      "recipeTags"
+      "recipeTags",
+      "recipeComments"
     })
 @ToString(
     exclude = {
@@ -60,7 +61,8 @@ import lombok.ToString;
       "recipeSteps",
       "recipeRevisions",
       "recipeFavorites",
-      "recipeTags"
+      "recipeTags",
+      "recipeComments"
     })
 public class Recipe {
   /** Max name length as defined in DB schema. */
@@ -155,4 +157,9 @@ public class Recipe {
       inverseJoinColumns = @JoinColumn(name = "tag_id"))
   @Default
   private List<RecipeTag> recipeTags = new ArrayList<>();
+
+  /** The list of recipe comments. */
+  @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL, orphanRemoval = true)
+  @Default
+  private List<RecipeComment> recipeComments = new ArrayList<>();
 }

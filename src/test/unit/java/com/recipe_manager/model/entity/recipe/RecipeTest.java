@@ -26,10 +26,11 @@ class RecipeTest {
     List<RecipeRevision> revisions = new ArrayList<>();
     List<RecipeFavorite> favorites = new ArrayList<>();
     List<RecipeTag> tags = new ArrayList<>();
+    List<RecipeComment> comments = new ArrayList<>();
     UUID userId = UUID.randomUUID();
     LocalDateTime now = LocalDateTime.now();
     Recipe recipe = new Recipe(1L, userId, "title", "desc", "url", BigDecimal.ONE, 10, 20, DifficultyLevel.EASY, now,
-        now, ingredients, steps, revisions, favorites, tags);
+        now, ingredients, steps, revisions, favorites, tags, comments);
     assertThat(recipe.getRecipeId()).isEqualTo(1L);
     assertThat(recipe.getUserId()).isEqualTo(userId);
     assertThat(recipe.getTitle()).isEqualTo("title");
@@ -46,6 +47,7 @@ class RecipeTest {
     assertThat(recipe.getRecipeRevisions()).isSameAs(revisions);
     assertThat(recipe.getRecipeFavorites()).isSameAs(favorites);
     assertThat(recipe.getRecipeTags()).isSameAs(tags);
+    assertThat(recipe.getRecipeComments()).isSameAs(comments);
   }
 
   @Test
@@ -69,6 +71,7 @@ class RecipeTest {
     assertThat(recipe.getRecipeRevisions()).isNotNull();
     assertThat(recipe.getRecipeFavorites()).isNotNull();
     assertThat(recipe.getRecipeTags()).isNotNull();
+    assertThat(recipe.getRecipeComments()).isNotNull();
   }
 
   @Test

@@ -14,10 +14,12 @@ import com.recipe_manager.model.dto.recipe.RecipeRevisionDto;
 import com.recipe_manager.model.dto.response.RecipeRevisionsResponse;
 import com.recipe_manager.model.entity.recipe.Recipe;
 import com.recipe_manager.model.entity.recipe.RecipeRevision;
+import com.recipe_manager.model.mapper.RecipeCommentMapper;
 import com.recipe_manager.model.mapper.RecipeMapper;
 import com.recipe_manager.model.mapper.RecipeRevisionMapper;
 import com.recipe_manager.model.mapper.RecipeStepMapper;
 import com.recipe_manager.repository.ingredient.IngredientRepository;
+import com.recipe_manager.repository.recipe.RecipeCommentRepository;
 import com.recipe_manager.repository.recipe.RecipeRepository;
 import com.recipe_manager.repository.recipe.RecipeRevisionRepository;
 import com.recipe_manager.repository.recipe.RecipeTagRepository;
@@ -61,6 +63,12 @@ class RecipeServiceRevisionsTest {
   @Mock
   private RecipeStepMapper recipeStepMapper;
 
+  @Mock
+  private RecipeCommentRepository recipeCommentRepository;
+
+  @Mock
+  private RecipeCommentMapper recipeCommentMapper;
+
   private RecipeService recipeService;
 
   private Recipe testRecipe;
@@ -77,7 +85,9 @@ class RecipeServiceRevisionsTest {
         recipeRevisionRepository,
         recipeMapper,
         recipeRevisionMapper,
-        recipeStepMapper);
+        recipeStepMapper,
+        recipeCommentRepository,
+        recipeCommentMapper);
 
     currentUserId = UUID.randomUUID();
     testRecipe = Recipe.builder()

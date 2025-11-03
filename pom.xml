@@ -449,7 +449,7 @@
           <targetJdk>25</targetJdk>
           <analysisCache>true</analysisCache>
           <linkXRef>false</linkXRef>
-          <minimumTokens>100</minimumTokens>
+          <minimumTokens>120</minimumTokens>
         </configuration>
         <executions>
           <execution>

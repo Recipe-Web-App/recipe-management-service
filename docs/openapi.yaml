@@ -57,6 +57,8 @@ tags:
     description: Health checks and monitoring endpoints
   - name: monitoring
     description: Application metrics and observability
+  - name: comments
+    description: Recipe comment management
 
 paths:
   /recipes:
@@ -123,6 +125,13 @@ paths:
       operationId: getRecipeById
       parameters:
         - $ref: '#/components/parameters/RecipeIdParam'
+        - name: includeComments
+          in: query
+          required: false
+          description: Include recipe comments in the response
+          schema:
+            type: boolean
+            default: false
       responses:
         '200':
           description: Recipe retrieved successfully
@@ -189,6 +198,140 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /recipes/{recipeId}/comments:
+    get:
+      tags: [comments]
+      summary: Get all comments for a recipe
+      description: |
+        Retrieves all comments for a specific recipe, ordered by creation date.
+        Returns all public and private comments as all comments are visible to everyone.
+      operationId: getRecipeComments
+      parameters:
+        - $ref: '#/components/parameters/RecipeIdParam'
+      responses:
+        '200':
+          description: Comments retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecipeCommentsResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    post:
+      tags: [comments]
+      summary: Add comment to recipe
+      description: |
+        Adds a new comment to a recipe. The comment is associated with the
+        authenticated user making the request.
+      operationId: addRecipeComment
+      parameters:
+        - $ref: '#/components/parameters/RecipeIdParam'
+      requestBody:
+        description: Comment data
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddRecipeCommentRequest'
+      responses:
+        '201':
+          description: Comment created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecipeCommentDto'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /recipes/{recipeId}/comments/{commentId}:
+    put:
+      tags: [comments]
+      summary: Edit recipe comment
+      description: |
+        Updates an existing recipe comment. Only the comment owner can edit their comment.
+      operationId: editRecipeComment
+      parameters:
+        - $ref: '#/components/parameters/RecipeIdParam'
+        - name: commentId
+          in: path
+          required: true
+          description: Comment identifier
+          schema:
+            type: integer
+            format: int64
+            example: 501
+      requestBody:
+        description: Updated comment data
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EditRecipeCommentRequest'
+      responses:
+        '200':
+          description: Comment updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecipeCommentDto'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Forbidden - User can only edit their own comments
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    delete:
+      tags: [comments]
+      summary: Delete recipe comment
+      description: |
+        Deletes a recipe comment. Only the comment owner can delete their comment.
+      operationId: deleteRecipeComment
+      parameters:
+        - $ref: '#/components/parameters/RecipeIdParam'
+        - name: commentId
+          in: path
+          required: true
+          description: Comment identifier
+          schema:
+            type: integer
+            format: int64
+            example: 501
+      responses:
+        '204':
+          description: Comment deleted successfully
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Forbidden - User can only delete their own comments
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '404':
           $ref: '#/components/responses/NotFound'
         '500':
@@ -1934,6 +2077,11 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/RecipeFavoriteDto'
+        comments:
+          type: array
+          description: Comments on the recipe
+          items:
+            $ref: '#/components/schemas/RecipeCommentDto'
 
     RecipeIngredientDto:
       type: object
@@ -2660,6 +2808,54 @@ components:
           description: Last update timestamp
           example: "2024-08-28T10:40:00Z"
 
+    RecipeCommentDto:
+      type: object
+      required:
+        - commentId
+        - recipeId
+        - userId
+        - commentText
+        - isPublic
+        - createdAt
+      properties:
+        commentId:
+          type: integer
+          format: int64
+          description: Unique comment identifier
+          example: 501
+        recipeId:
+          type: integer
+          format: int64
+          description: Recipe identifier
+          example: 123
+        userId:
+          type: string
+          format: uuid
+          description: UUID of the user who wrote the comment
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        commentText:
+          type: string
+          minLength: 1
+          maxLength: 2000
+          description: Comment text content
+          example: >-
+            This recipe is absolutely delicious! I made it for my family
+            and everyone loved it.
+        isPublic:
+          type: boolean
+          description: Whether the comment is publicly visible
+          example: true
+        createdAt:
+          type: string
+          format: date-time
+          description: Comment creation timestamp
+          example: "2024-08-28T10:40:00Z"
+        updatedAt:
+          type: string
+          format: date-time
+          description: Last update timestamp
+          example: "2024-08-28T10:40:00Z"
+
     CreateRecipeRequest:
       type: object
       required:
@@ -3090,6 +3286,49 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/StepCommentDto'
+
+    AddRecipeCommentRequest:
+      type: object
+      required:
+        - commentText
+      properties:
+        commentText:
+          type: string
+          minLength: 1
+          maxLength: 2000
+          description: Comment text content
+          example: "This recipe is amazing! Highly recommend it."
+        isPublic:
+          type: boolean
+          description: Whether the comment should be publicly visible
+          default: true
+          example: true
+
+    EditRecipeCommentRequest:
+      type: object
+      required:
+        - commentText
+      properties:
+        commentText:
+          type: string
+          minLength: 1
+          maxLength: 2000
+          description: Updated comment text
+          example: "Updated: This recipe is even better than I thought!"
+
+    RecipeCommentsResponse:
+      type: object
+      properties:
+        recipeId:
+          type: integer
+          format: int64
+          description: Recipe identifier
+          example: 123
+        comments:
+          type: array
+          description: List of comments for the recipe
+          items:
+            $ref: '#/components/schemas/RecipeCommentDto'
 
     TagResponse:
       type: object

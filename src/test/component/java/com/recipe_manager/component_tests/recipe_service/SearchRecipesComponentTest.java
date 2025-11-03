@@ -19,6 +19,7 @@ import com.recipe_manager.model.dto.request.SearchRecipesRequest;
 import com.recipe_manager.model.entity.recipe.Recipe;
 import com.recipe_manager.model.enums.DifficultyLevel;
 import com.recipe_manager.model.enums.IngredientMatchMode;
+import com.recipe_manager.model.mapper.RecipeCommentMapperImpl;
 import com.recipe_manager.model.mapper.RecipeFavoriteMapperImpl;
 import com.recipe_manager.model.mapper.RecipeIngredientMapperImpl;
 import com.recipe_manager.model.mapper.RecipeMapperImpl;
@@ -48,7 +49,8 @@ import org.springframework.test.context.TestPropertySource;
     RecipeStepMapperImpl.class,
     RecipeFavoriteMapperImpl.class,
     RecipeRevisionMapperImpl.class,
-    RecipeTagMapperImpl.class
+    RecipeTagMapperImpl.class,
+    RecipeCommentMapperImpl.class
 })
 @TestPropertySource(properties = {
     "spring.datasource.url=jdbc:h2:mem:testdb",

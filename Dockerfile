@@ -1,9 +1,19 @@
 # ---- Build Stage ----
 FROM maven:3-eclipse-temurin-25 AS build
 WORKDIR /app
+
+# Copy only pom.xml and checkstyle.xml first for dependency caching
 COPY pom.xml .
 COPY checkstyle.xml .
+
+# Download dependencies in a separate layer (cached unless pom.xml changes)
+# This helps with DNS timeouts and speeds up rebuilds
+RUN mvn dependency:go-offline -B || mvn dependency:resolve -B
+
+# Now copy source code
 COPY src ./src
+
+# Build the application
 RUN mvn clean package -DskipTests
 
 # ---- Run Stage ----

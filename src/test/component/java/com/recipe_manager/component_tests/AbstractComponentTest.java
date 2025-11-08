@@ -27,6 +27,7 @@ import com.recipe_manager.service.ReviewService;
 import com.recipe_manager.service.StepService;
 import com.recipe_manager.service.TagService;
 import com.recipe_manager.service.external.RecipeScraperService;
+import com.recipe_manager.service.external.notificationservice.NotificationService;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.mockito.InjectMocks;
@@ -58,6 +59,9 @@ public abstract class AbstractComponentTest {
 
   @Mock
   protected RecipeScraperService recipeScraperService;
+
+  @Mock
+  protected NotificationService notificationService;
 
   // Repository mocks for proper component testing
   @Mock
@@ -132,16 +136,19 @@ public abstract class AbstractComponentTest {
     if (recipeMapper != null && recipeRevisionMapper != null) {
       realRecipeService = new RecipeService(
           recipeRepository, ingredientRepository, recipeTagRepository, recipeRevisionRepository, recipeMapper,
-          recipeRevisionMapper, recipeStepMapper, recipeCommentRepository, recipeCommentMapper);
+          recipeRevisionMapper, recipeStepMapper, recipeCommentRepository, recipeCommentMapper,
+          notificationService);
     }
     if (recipeIngredientMapper != null && recipeRevisionMapper != null) {
       realIngredientService = new IngredientService(recipeIngredientRepository, ingredientRepository,
           ingredientCommentRepository, recipeRepository, recipeRevisionRepository, recipeIngredientMapper,
-          ingredientCommentMapper, recipeRevisionMapper, shoppingListMapper, recipeScraperService);
+          ingredientCommentMapper, recipeRevisionMapper, shoppingListMapper, recipeScraperService,
+          notificationService);
     }
     if (stepCommentMapper != null && recipeStepMapper != null && recipeRevisionMapper != null) {
       realStepService = new StepService(recipeRepository, recipeStepRepository, stepCommentRepository,
-          recipeRevisionRepository, recipeStepMapper, stepCommentMapper, recipeRevisionMapper);
+          recipeRevisionRepository, recipeStepMapper, stepCommentMapper, recipeRevisionMapper,
+          notificationService);
     }
     if (recipeTagMapper != null) {
       realTagService = new TagService(recipeRepository, recipeTagRepository, recipeTagMapper);

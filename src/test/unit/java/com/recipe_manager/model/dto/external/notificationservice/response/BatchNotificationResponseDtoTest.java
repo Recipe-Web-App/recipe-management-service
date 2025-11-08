@@ -25,7 +25,7 @@ class BatchNotificationResponseDtoTest {
   @Tag("standard-processing")
   @DisplayName("Should create DTO using builder pattern")
   void shouldCreateDtoUsingBuilder() {
-    UUID notificationId = UUID.randomUUID();
+    Long notificationId = 1001L;
     UUID recipientId = UUID.randomUUID();
 
     NotificationDto notification = NotificationDto.builder()
@@ -50,9 +50,9 @@ class BatchNotificationResponseDtoTest {
   @Tag("standard-processing")
   @DisplayName("Should serialize and deserialize DTO with snake_case")
   void shouldSerializeAndDeserializeWithSnakeCase() throws Exception {
-    UUID notificationId1 = UUID.fromString("770e8400-e29b-41d4-a716-446655440111");
+    Long notificationId1 = 2001L;
     UUID recipientId1 = UUID.fromString("550e8400-e29b-41d4-a716-446655440001");
-    UUID notificationId2 = UUID.fromString("770e8400-e29b-41d4-a716-446655440112");
+    Long notificationId2 = 2002L;
     UUID recipientId2 = UUID.fromString("550e8400-e29b-41d4-a716-446655440002");
 
     NotificationDto notification1 = NotificationDto.builder()
@@ -77,7 +77,7 @@ class BatchNotificationResponseDtoTest {
     assertThat(json).contains("\"message\"");
     assertThat(json).contains("\"notification_id\"");
     assertThat(json).contains("\"recipient_id\"");
-    assertThat(json).contains("770e8400-e29b-41d4-a716-446655440111");
+    assertThat(json).contains("2001");
     assertThat(json).contains("550e8400-e29b-41d4-a716-446655440001");
 
     BatchNotificationResponseDto deserialized = objectMapper.readValue(json, BatchNotificationResponseDto.class);
@@ -104,15 +104,15 @@ class BatchNotificationResponseDtoTest {
   void shouldHandleMultipleNotifications() {
     List<NotificationDto> notifications = List.of(
         NotificationDto.builder()
-            .notificationId(UUID.randomUUID())
+            .notificationId(5001L)
             .recipientId(UUID.randomUUID())
             .build(),
         NotificationDto.builder()
-            .notificationId(UUID.randomUUID())
+            .notificationId(5001L)
             .recipientId(UUID.randomUUID())
             .build(),
         NotificationDto.builder()
-            .notificationId(UUID.randomUUID())
+            .notificationId(5001L)
             .recipientId(UUID.randomUUID())
             .build()
     );
@@ -131,7 +131,7 @@ class BatchNotificationResponseDtoTest {
   @Tag("standard-processing")
   @DisplayName("Should properly implement equals and hashCode")
   void shouldImplementEqualsAndHashCode() {
-    UUID notificationId = UUID.randomUUID();
+    Long notificationId = 1001L;
     UUID recipientId = UUID.randomUUID();
 
     NotificationDto notification = NotificationDto.builder()
@@ -168,7 +168,7 @@ class BatchNotificationResponseDtoTest {
   @Tag("standard-processing")
   @DisplayName("Should support toString method")
   void shouldSupportToString() {
-    UUID notificationId = UUID.randomUUID();
+    Long notificationId = 1001L;
     UUID recipientId = UUID.randomUUID();
 
     NotificationDto notification = NotificationDto.builder()
@@ -192,7 +192,7 @@ class BatchNotificationResponseDtoTest {
   @Tag("standard-processing")
   @DisplayName("Should support all-args constructor")
   void shouldSupportAllArgsConstructor() {
-    NotificationDto notification = new NotificationDto(UUID.randomUUID(), UUID.randomUUID());
+    NotificationDto notification = new NotificationDto(3001L, UUID.randomUUID());
     List<NotificationDto> notifications = List.of(notification);
 
     BatchNotificationResponseDto dto = new BatchNotificationResponseDto(notifications, 1, "Success");
@@ -207,7 +207,7 @@ class BatchNotificationResponseDtoTest {
   @DisplayName("Should support no-args constructor and setters")
   void shouldSupportNoArgsConstructorAndSetters() {
     NotificationDto notification = new NotificationDto();
-    UUID notificationId = UUID.randomUUID();
+    Long notificationId = 1001L;
     UUID recipientId = UUID.randomUUID();
 
     notification.setNotificationId(notificationId);
@@ -229,7 +229,7 @@ class BatchNotificationResponseDtoTest {
   @Tag("standard-processing")
   @DisplayName("NotificationDto should properly implement equals and hashCode")
   void notificationDtoShouldImplementEqualsAndHashCode() {
-    UUID notificationId = UUID.randomUUID();
+    Long notificationId = 1001L;
     UUID recipientId = UUID.randomUUID();
 
     NotificationDto dto1 = NotificationDto.builder()
@@ -243,7 +243,7 @@ class BatchNotificationResponseDtoTest {
         .build();
 
     NotificationDto differentDto = NotificationDto.builder()
-        .notificationId(UUID.randomUUID())
+        .notificationId(9999L)
         .recipientId(UUID.randomUUID())
         .build();
 
@@ -258,7 +258,7 @@ class BatchNotificationResponseDtoTest {
   @Tag("standard-processing")
   @DisplayName("NotificationDto should support toString method")
   void notificationDtoShouldSupportToString() {
-    UUID notificationId = UUID.randomUUID();
+    Long notificationId = 1001L;
     UUID recipientId = UUID.randomUUID();
 
     NotificationDto dto = NotificationDto.builder()
@@ -287,9 +287,9 @@ class BatchNotificationResponseDtoTest {
   @Tag("standard-processing")
   @DisplayName("Should serialize example from OpenAPI spec")
   void shouldSerializeExampleFromOpenApiSpec() throws Exception {
-    UUID notificationId1 = UUID.fromString("770e8400-e29b-41d4-a716-446655440111");
+    Long notificationId1 = 2001L;
     UUID recipientId1 = UUID.fromString("550e8400-e29b-41d4-a716-446655440001");
-    UUID notificationId2 = UUID.fromString("770e8400-e29b-41d4-a716-446655440112");
+    Long notificationId2 = 2002L;
     UUID recipientId2 = UUID.fromString("550e8400-e29b-41d4-a716-446655440002");
 
     BatchNotificationResponseDto dto = BatchNotificationResponseDto.builder()
@@ -309,9 +309,9 @@ class BatchNotificationResponseDtoTest {
 
     String json = objectMapper.writeValueAsString(dto);
 
-    assertThat(json).contains("770e8400-e29b-41d4-a716-446655440111");
+    assertThat(json).contains("2001");
     assertThat(json).contains("550e8400-e29b-41d4-a716-446655440001");
-    assertThat(json).contains("770e8400-e29b-41d4-a716-446655440112");
+    assertThat(json).contains("2002");
     assertThat(json).contains("550e8400-e29b-41d4-a716-446655440002");
     assertThat(json).contains("Notifications queued successfully");
   }

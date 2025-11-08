@@ -36,6 +36,7 @@ import com.recipe_manager.repository.recipe.RecipeCommentRepository;
 import com.recipe_manager.repository.recipe.RecipeRepository;
 import com.recipe_manager.repository.recipe.RecipeRevisionRepository;
 import com.recipe_manager.repository.recipe.RecipeTagRepository;
+import com.recipe_manager.service.external.notificationservice.NotificationService;
 import com.recipe_manager.util.SecurityUtils;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -74,6 +75,8 @@ class RecipeServiceRevisionTest {
   private RecipeCommentRepository recipeCommentRepository;
   @Mock
   private RecipeCommentMapper recipeCommentMapper;
+  @Mock
+  private NotificationService notificationService;
 
   private RecipeService recipeService;
   private UUID currentUserId;
@@ -90,7 +93,8 @@ class RecipeServiceRevisionTest {
         recipeRevisionMapper,
         recipeStepMapper,
         recipeCommentRepository,
-        recipeCommentMapper);
+        recipeCommentMapper,
+        notificationService);
 
     currentUserId = UUID.randomUUID();
     setupExistingRecipe();

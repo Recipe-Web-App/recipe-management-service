@@ -50,10 +50,10 @@ public final class RecipeCommentedRequestDto {
   private List<UUID> recipientIds;
 
   /**
-   * UUID of the comment. The notification service will fetch complete comment details (including
+   * ID of the comment. The notification service will fetch complete comment details (including
    * recipe_id and commenter info) from the recipe-management-service.
    */
   @JsonProperty("comment_id")
   @NotNull(message = "Comment ID is required")
-  private UUID commentId;
+  private Long commentId;
 }

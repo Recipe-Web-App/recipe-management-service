@@ -27,7 +27,7 @@ class NotificationServiceFallbackTest {
   @Tag("standard-processing")
   @DisplayName("Should return fallback response for recipe published notification")
   void shouldReturnFallbackForRecipePublished() {
-    UUID recipeId = UUID.randomUUID();
+    Long recipeId = 123L;
     UUID recipientId = UUID.randomUUID();
     RecipePublishedRequestDto request = RecipePublishedRequestDto.builder()
         .recipientIds(List.of(recipientId))
@@ -48,7 +48,7 @@ class NotificationServiceFallbackTest {
   @Tag("standard-processing")
   @DisplayName("Should return fallback response for recipe liked notification")
   void shouldReturnFallbackForRecipeLiked() {
-    UUID recipeId = UUID.randomUUID();
+    Long recipeId = 123L;
     UUID likerId = UUID.randomUUID();
     UUID recipientId = UUID.randomUUID();
     RecipeLikedRequestDto request = RecipeLikedRequestDto.builder()
@@ -71,7 +71,7 @@ class NotificationServiceFallbackTest {
   @Tag("standard-processing")
   @DisplayName("Should return fallback response for recipe commented notification")
   void shouldReturnFallbackForRecipeCommented() {
-    UUID commentId = UUID.randomUUID();
+    Long commentId = 789L;
     UUID recipientId = UUID.randomUUID();
     RecipeCommentedRequestDto request = RecipeCommentedRequestDto.builder()
         .recipientIds(List.of(recipientId))
@@ -99,7 +99,7 @@ class NotificationServiceFallbackTest {
     );
     RecipePublishedRequestDto request = RecipePublishedRequestDto.builder()
         .recipientIds(recipientIds)
-        .recipeId(UUID.randomUUID())
+        .recipeId(999L)
         .build();
 
     BatchNotificationResponseDto response = fallback.notifyRecipePublished(request);
@@ -117,18 +117,18 @@ class NotificationServiceFallbackTest {
 
     RecipePublishedRequestDto publishedRequest = RecipePublishedRequestDto.builder()
         .recipientIds(List.of(recipientId))
-        .recipeId(UUID.randomUUID())
+        .recipeId(999L)
         .build();
 
     RecipeLikedRequestDto likedRequest = RecipeLikedRequestDto.builder()
         .recipientIds(List.of(recipientId))
-        .recipeId(UUID.randomUUID())
+        .recipeId(999L)
         .likerId(UUID.randomUUID())
         .build();
 
     RecipeCommentedRequestDto commentedRequest = RecipeCommentedRequestDto.builder()
         .recipientIds(List.of(recipientId))
-        .commentId(UUID.randomUUID())
+        .commentId(888L)
         .build();
 
     BatchNotificationResponseDto publishedResponse = fallback.notifyRecipePublished(publishedRequest);
@@ -156,7 +156,7 @@ class NotificationServiceFallbackTest {
   void shouldHandleEmptyRecipientList() {
     RecipePublishedRequestDto request = RecipePublishedRequestDto.builder()
         .recipientIds(List.of())
-        .recipeId(UUID.randomUUID())
+        .recipeId(999L)
         .build();
 
     BatchNotificationResponseDto response = fallback.notifyRecipePublished(request);
@@ -172,18 +172,18 @@ class NotificationServiceFallbackTest {
   void shouldReturnNonNullResponse() {
     RecipePublishedRequestDto publishedRequest = RecipePublishedRequestDto.builder()
         .recipientIds(List.of(UUID.randomUUID()))
-        .recipeId(UUID.randomUUID())
+        .recipeId(999L)
         .build();
 
     RecipeLikedRequestDto likedRequest = RecipeLikedRequestDto.builder()
         .recipientIds(List.of(UUID.randomUUID()))
-        .recipeId(UUID.randomUUID())
+        .recipeId(999L)
         .likerId(UUID.randomUUID())
         .build();
 
     RecipeCommentedRequestDto commentedRequest = RecipeCommentedRequestDto.builder()
         .recipientIds(List.of(UUID.randomUUID()))
-        .commentId(UUID.randomUUID())
+        .commentId(888L)
         .build();
 
     assertThat(fallback.notifyRecipePublished(publishedRequest)).isNotNull();
@@ -199,18 +199,18 @@ class NotificationServiceFallbackTest {
 
     RecipePublishedRequestDto publishedRequest = RecipePublishedRequestDto.builder()
         .recipientIds(List.of(recipientId))
-        .recipeId(UUID.randomUUID())
+        .recipeId(999L)
         .build();
 
     RecipeLikedRequestDto likedRequest = RecipeLikedRequestDto.builder()
         .recipientIds(List.of(recipientId))
-        .recipeId(UUID.randomUUID())
+        .recipeId(999L)
         .likerId(UUID.randomUUID())
         .build();
 
     RecipeCommentedRequestDto commentedRequest = RecipeCommentedRequestDto.builder()
         .recipientIds(List.of(recipientId))
-        .commentId(UUID.randomUUID())
+        .commentId(888L)
         .build();
 
     String publishedMessage = fallback.notifyRecipePublished(publishedRequest).getMessage();

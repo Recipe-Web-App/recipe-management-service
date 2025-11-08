@@ -50,10 +50,10 @@ public final class RecipePublishedRequestDto {
   private List<UUID> recipientIds;
 
   /**
-   * UUID of the published recipe. The notification service will fetch recipe details (name, author)
+   * ID of the published recipe. The notification service will fetch recipe details (name, author)
    * from the recipe-management-service.
    */
   @JsonProperty("recipe_id")
   @NotNull(message = "Recipe ID is required")
-  private UUID recipeId;
+  private Long recipeId;
 }

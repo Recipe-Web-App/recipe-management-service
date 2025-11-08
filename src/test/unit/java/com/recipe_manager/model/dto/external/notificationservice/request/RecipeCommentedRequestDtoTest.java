@@ -33,7 +33,7 @@ class RecipeCommentedRequestDtoTest {
   @Tag("standard-processing")
   @DisplayName("Should create DTO using builder pattern")
   void shouldCreateDtoUsingBuilder() {
-    UUID commentId = UUID.randomUUID();
+    Long commentId = 789L;
     UUID recipientId = UUID.randomUUID();
     List<UUID> recipientIds = List.of(recipientId);
 
@@ -50,7 +50,7 @@ class RecipeCommentedRequestDtoTest {
   @Tag("standard-processing")
   @DisplayName("Should serialize and deserialize DTO with snake_case")
   void shouldSerializeAndDeserializeWithSnakeCase() throws Exception {
-    UUID commentId = UUID.fromString("880e8400-e29b-41d4-a716-446655440123");
+    Long commentId = 88888L;
     UUID recipientId = UUID.fromString("550e8400-e29b-41d4-a716-446655440001");
     List<UUID> recipientIds = List.of(recipientId);
 
@@ -62,7 +62,7 @@ class RecipeCommentedRequestDtoTest {
     String json = objectMapper.writeValueAsString(original);
     assertThat(json).contains("\"recipient_ids\"");
     assertThat(json).contains("\"comment_id\"");
-    assertThat(json).contains("880e8400-e29b-41d4-a716-446655440123");
+    assertThat(json).contains("88888");
     assertThat(json).contains("550e8400-e29b-41d4-a716-446655440001");
 
     RecipeCommentedRequestDto deserialized = objectMapper.readValue(json, RecipeCommentedRequestDto.class);
@@ -75,7 +75,7 @@ class RecipeCommentedRequestDtoTest {
   void shouldValidateValidDto() {
     RecipeCommentedRequestDto dto = RecipeCommentedRequestDto.builder()
         .recipientIds(List.of(UUID.randomUUID()))
-        .commentId(UUID.randomUUID())
+        .commentId(999L)
         .build();
 
     Set<ConstraintViolation<RecipeCommentedRequestDto>> violations = validator.validate(dto);
@@ -93,7 +93,7 @@ class RecipeCommentedRequestDtoTest {
 
     RecipeCommentedRequestDto dto = RecipeCommentedRequestDto.builder()
         .recipientIds(maxRecipients)
-        .commentId(UUID.randomUUID())
+        .commentId(999L)
         .build();
 
     Set<ConstraintViolation<RecipeCommentedRequestDto>> violations = validator.validate(dto);
@@ -105,7 +105,7 @@ class RecipeCommentedRequestDtoTest {
   @DisplayName("Should reject null recipient IDs")
   void shouldRejectNullRecipientIds() {
     RecipeCommentedRequestDto dto = RecipeCommentedRequestDto.builder()
-        .commentId(UUID.randomUUID())
+        .commentId(999L)
         .build();
 
     Set<ConstraintViolation<RecipeCommentedRequestDto>> violations = validator.validate(dto);
@@ -119,7 +119,7 @@ class RecipeCommentedRequestDtoTest {
   void shouldRejectEmptyRecipientIds() {
     RecipeCommentedRequestDto dto = RecipeCommentedRequestDto.builder()
         .recipientIds(List.of())
-        .commentId(UUID.randomUUID())
+        .commentId(999L)
         .build();
 
     Set<ConstraintViolation<RecipeCommentedRequestDto>> violations = validator.validate(dto);
@@ -139,7 +139,7 @@ class RecipeCommentedRequestDtoTest {
 
     RecipeCommentedRequestDto dto = RecipeCommentedRequestDto.builder()
         .recipientIds(tooManyRecipients)
-        .commentId(UUID.randomUUID())
+        .commentId(999L)
         .build();
 
     Set<ConstraintViolation<RecipeCommentedRequestDto>> violations = validator.validate(dto);
@@ -184,7 +184,7 @@ class RecipeCommentedRequestDtoTest {
   @Tag("standard-processing")
   @DisplayName("Should properly implement equals and hashCode")
   void shouldImplementEqualsAndHashCode() {
-    UUID commentId = UUID.randomUUID();
+    Long commentId = 789L;
     UUID recipientId = UUID.randomUUID();
     List<UUID> recipientIds = List.of(recipientId);
 
@@ -200,7 +200,7 @@ class RecipeCommentedRequestDtoTest {
 
     RecipeCommentedRequestDto differentDto = RecipeCommentedRequestDto.builder()
         .recipientIds(List.of(UUID.randomUUID()))
-        .commentId(UUID.randomUUID())
+        .commentId(999L)
         .build();
 
     assertThat(dto1)
@@ -214,7 +214,7 @@ class RecipeCommentedRequestDtoTest {
   @Tag("standard-processing")
   @DisplayName("Should support toString method")
   void shouldSupportToString() {
-    UUID commentId = UUID.randomUUID();
+    Long commentId = 789L;
     UUID recipientId = UUID.randomUUID();
 
     RecipeCommentedRequestDto dto = RecipeCommentedRequestDto.builder()
@@ -232,7 +232,7 @@ class RecipeCommentedRequestDtoTest {
   @Tag("standard-processing")
   @DisplayName("Should support all-args constructor")
   void shouldSupportAllArgsConstructor() {
-    UUID commentId = UUID.randomUUID();
+    Long commentId = 789L;
     List<UUID> recipientIds = List.of(UUID.randomUUID());
 
     RecipeCommentedRequestDto dto = new RecipeCommentedRequestDto(recipientIds, commentId);
@@ -245,7 +245,7 @@ class RecipeCommentedRequestDtoTest {
   @Tag("standard-processing")
   @DisplayName("Should support no-args constructor and setters")
   void shouldSupportNoArgsConstructorAndSetters() {
-    UUID commentId = UUID.randomUUID();
+    Long commentId = 789L;
     List<UUID> recipientIds = List.of(UUID.randomUUID());
 
     RecipeCommentedRequestDto dto = new RecipeCommentedRequestDto();
@@ -262,7 +262,7 @@ class RecipeCommentedRequestDtoTest {
   void shouldValidateDtoWithSingleRecipient() {
     RecipeCommentedRequestDto dto = RecipeCommentedRequestDto.builder()
         .recipientIds(List.of(UUID.randomUUID()))
-        .commentId(UUID.randomUUID())
+        .commentId(999L)
         .build();
 
     Set<ConstraintViolation<RecipeCommentedRequestDto>> violations = validator.validate(dto);
@@ -281,7 +281,7 @@ class RecipeCommentedRequestDtoTest {
 
     RecipeCommentedRequestDto dto = RecipeCommentedRequestDto.builder()
         .recipientIds(recipientIds)
-        .commentId(UUID.randomUUID())
+        .commentId(999L)
         .build();
 
     Set<ConstraintViolation<RecipeCommentedRequestDto>> violations = validator.validate(dto);

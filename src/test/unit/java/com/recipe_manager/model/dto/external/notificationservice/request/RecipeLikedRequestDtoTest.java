@@ -33,7 +33,7 @@ class RecipeLikedRequestDtoTest {
   @Tag("standard-processing")
   @DisplayName("Should create DTO using builder pattern")
   void shouldCreateDtoUsingBuilder() {
-    UUID recipeId = UUID.randomUUID();
+    Long recipeId = 123L;
     UUID likerId = UUID.randomUUID();
     UUID recipientId = UUID.randomUUID();
     List<UUID> recipientIds = List.of(recipientId);
@@ -53,7 +53,7 @@ class RecipeLikedRequestDtoTest {
   @Tag("standard-processing")
   @DisplayName("Should serialize and deserialize DTO with snake_case")
   void shouldSerializeAndDeserializeWithSnakeCase() throws Exception {
-    UUID recipeId = UUID.fromString("660e8400-e29b-41d4-a716-446655440099");
+    Long recipeId = 99999L;
     UUID likerId = UUID.fromString("550e8400-e29b-41d4-a716-446655440002");
     UUID recipientId = UUID.fromString("550e8400-e29b-41d4-a716-446655440001");
     List<UUID> recipientIds = List.of(recipientId);
@@ -68,7 +68,7 @@ class RecipeLikedRequestDtoTest {
     assertThat(json).contains("\"recipient_ids\"");
     assertThat(json).contains("\"recipe_id\"");
     assertThat(json).contains("\"liker_id\"");
-    assertThat(json).contains("660e8400-e29b-41d4-a716-446655440099");
+    assertThat(json).contains("99999");
     assertThat(json).contains("550e8400-e29b-41d4-a716-446655440001");
     assertThat(json).contains("550e8400-e29b-41d4-a716-446655440002");
 
@@ -82,7 +82,7 @@ class RecipeLikedRequestDtoTest {
   void shouldValidateValidDto() {
     RecipeLikedRequestDto dto = RecipeLikedRequestDto.builder()
         .recipientIds(List.of(UUID.randomUUID()))
-        .recipeId(UUID.randomUUID())
+        .recipeId(456L)
         .likerId(UUID.randomUUID())
         .build();
 
@@ -101,7 +101,7 @@ class RecipeLikedRequestDtoTest {
 
     RecipeLikedRequestDto dto = RecipeLikedRequestDto.builder()
         .recipientIds(maxRecipients)
-        .recipeId(UUID.randomUUID())
+        .recipeId(456L)
         .likerId(UUID.randomUUID())
         .build();
 
@@ -114,7 +114,7 @@ class RecipeLikedRequestDtoTest {
   @DisplayName("Should reject null recipient IDs")
   void shouldRejectNullRecipientIds() {
     RecipeLikedRequestDto dto = RecipeLikedRequestDto.builder()
-        .recipeId(UUID.randomUUID())
+        .recipeId(456L)
         .likerId(UUID.randomUUID())
         .build();
 
@@ -129,7 +129,7 @@ class RecipeLikedRequestDtoTest {
   void shouldRejectEmptyRecipientIds() {
     RecipeLikedRequestDto dto = RecipeLikedRequestDto.builder()
         .recipientIds(List.of())
-        .recipeId(UUID.randomUUID())
+        .recipeId(456L)
         .likerId(UUID.randomUUID())
         .build();
 
@@ -150,7 +150,7 @@ class RecipeLikedRequestDtoTest {
 
     RecipeLikedRequestDto dto = RecipeLikedRequestDto.builder()
         .recipientIds(tooManyRecipients)
-        .recipeId(UUID.randomUUID())
+        .recipeId(456L)
         .likerId(UUID.randomUUID())
         .build();
 
@@ -180,7 +180,7 @@ class RecipeLikedRequestDtoTest {
   void shouldRejectNullLikerId() {
     RecipeLikedRequestDto dto = RecipeLikedRequestDto.builder()
         .recipientIds(List.of(UUID.randomUUID()))
-        .recipeId(UUID.randomUUID())
+        .recipeId(456L)
         .build();
 
     Set<ConstraintViolation<RecipeLikedRequestDto>> violations = validator.validate(dto);
@@ -212,7 +212,7 @@ class RecipeLikedRequestDtoTest {
   @Tag("standard-processing")
   @DisplayName("Should properly implement equals and hashCode")
   void shouldImplementEqualsAndHashCode() {
-    UUID recipeId = UUID.randomUUID();
+    Long recipeId = 123L;
     UUID likerId = UUID.randomUUID();
     UUID recipientId = UUID.randomUUID();
     List<UUID> recipientIds = List.of(recipientId);
@@ -231,7 +231,7 @@ class RecipeLikedRequestDtoTest {
 
     RecipeLikedRequestDto differentDto = RecipeLikedRequestDto.builder()
         .recipientIds(List.of(UUID.randomUUID()))
-        .recipeId(UUID.randomUUID())
+        .recipeId(456L)
         .likerId(UUID.randomUUID())
         .build();
 
@@ -246,7 +246,7 @@ class RecipeLikedRequestDtoTest {
   @Tag("standard-processing")
   @DisplayName("Should support toString method")
   void shouldSupportToString() {
-    UUID recipeId = UUID.randomUUID();
+    Long recipeId = 123L;
     UUID likerId = UUID.randomUUID();
     UUID recipientId = UUID.randomUUID();
 
@@ -267,7 +267,7 @@ class RecipeLikedRequestDtoTest {
   @Tag("standard-processing")
   @DisplayName("Should support all-args constructor")
   void shouldSupportAllArgsConstructor() {
-    UUID recipeId = UUID.randomUUID();
+    Long recipeId = 123L;
     UUID likerId = UUID.randomUUID();
     List<UUID> recipientIds = List.of(UUID.randomUUID());
 
@@ -282,7 +282,7 @@ class RecipeLikedRequestDtoTest {
   @Tag("standard-processing")
   @DisplayName("Should support no-args constructor and setters")
   void shouldSupportNoArgsConstructorAndSetters() {
-    UUID recipeId = UUID.randomUUID();
+    Long recipeId = 123L;
     UUID likerId = UUID.randomUUID();
     List<UUID> recipientIds = List.of(UUID.randomUUID());
 
@@ -302,7 +302,7 @@ class RecipeLikedRequestDtoTest {
   void shouldValidateDtoWithSingleRecipient() {
     RecipeLikedRequestDto dto = RecipeLikedRequestDto.builder()
         .recipientIds(List.of(UUID.randomUUID()))
-        .recipeId(UUID.randomUUID())
+        .recipeId(456L)
         .likerId(UUID.randomUUID())
         .build();
 
@@ -322,7 +322,7 @@ class RecipeLikedRequestDtoTest {
 
     RecipeLikedRequestDto dto = RecipeLikedRequestDto.builder()
         .recipientIds(recipientIds)
-        .recipeId(UUID.randomUUID())
+        .recipeId(456L)
         .likerId(UUID.randomUUID())
         .build();
 

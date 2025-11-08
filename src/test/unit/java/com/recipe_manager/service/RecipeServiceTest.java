@@ -90,6 +90,9 @@ class RecipeServiceTest {
   @Mock
   private RecipeStepMapper recipeStepMapper;
 
+  @Mock
+  private com.recipe_manager.service.external.notificationservice.NotificationService notificationService;
+
   @InjectMocks
   private RecipeService recipeService;
 

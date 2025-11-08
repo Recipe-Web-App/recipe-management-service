@@ -50,12 +50,12 @@ public final class RecipeLikedRequestDto {
   private List<UUID> recipientIds;
 
   /**
-   * UUID of the liked recipe. The notification service will fetch recipe details from the
+   * ID of the liked recipe. The notification service will fetch recipe details from the
    * recipe-management-service.
    */
   @JsonProperty("recipe_id")
   @NotNull(message = "Recipe ID is required")
-  private UUID recipeId;
+  private Long recipeId;
 
   /**
    * UUID of the user who liked the recipe. The notification service will fetch user details (name,

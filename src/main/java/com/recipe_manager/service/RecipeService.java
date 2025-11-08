@@ -219,10 +219,8 @@ public class RecipeService {
     Recipe saved = recipeRepository.save(recipe);
     RecipeDto response = recipeMapper.toDto(saved);
 
-    // Trigger async notification for recipe published
-    // TODO: Fetch followers from user-management-service once follower system is implemented
-    notificationService.notifyRecipePublishedAsync(
-        java.util.Collections.emptyList(), saved.getRecipeId());
+    // Trigger async notification for recipe published (notifies author's followers)
+    notificationService.notifyRecipePublishedAsync(saved.getUserId(), saved.getRecipeId());
 
     return ResponseEntity.ok(response);
   }

@@ -4,15 +4,19 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import com.recipe_manager.client.notificationservice.NotificationServiceClient;
+import com.recipe_manager.client.usermanagement.UserManagementClient;
 import com.recipe_manager.model.dto.external.notificationservice.request.RecipeCommentedRequestDto;
 import com.recipe_manager.model.dto.external.notificationservice.request.RecipePublishedRequestDto;
 import com.recipe_manager.model.dto.external.notificationservice.response.BatchNotificationResponseDto;
+import com.recipe_manager.model.dto.external.usermanagement.GetFollowersResponseDto;
+import com.recipe_manager.model.dto.external.usermanagement.UserDto;
 
 /**
  * Service wrapper for notification service client. Provides async fire-and-forget notification
@@ -30,38 +34,53 @@ public class NotificationService {
   /** Feign client for notification service. */
   private final NotificationServiceClient notificationServiceClient;
 
+  /** Feign client for user-management service. */
+  private final UserManagementClient userManagementClient;
+
   /**
    * Constructor for NotificationService.
    *
    * @param notificationServiceClient feign client for notification service
+   * @param userManagementClient feign client for user-management service
    */
-  public NotificationService(final NotificationServiceClient notificationServiceClient) {
+  public NotificationService(
+      final NotificationServiceClient notificationServiceClient,
+      final UserManagementClient userManagementClient) {
     this.notificationServiceClient = notificationServiceClient;
+    this.userManagementClient = userManagementClient;
   }
 
   /**
    * Asynchronously notify followers when a recipe is published. Fire-and-forget operation that logs
    * errors but does not fail the main request.
    *
-   * <p>TODO: Fetch followers from user-management-service once the follower system is implemented.
-   * Currently sends notifications to an empty list as a placeholder.
+   * <p>Fetches the author's followers from user-management-service and sends notifications to them.
    *
-   * @param followerIds list of follower user IDs to notify
+   * @param authorUserId UUID of the recipe author whose followers should be notified
    * @param recipeId ID of the published recipe
    * @return completable future that completes when notification is queued (or fails)
    */
   public CompletableFuture<Void> notifyRecipePublishedAsync(
-      final List<UUID> followerIds, final Long recipeId) {
+      final UUID authorUserId, final Long recipeId) {
     return CompletableFuture.runAsync(
         () -> {
           try {
-            if (followerIds == null || followerIds.isEmpty()) {
+            // Fetch followers from user-management-service
+            GetFollowersResponseDto followersResponse =
+                userManagementClient.getFollowers(authorUserId, null, null, false);
+
+            List<UserDto> followers = followersResponse.getFollowedUsers();
+            if (followers == null || followers.isEmpty()) {
               LOGGER.info(
-                  "No followers to notify for recipe published. Recipe ID: {}. "
-                      + "TODO: Integrate with user-management-service to fetch followers.",
-                  recipeId);
+                  "No followers to notify for recipe published. Recipe ID: {}, Author ID: {}",
+                  recipeId,
+                  authorUserId);
               return;
             }
+
+            // Extract follower user IDs
+            List<UUID> followerIds =
+                followers.stream().map(UserDto::getUserId).collect(Collectors.toList());
 
             RecipePublishedRequestDto request =
                 RecipePublishedRequestDto.builder()
@@ -74,16 +93,19 @@ public class NotificationService {
 
             LOGGER.info(
                 "Recipe published notification queued successfully. Recipe ID: {}, "
-                    + "Recipients: {}, Queued: {}",
+                    + "Author ID: {}, Recipients: {}, Queued: {}",
                 recipeId,
+                authorUserId,
                 followerIds.size(),
                 response.getQueuedCount());
 
           } catch (Exception e) {
             // Log error but don't fail the recipe creation operation
             LOGGER.error(
-                "Failed to send recipe published notification. Recipe ID: {}, Error: {}",
+                "Failed to send recipe published notification. Recipe ID: {}, Author ID: {}, "
+                    + "Error: {}",
                 recipeId,
+                authorUserId,
                 e.getMessage(),
                 e);
           }

@@ -183,6 +183,10 @@ external:
       base-url: ${NOTIFICATION_SERVICE_BASE_URL:http://notification-service.notification.svc.cluster.local:8000/api/v1/notification}
       enabled: ${NOTIFICATION_SERVICE_ENABLED:true}
       timeout: ${NOTIFICATION_SERVICE_TIMEOUT:5s}
+    user-management:
+      base-url: ${USER_MANAGEMENT_SERVICE_URL:http://user-management.user-management.svc.cluster.local:8000/api/v1}
+      enabled: ${USER_MANAGEMENT_ENABLED:true}
+      timeout: ${USER_MANAGEMENT_TIMEOUT:5s}
     common:
       connect-timeout: ${EXTERNAL_SERVICES_CONNECT_TIMEOUT:3s}
       read-timeout: ${EXTERNAL_SERVICES_READ_TIMEOUT:10s}

@@ -38,6 +38,7 @@ import com.recipe_manager.repository.recipe.RecipeIngredientRepository;
 import com.recipe_manager.repository.recipe.RecipeRepository;
 import com.recipe_manager.repository.recipe.RecipeRevisionRepository;
 import com.recipe_manager.service.external.RecipeScraperService;
+import com.recipe_manager.service.external.notificationservice.NotificationService;
 import com.recipe_manager.util.SecurityUtils;
 
 import io.micrometer.core.instrument.Counter;
@@ -84,6 +85,9 @@ public final class IngredientService {
   /** Service for retrieving external pricing information. */
   private final RecipeScraperService recipeScraperService;
 
+  /** Service for sending notifications about recipe events. */
+  private final NotificationService notificationService;
+
   /** Metrics registry for observability. */
   @Autowired private MeterRegistry meterRegistry;
 
@@ -103,7 +107,8 @@ public final class IngredientService {
       final IngredientCommentMapper ingredientCommentMapper,
       final RecipeRevisionMapper recipeRevisionMapper,
       final ShoppingListMapper shoppingListMapper,
-      final RecipeScraperService recipeScraperService) {
+      final RecipeScraperService recipeScraperService,
+      final NotificationService notificationService) {
     this.recipeIngredientRepository = recipeIngredientRepository;
     this.ingredientRepository = ingredientRepository;
     this.ingredientCommentRepository = ingredientCommentRepository;
@@ -114,6 +119,7 @@ public final class IngredientService {
     this.recipeRevisionMapper = recipeRevisionMapper;
     this.shoppingListMapper = shoppingListMapper;
     this.recipeScraperService = recipeScraperService;
+    this.notificationService = notificationService;
   }
 
   /** Initializes metrics for monitoring service operations. */
@@ -298,16 +304,17 @@ public final class IngredientService {
     final Ingredient ingredient = recipeIngredient.getIngredient();
 
     // Create and save the new comment
+    final java.util.UUID currentUserId = SecurityUtils.getCurrentUserId();
     final IngredientComment comment =
         IngredientComment.builder()
             .ingredient(ingredient)
             .recipeId(recipeIdLong)
-            .userId(SecurityUtils.getCurrentUserId())
+            .userId(currentUserId)
             .commentText(request.getComment())
             .isPublic(true)
             .build();
 
-    ingredientCommentRepository.save(comment);
+    final IngredientComment savedComment = ingredientCommentRepository.save(comment);
 
     // Get all comments for this ingredient
     final List<IngredientComment> comments =
@@ -319,6 +326,11 @@ public final class IngredientService {
         ingredientId,
         recipeId,
         request.getComment());
+
+    // Trigger async notification for ingredient commented (with self-notification filtering)
+    final java.util.UUID recipeAuthorId = recipeIngredient.getRecipe().getUserId();
+    notificationService.notifyRecipeCommentedAsync(
+        recipeAuthorId, savedComment.getCommentId(), currentUserId);
 
     return ResponseEntity.ok(
         IngredientCommentResponse.builder()

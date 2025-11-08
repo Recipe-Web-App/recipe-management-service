@@ -54,6 +54,7 @@ import com.recipe_manager.repository.recipe.RecipeCommentRepository;
 import com.recipe_manager.repository.recipe.RecipeRepository;
 import com.recipe_manager.repository.recipe.RecipeRevisionRepository;
 import com.recipe_manager.repository.recipe.RecipeTagRepository;
+import com.recipe_manager.service.external.notificationservice.NotificationService;
 import com.recipe_manager.util.SecurityUtils;
 
 /**
@@ -91,6 +92,9 @@ public class RecipeService {
   /** Mapper used for converting between recipe comment entities and DTOs. */
   private final RecipeCommentMapper recipeCommentMapper;
 
+  /** Service for sending notifications about recipe events. */
+  private final NotificationService notificationService;
+
   /**
    * Service class for managing recipes.
    *
@@ -105,6 +109,7 @@ public class RecipeService {
    * @param recipeCommentRepository the repository used for accessing recipe comment data
    * @param recipeCommentMapper the mapper used for converting between recipe comment entities and
    *     DTOs
+   * @param notificationService the service for sending notifications about recipe events
    */
   public RecipeService(
       final RecipeRepository recipeRepository,
@@ -115,7 +120,8 @@ public class RecipeService {
       final RecipeRevisionMapper recipeRevisionMapper,
       final RecipeStepMapper recipeStepMapper,
       final RecipeCommentRepository recipeCommentRepository,
-      final RecipeCommentMapper recipeCommentMapper) {
+      final RecipeCommentMapper recipeCommentMapper,
+      final NotificationService notificationService) {
     this.recipeRepository = recipeRepository;
     this.ingredientRepository = ingredientRepository;
     this.recipeTagRepository = recipeTagRepository;
@@ -125,6 +131,7 @@ public class RecipeService {
     this.recipeStepMapper = recipeStepMapper;
     this.recipeCommentRepository = recipeCommentRepository;
     this.recipeCommentMapper = recipeCommentMapper;
+    this.notificationService = notificationService;
   }
 
   /**
@@ -211,6 +218,10 @@ public class RecipeService {
 
     Recipe saved = recipeRepository.save(recipe);
     RecipeDto response = recipeMapper.toDto(saved);
+
+    // Trigger async notification for recipe published (notifies author's followers)
+    notificationService.notifyRecipePublishedAsync(saved.getUserId(), saved.getRecipeId());
+
     return ResponseEntity.ok(response);
   }
 
@@ -998,7 +1009,13 @@ public class RecipeService {
             .build();
 
     RecipeComment savedComment = recipeCommentRepository.save(comment);
-    return recipeCommentMapper.toDto(savedComment);
+    RecipeCommentDto commentDto = recipeCommentMapper.toDto(savedComment);
+
+    // Trigger async notification for recipe commented (with self-notification filtering)
+    notificationService.notifyRecipeCommentedAsync(
+        recipe.getUserId(), savedComment.getCommentId(), currentUserId);
+
+    return commentDto;
   }
 
   /**

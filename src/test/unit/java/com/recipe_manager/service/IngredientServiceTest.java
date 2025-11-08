@@ -93,6 +93,9 @@ class IngredientServiceTest {
   @Mock
   private RecipeScraperService recipeScraperService;
 
+  @Mock
+  private com.recipe_manager.service.external.notificationservice.NotificationService notificationService;
+
   @InjectMocks
   private IngredientService ingredientService;
 

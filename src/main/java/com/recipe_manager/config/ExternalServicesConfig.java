@@ -33,6 +33,10 @@ public class ExternalServicesConfig {
   /** OAuth2 authentication service configuration. */
   @Valid @NotNull private OAuth2ServiceConfig oauth2Service = new OAuth2ServiceConfig();
 
+  /** Notification service configuration. */
+  @Valid @NotNull
+  private NotificationServiceConfig notificationService = new NotificationServiceConfig();
+
   /** Common configuration for all external services. */
   @Valid @NotNull private CommonConfig common = new CommonConfig();
 
@@ -100,6 +104,18 @@ public class ExternalServicesConfig {
 
     /** Whether service-to-service authentication is enabled. */
     @NotNull private Boolean serviceToServiceEnabled = true;
+  }
+
+  @Data
+  public static class NotificationServiceConfig {
+    /** Base URL for the notification service. */
+    @NotBlank private String baseUrl;
+
+    /** Whether the service is enabled. */
+    @NotNull private Boolean enabled;
+
+    /** Request timeout for this service. */
+    @NotNull private Duration timeout;
   }
 
   @Data

@@ -27,6 +27,7 @@ import com.recipe_manager.repository.recipe.RecipeRepository;
 import com.recipe_manager.repository.recipe.RecipeRevisionRepository;
 import com.recipe_manager.repository.recipe.RecipeStepRepository;
 import com.recipe_manager.repository.recipe.StepCommentRepository;
+import com.recipe_manager.service.external.notificationservice.NotificationService;
 import com.recipe_manager.util.SecurityUtils;
 
 /** Service for step-related operations. */
@@ -54,6 +55,9 @@ public class StepService {
   /** Mapper for converting between RecipeRevision entities and DTOs. */
   private final RecipeRevisionMapper recipeRevisionMapper;
 
+  /** Service for sending notifications about recipe events. */
+  private final NotificationService notificationService;
+
   public StepService(
       final RecipeRepository recipeRepository,
       final RecipeStepRepository recipeStepRepository,
@@ -61,7 +65,8 @@ public class StepService {
       final RecipeRevisionRepository recipeRevisionRepository,
       final RecipeStepMapper recipeStepMapper,
       final StepCommentMapper stepCommentMapper,
-      final RecipeRevisionMapper recipeRevisionMapper) {
+      final RecipeRevisionMapper recipeRevisionMapper,
+      final NotificationService notificationService) {
     this.recipeRepository = recipeRepository;
     this.recipeStepRepository = recipeStepRepository;
     this.stepCommentRepository = stepCommentRepository;
@@ -69,6 +74,7 @@ public class StepService {
     this.recipeStepMapper = recipeStepMapper;
     this.stepCommentMapper = stepCommentMapper;
     this.recipeRevisionMapper = recipeRevisionMapper;
+    this.notificationService = notificationService;
   }
 
   /**
@@ -113,7 +119,14 @@ public class StepService {
             .build();
 
     StepComment savedComment = stepCommentRepository.save(comment);
-    return stepCommentMapper.toDto(savedComment);
+    StepCommentDto commentDto = stepCommentMapper.toDto(savedComment);
+
+    // Trigger async notification for step commented (with self-notification filtering)
+    UUID recipeAuthorId = step.getRecipe().getUserId();
+    notificationService.notifyRecipeCommentedAsync(
+        recipeAuthorId, savedComment.getCommentId(), currentUserId);
+
+    return commentDto;
   }
 
   /**

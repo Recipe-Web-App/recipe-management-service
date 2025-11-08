@@ -179,6 +179,10 @@ external:
       introspection-path: ${OAUTH2_INTROSPECTION_PATH:/api/v1/auth/oauth2/introspect}
       user-info-path: ${OAUTH2_USERINFO_PATH:/api/v1/auth/oauth2/userinfo}
       service-to-service-enabled: ${OAUTH2_SERVICE_TO_SERVICE_ENABLED:true}
+    notification-service:
+      base-url: ${NOTIFICATION_SERVICE_BASE_URL:http://notification-service.notification.svc.cluster.local:8000/api/v1/notification}
+      enabled: ${NOTIFICATION_SERVICE_ENABLED:true}
+      timeout: ${NOTIFICATION_SERVICE_TIMEOUT:5s}
     common:
       connect-timeout: ${EXTERNAL_SERVICES_CONNECT_TIMEOUT:3s}
       read-timeout: ${EXTERNAL_SERVICES_READ_TIMEOUT:10s}
@@ -256,6 +260,18 @@ resilience4j:
           - feign.FeignException
         ignore-exceptions:
           - java.lang.IllegalArgumentException
+      notification-service:
+        failure-rate-threshold: ${CIRCUIT_BREAKER_FAILURE_RATE:50.0}
+        wait-duration-in-open-state: ${CIRCUIT_BREAKER_WAIT_DURATION:30s}
+        sliding-window-size: ${CIRCUIT_BREAKER_SLIDING_WINDOW:10}
+        minimum-number-of-calls: ${CIRCUIT_BREAKER_MIN_CALLS:5}
+        permitted-number-of-calls-in-half-open-state: ${CIRCUIT_BREAKER_HALF_OPEN_CALLS:3}
+        register-health-indicator: true
+        record-exceptions:
+          - com.recipe_manager.exception.ExternalServiceException
+          - feign.FeignException
+        ignore-exceptions:
+          - java.lang.IllegalArgumentException
   retry:
     instances:
       recipe-scraper:
@@ -300,6 +316,20 @@ resilience4j:
         ignore-exceptions:
           - feign.FeignException$BadRequest
           - feign.FeignException$NotFound
+      notification-service:
+        max-attempts: ${RETRY_MAX_ATTEMPTS:3}
+        wait-duration: ${RETRY_WAIT_DURATION:500ms}
+        exponential-backoff-multiplier: ${RETRY_BACKOFF_MULTIPLIER:2.0}
+        max-wait-duration: ${RETRY_MAX_WAIT_DURATION:5s}
+        retry-exceptions:
+          - com.recipe_manager.exception.ExternalServiceTimeoutException
+          - feign.FeignException$InternalServerError
+          - feign.FeignException$BadGateway
+          - feign.FeignException$ServiceUnavailable
+          - feign.FeignException$GatewayTimeout
+        ignore-exceptions:
+          - feign.FeignException$BadRequest
+          - feign.FeignException$NotFound
   timelimiter:
     instances:
       recipe-scraper:
@@ -311,6 +341,9 @@ resilience4j:
       oauth2-service:
         timeout-duration: ${OAUTH2_SERVICE_TIMEOUT:5s}
         cancel-running-future: true
+      notification-service:
+        timeout-duration: ${NOTIFICATION_SERVICE_TIMEOUT:5s}
+        cancel-running-future: true
   bulkhead:
     instances:
       recipe-scraper:
@@ -320,5 +353,8 @@ resilience4j:
         max-concurrent-calls: ${BULKHEAD_MAX_CALLS:5}
         max-wait-duration: ${BULKHEAD_MAX_WAIT:100ms}
       oauth2-service:
+        max-concurrent-calls: ${BULKHEAD_MAX_CALLS:5}
+        max-wait-duration: ${BULKHEAD_MAX_WAIT:100ms}
+      notification-service:
         max-concurrent-calls: ${BULKHEAD_MAX_CALLS:5}
         max-wait-duration: ${BULKHEAD_MAX_WAIT:100ms}

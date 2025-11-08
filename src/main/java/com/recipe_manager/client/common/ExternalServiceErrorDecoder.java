@@ -70,10 +70,19 @@ public final class ExternalServiceErrorDecoder implements ErrorDecoder {
   }
 
   private ExternalServiceName extractServiceNameFromMethodKey(final String methodKey) {
+    if (methodKey.contains("NotificationService")) {
+      return ExternalServiceName.NOTIFICATION_SERVICE;
+    }
     if (methodKey.contains("RecipeScraper")) {
       return ExternalServiceName.RECIPE_SCRAPER;
     }
-    // Default fallback - could be enhanced to parse from method key more intelligently
+    if (methodKey.contains("MediaManager")) {
+      return ExternalServiceName.MEDIA_SERVICE;
+    }
+    if (methodKey.contains("OAuth2")) {
+      return ExternalServiceName.OAUTH2_SERVICE;
+    }
+    // Default fallback
     return ExternalServiceName.RECIPE_SCRAPER;
   }
 

@@ -454,6 +454,36 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /favorites/recipes/{recipeId}/is-favorited:
+    get:
+      tags: [favorites]
+      summary: Check if recipe is favorited
+      description: |
+        Checks whether the authenticated user has favorited the specified recipe.
+
+        Returns a boolean value indicating favorite status.
+      operationId: isRecipeFavorited
+      parameters:
+        - $ref: '#/components/parameters/RecipeIdParam'
+      responses:
+        '200':
+          description: Successfully retrieved favorite status
+          content:
+            application/json:
+              schema:
+                type: boolean
+              examples:
+                favorited:
+                  value: true
+                  summary: Recipe is favorited
+                notFavorited:
+                  value: false
+                  summary: Recipe is not favorited
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /recipes/{recipeId}/description:
     get:
       tags: [recipes]

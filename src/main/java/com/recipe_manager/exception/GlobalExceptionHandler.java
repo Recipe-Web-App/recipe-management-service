@@ -137,6 +137,24 @@ public class GlobalExceptionHandler {
   }
 
   /**
+   * Handles java.nio.file.AccessDeniedException (file access denied).
+   *
+   * @param ex The file access denied exception
+   * @param request The HTTP request
+   * @return Error response
+   */
+  @ExceptionHandler(java.nio.file.AccessDeniedException.class)
+  public ResponseEntity<ErrorResponse> handleFileAccessDeniedException(
+      final java.nio.file.AccessDeniedException ex, final HttpServletRequest request) {
+
+    ErrorResponse errorResponse =
+        createErrorResponse("Access denied", ex.getMessage(), null, request);
+
+    LOGGER.warn("File access denied: {}", errorResponse);
+    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
+  }
+
+  /**
    * Handles resource not found exceptions.
    *
    * @param ex The resource not found exception

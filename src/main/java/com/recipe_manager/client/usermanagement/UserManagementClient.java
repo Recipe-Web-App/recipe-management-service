@@ -9,13 +9,19 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import com.recipe_manager.client.common.FeignClientConfig;
 import com.recipe_manager.model.dto.external.usermanagement.GetFollowersResponseDto;
+import com.recipe_manager.model.dto.external.usermanagement.UserPreferenceResponseDto;
 
 /**
  * Feign client for user-management service. Provides declarative HTTP client interface for
- * interacting with the external user-management service to fetch user follower information.
+ * interacting with the external user-management service to fetch user follower information and user
+ * preferences.
  *
- * <p>This client is used to retrieve the list of followers for a given user, which is needed for
- * sending notifications to followers when a recipe is published.
+ * <p>This client is used to:
+ *
+ * <ul>
+ *   <li>Retrieve the list of followers for a given user (for notifications)
+ *   <li>Retrieve user preferences including privacy settings (for access control)
+ * </ul>
  */
 @FeignClient(
     name = "user-management-service",
@@ -44,4 +50,25 @@ public interface UserManagementClient {
       @RequestParam(value = "limit", required = false) Integer limit,
       @RequestParam(value = "offset", required = false) Integer offset,
       @RequestParam(value = "count_only", required = false) Boolean countOnly);
+
+  /**
+   * Get user preferences for the authenticated user. Retrieves notification, privacy, and display
+   * preferences from the user-management service.
+   *
+   * <p>Privacy preferences are critical for enforcing access control on user-specific data like
+   * favorite recipes. The profileVisibility field determines who can view the user's favorites:
+   *
+   * <ul>
+   *   <li>PUBLIC: Anyone can view
+   *   <li>FRIENDS_ONLY: Only followers can view
+   *   <li>PRIVATE: Only the user themselves can view
+   * </ul>
+   *
+   * <p>Requires OAuth2 Bearer token authentication. The user ID is extracted from the authenticated
+   * request context.
+   *
+   * @return user preferences including notification, privacy, and display settings
+   */
+  @GetMapping("/user-management/notifications/preferences")
+  UserPreferenceResponseDto getUserPreferences();
 }

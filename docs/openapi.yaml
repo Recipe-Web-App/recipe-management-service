@@ -59,6 +59,8 @@ tags:
     description: Application metrics and observability
   - name: comments
     description: Recipe comment management
+  - name: favorites
+    description: Recipe favorite management and user favorites collection
 
 paths:
   /recipes:
@@ -334,6 +336,151 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         '404':
           $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /favorites/recipes:
+    get:
+      tags: [favorites]
+      summary: Get all favorited recipes
+      description: |
+        Retrieves all recipes favorited by a specified user with pagination support.
+        Returns recipes in the same format as the main recipes list endpoint.
+
+        **Privacy Controls:**
+        This endpoint integrates with user-management-service to check user privacy
+        preferences. If the target user's profile is private, only users they follow
+        can retrieve their favorites list. Returns 403 Forbidden if the requesting
+        user is not authorized to view the favorites.
+
+        **Default Behavior:**
+        If userId is not provided, returns favorites for the authenticated user.
+      operationId: getFavoriteRecipes
+      parameters:
+        - $ref: '#/components/parameters/UserIdParam'
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+        - $ref: '#/components/parameters/SortParam'
+      responses:
+        '200':
+          description: Favorited recipes retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchRecipesResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Forbidden - User's favorites are private and requester is not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "Forbidden"
+                message: "User's favorites are private. Only followers can view them."
+                timestamp: "2024-08-28T10:30:00Z"
+                path: "/favorites/recipes"
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /favorites/recipes/{recipeId}:
+    post:
+      tags: [favorites]
+      summary: Favorite a recipe
+      description: |
+        Adds a recipe to the authenticated user's favorites.
+
+        **Visibility:**
+        Any authenticated user can favorite any recipe regardless of recipe ownership
+        or visibility. There are no restrictions on which recipes can be favorited.
+
+        Returns 409 Conflict if the recipe is already favorited by this user.
+      operationId: favoriteRecipe
+      parameters:
+        - $ref: '#/components/parameters/RecipeIdParam'
+      responses:
+        '201':
+          description: Recipe favorited successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecipeFavoriteDto'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Conflict - Recipe is already favorited by this user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "Conflict"
+                message: "User has already favorited this recipe"
+                timestamp: "2024-08-28T10:30:00Z"
+                path: "/favorites/recipes/123"
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    delete:
+      tags: [favorites]
+      summary: Unfavorite a recipe
+      description: |
+        Removes a recipe from the authenticated user's favorites.
+
+        Returns 404 if the favorite does not exist (i.e., the recipe was not
+        favorited by this user).
+      operationId: unfavoriteRecipe
+      parameters:
+        - $ref: '#/components/parameters/RecipeIdParam'
+      responses:
+        '204':
+          description: Recipe unfavorited successfully
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Not Found - Recipe was not favorited by this user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "Not Found"
+                message: "Favorite not found for this user and recipe"
+                timestamp: "2024-08-28T10:30:00Z"
+                path: "/favorites/recipes/123"
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /favorites/recipes/{recipeId}/is-favorited:
+    get:
+      tags: [favorites]
+      summary: Check if recipe is favorited
+      description: |
+        Checks whether the authenticated user has favorited the specified recipe.
+
+        Returns a boolean value indicating favorite status.
+      operationId: isRecipeFavorited
+      parameters:
+        - $ref: '#/components/parameters/RecipeIdParam'
+      responses:
+        '200':
+          description: Successfully retrieved favorite status
+          content:
+            application/json:
+              schema:
+                type: boolean
+              examples:
+                favorited:
+                  value: true
+                  summary: Recipe is favorited
+                notFavorited:
+                  value: false
+                  summary: Recipe is not favorited
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '500':
           $ref: '#/components/responses/InternalServerError'
 
@@ -1993,6 +2140,16 @@ components:
         type: integer
         format: int64
         example: 301
+
+    UserIdParam:
+      name: userId
+      in: query
+      description: User identifier (UUID). If not provided, defaults to authenticated user.
+      required: false
+      schema:
+        type: string
+        format: uuid
+        example: "123e4567-e89b-12d3-a456-426614174000"
 
   schemas:
     RecipeDto:

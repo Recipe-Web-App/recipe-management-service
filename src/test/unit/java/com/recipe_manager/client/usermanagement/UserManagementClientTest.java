@@ -30,11 +30,19 @@ class UserManagementClientTest {
 
   @Test
   @Tag("standard-processing")
-  @DisplayName("Should have one getFollowers method")
-  void shouldHaveOneGetFollowersMethod() {
+  @DisplayName("Should have two methods: getFollowers and getUserPreferences")
+  void shouldHaveTwoMethods() {
     java.lang.reflect.Method[] methods = UserManagementClient.class.getDeclaredMethods();
-    assertThat(methods).hasSize(1);
-    assertThat(methods[0].getName()).isEqualTo("getFollowers");
+    assertThat(methods).hasSize(2);
+
+    // Verify both methods exist
+    boolean hasGetFollowers = java.util.Arrays.stream(methods)
+        .anyMatch(method -> method.getName().equals("getFollowers"));
+    boolean hasGetUserPreferences = java.util.Arrays.stream(methods)
+        .anyMatch(method -> method.getName().equals("getUserPreferences"));
+
+    assertThat(hasGetFollowers).isTrue();
+    assertThat(hasGetUserPreferences).isTrue();
   }
 
   @Test
@@ -149,5 +157,44 @@ class UserManagementClientTest {
     assertThat(feignClientAnnotation).isNotNull();
     assertThat(feignClientAnnotation.fallback())
         .isEqualTo(UserManagementFallback.class);
+  }
+
+  @Test
+  @Tag("standard-processing")
+  @DisplayName("getUserPreferences should have correct annotations")
+  void getUserPreferencesShouldHaveCorrectAnnotations() throws NoSuchMethodException {
+    java.lang.reflect.Method method = UserManagementClient.class.getDeclaredMethod(
+        "getUserPreferences"
+    );
+
+    assertThat(method).isNotNull();
+
+    // Should have @GetMapping annotation
+    boolean hasGetMapping = java.util.Arrays.stream(method.getAnnotations())
+        .anyMatch(annotation -> annotation.annotationType().getSimpleName().equals("GetMapping"));
+    assertThat(hasGetMapping).isTrue();
+  }
+
+  @Test
+  @Tag("standard-processing")
+  @DisplayName("getUserPreferences should return UserPreferenceResponseDto")
+  void getUserPreferencesShouldReturnCorrectType() throws NoSuchMethodException {
+    java.lang.reflect.Method method = UserManagementClient.class.getDeclaredMethod(
+        "getUserPreferences"
+    );
+
+    assertThat(method.getReturnType().getSimpleName())
+        .isEqualTo("UserPreferenceResponseDto");
+  }
+
+  @Test
+  @Tag("standard-processing")
+  @DisplayName("getUserPreferences should have no parameters")
+  void getUserPreferencesShouldHaveNoParameters() throws NoSuchMethodException {
+    java.lang.reflect.Method method = UserManagementClient.class.getDeclaredMethod(
+        "getUserPreferences"
+    );
+
+    assertThat(method.getParameterCount()).isEqualTo(0);
   }
 }

@@ -23,7 +23,6 @@ import com.recipe_manager.model.mapper.RecipeIngredientMapper;
 import com.recipe_manager.model.mapper.RecipeRevisionMapper;
 import com.recipe_manager.model.mapper.ShoppingListMapper;
 import com.recipe_manager.repository.ingredient.IngredientCommentRepository;
-import com.recipe_manager.repository.ingredient.IngredientRepository;
 import com.recipe_manager.repository.recipe.RecipeIngredientRepository;
 import com.recipe_manager.repository.recipe.RecipeRepository;
 import com.recipe_manager.repository.recipe.RecipeRevisionRepository;
@@ -50,9 +49,6 @@ class IngredientServiceRevisionsTest {
 
   @Mock
   private RecipeIngredientRepository recipeIngredientRepository;
-
-  @Mock
-  private IngredientRepository ingredientRepository;
 
   @Mock
   private IngredientCommentRepository ingredientCommentRepository;
@@ -94,7 +90,6 @@ class IngredientServiceRevisionsTest {
   void setUp() {
     ingredientService = new IngredientService(
         recipeIngredientRepository,
-        ingredientRepository,
         ingredientCommentRepository,
         recipeRepository,
         recipeRevisionRepository,

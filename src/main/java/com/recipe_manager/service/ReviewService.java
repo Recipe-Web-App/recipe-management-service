@@ -19,6 +19,7 @@ import com.recipe_manager.model.entity.review.Review;
 import com.recipe_manager.model.mapper.ReviewMapper;
 import com.recipe_manager.repository.ReviewRepository;
 import com.recipe_manager.repository.recipe.RecipeRepository;
+import com.recipe_manager.service.external.notificationservice.NotificationService;
 import com.recipe_manager.util.SecurityUtils;
 
 /** Service for review-related operations. */
@@ -34,13 +35,18 @@ public class ReviewService {
   /** Mapper for converting between Review entities and DTOs. */
   private final ReviewMapper reviewMapper;
 
+  /** Service for sending notifications. */
+  private final NotificationService notificationService;
+
   public ReviewService(
       final ReviewRepository reviewRepository,
       final RecipeRepository recipeRepository,
-      final ReviewMapper reviewMapper) {
+      final ReviewMapper reviewMapper,
+      final NotificationService notificationService) {
     this.reviewRepository = reviewRepository;
     this.recipeRepository = recipeRepository;
     this.reviewMapper = reviewMapper;
+    this.notificationService = notificationService;
   }
 
   /**
@@ -90,6 +96,10 @@ public class ReviewService {
             .build();
 
     Review savedReview = reviewRepository.save(review);
+
+    // Send notification to recipe author (async, fire-and-forget)
+    notificationService.notifyRecipeRatedAsync(recipe.getUserId(), recipeId, currentUserId);
+
     return reviewMapper.toDto(savedReview);
   }
 

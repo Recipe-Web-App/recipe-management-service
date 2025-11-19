@@ -62,6 +62,8 @@ import com.recipe_manager.repository.collection.CollectionCollaboratorRepository
 import com.recipe_manager.repository.collection.CollectionSummaryProjection;
 import com.recipe_manager.repository.collection.RecipeCollectionItemRepository;
 import com.recipe_manager.repository.collection.RecipeCollectionRepository;
+import com.recipe_manager.repository.recipe.RecipeRepository;
+import com.recipe_manager.service.external.notificationservice.NotificationService;
 import com.recipe_manager.util.SecurityUtils;
 
 /** Unit tests for CollectionService. */
@@ -81,6 +83,9 @@ class CollectionServiceTest {
 
   @Mock private RecipeCollectionItemMapper recipeCollectionItemMapper;
 
+  @Mock private RecipeRepository recipeRepository;
+
+  @Mock private NotificationService notificationService;
 
   private CollectionService collectionService;
 
@@ -105,7 +110,9 @@ class CollectionServiceTest {
             collectionCollaboratorRepository,
             collectionMapper,
             recipeCollectionMapper,
-            recipeCollectionItemMapper);
+            recipeCollectionItemMapper,
+            recipeRepository,
+            notificationService);
     testUserId = UUID.randomUUID();
   }
 
@@ -1819,7 +1826,13 @@ class CollectionServiceTest {
             .addedBy(testUserId)
             .build();
 
+    Recipe recipe = Recipe.builder()
+        .recipeId(recipeId)
+        .userId(UUID.randomUUID())
+        .build();
+
     when(recipeCollectionRepository.findById(collectionId)).thenReturn(Optional.of(collection));
+    when(recipeRepository.findById(recipeId)).thenReturn(Optional.of(recipe));
     when(recipeCollectionItemRepository.existsByIdCollectionIdAndIdRecipeId(collectionId, recipeId))
         .thenReturn(false);
     when(recipeCollectionItemRepository.findMaxDisplayOrderByCollectionId(collectionId))
@@ -1878,7 +1891,13 @@ class CollectionServiceTest {
             .addedBy(testUserId)
             .build();
 
+    Recipe recipe = Recipe.builder()
+        .recipeId(recipeId)
+        .userId(UUID.randomUUID())
+        .build();
+
     when(recipeCollectionRepository.findById(collectionId)).thenReturn(Optional.of(collection));
+    when(recipeRepository.findById(recipeId)).thenReturn(Optional.of(recipe));
     when(recipeCollectionItemRepository.existsByIdCollectionIdAndIdRecipeId(collectionId, recipeId))
         .thenReturn(false);
     when(recipeCollectionItemRepository.findMaxDisplayOrderByCollectionId(collectionId))
@@ -2026,7 +2045,13 @@ class CollectionServiceTest {
             .displayOrder(10)
             .build();
 
+    Recipe recipe = Recipe.builder()
+        .recipeId(recipeId)
+        .userId(UUID.randomUUID())
+        .build();
+
     when(recipeCollectionRepository.findById(collectionId)).thenReturn(Optional.of(collection));
+    when(recipeRepository.findById(recipeId)).thenReturn(Optional.of(recipe));
     when(recipeCollectionItemRepository.existsByIdCollectionIdAndIdRecipeId(collectionId, recipeId))
         .thenReturn(false);
     when(recipeCollectionItemRepository.findMaxDisplayOrderByCollectionId(collectionId))
@@ -2081,7 +2106,13 @@ class CollectionServiceTest {
             .displayOrder(10)
             .build();
 
+    Recipe recipe = Recipe.builder()
+        .recipeId(recipeId)
+        .userId(UUID.randomUUID())
+        .build();
+
     when(recipeCollectionRepository.findById(collectionId)).thenReturn(Optional.of(collection));
+    when(recipeRepository.findById(recipeId)).thenReturn(Optional.of(recipe));
     when(recipeCollectionItemRepository.existsByIdCollectionIdAndIdRecipeId(collectionId, recipeId))
         .thenReturn(false);
     when(recipeCollectionItemRepository.findMaxDisplayOrderByCollectionId(collectionId))
@@ -2136,7 +2167,13 @@ class CollectionServiceTest {
             .displayOrder(10)
             .build();
 
+    Recipe recipe = Recipe.builder()
+        .recipeId(recipeId)
+        .userId(UUID.randomUUID())
+        .build();
+
     when(recipeCollectionRepository.findById(collectionId)).thenReturn(Optional.of(collection));
+    when(recipeRepository.findById(recipeId)).thenReturn(Optional.of(recipe));
     when(collectionCollaboratorRepository.existsByIdCollectionIdAndIdUserId(collectionId, testUserId))
         .thenReturn(true); // User is a collaborator
     when(recipeCollectionItemRepository.existsByIdCollectionIdAndIdRecipeId(collectionId, recipeId))

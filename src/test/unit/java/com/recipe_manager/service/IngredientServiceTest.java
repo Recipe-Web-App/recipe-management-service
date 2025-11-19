@@ -35,7 +35,6 @@ import com.recipe_manager.model.mapper.IngredientCommentMapper;
 import com.recipe_manager.model.mapper.RecipeIngredientMapper;
 import com.recipe_manager.model.mapper.ShoppingListMapper;
 import com.recipe_manager.repository.ingredient.IngredientCommentRepository;
-import com.recipe_manager.repository.ingredient.IngredientRepository;
 import com.recipe_manager.repository.recipe.RecipeIngredientRepository;
 import com.recipe_manager.service.external.RecipeScraperService;
 import com.recipe_manager.util.SecurityUtils;
@@ -74,9 +73,6 @@ class IngredientServiceTest {
 
   @Mock
   private RecipeIngredientRepository recipeIngredientRepository;
-
-  @Mock
-  private IngredientRepository ingredientRepository;
 
   @Mock
   private IngredientCommentRepository ingredientCommentRepository;

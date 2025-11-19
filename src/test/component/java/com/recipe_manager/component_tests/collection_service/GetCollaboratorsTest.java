@@ -40,7 +40,9 @@ import com.recipe_manager.model.mapper.RecipeCollectionMapper;
 import com.recipe_manager.repository.collection.CollectionCollaboratorRepository;
 import com.recipe_manager.repository.collection.RecipeCollectionItemRepository;
 import com.recipe_manager.repository.collection.RecipeCollectionRepository;
+import com.recipe_manager.repository.recipe.RecipeRepository;
 import com.recipe_manager.service.CollectionService;
+import com.recipe_manager.service.external.notificationservice.NotificationService;
 
 /**
  * Component test for GET /collections/{collectionId}/collaborators endpoint.
@@ -77,6 +79,9 @@ class GetCollaboratorsTest {
 
   @Autowired private RecipeCollectionItemMapper recipeCollectionItemMapper;
 
+  @Mock private RecipeRepository recipeRepository;
+
+  @Mock private NotificationService notificationService;
 
   private CollectionService collectionService;
   private CollectionController collectionController;
@@ -110,7 +115,9 @@ class GetCollaboratorsTest {
             collectionCollaboratorRepository,
             collectionMapper,
             recipeCollectionMapper,
-            recipeCollectionItemMapper);
+            recipeCollectionItemMapper,
+            recipeRepository,
+            notificationService);
     collectionController = new CollectionController(collectionService);
 
     mockMvc =

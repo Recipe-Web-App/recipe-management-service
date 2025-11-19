@@ -31,10 +31,10 @@ class NotificationServiceClientTest {
 
   @Test
   @Tag("standard-processing")
-  @DisplayName("Should have three notification methods")
-  void shouldHaveThreeNotificationMethods() {
+  @DisplayName("Should have five notification methods")
+  void shouldHaveFiveNotificationMethods() {
     java.lang.reflect.Method[] methods = NotificationServiceClient.class.getDeclaredMethods();
-    assertThat(methods).hasSize(3);
+    assertThat(methods).hasSize(5);
 
     List<String> methodNames = java.util.Arrays.stream(methods)
         .map(java.lang.reflect.Method::getName)
@@ -43,7 +43,9 @@ class NotificationServiceClientTest {
     assertThat(methodNames).containsExactlyInAnyOrder(
         "notifyRecipePublished",
         "notifyRecipeLiked",
-        "notifyRecipeCommented"
+        "notifyRecipeCommented",
+        "notifyRecipeCollected",
+        "notifyRecipeRated"
     );
   }
 
@@ -100,6 +102,40 @@ class NotificationServiceClientTest {
 
   @Test
   @Tag("standard-processing")
+  @DisplayName("notifyRecipeCollected should have correct annotations")
+  void notifyRecipeCollectedShouldHaveCorrectAnnotations() throws NoSuchMethodException {
+    java.lang.reflect.Method method = NotificationServiceClient.class.getDeclaredMethod(
+        "notifyRecipeCollected",
+        com.recipe_manager.model.dto.external.notificationservice.request.RecipeCollectedRequestDto.class
+    );
+
+    assertThat(method).isNotNull();
+
+    // Should have @PostMapping annotation
+    boolean hasPostMapping = java.util.Arrays.stream(method.getAnnotations())
+        .anyMatch(annotation -> annotation.annotationType().getSimpleName().equals("PostMapping"));
+    assertThat(hasPostMapping).isTrue();
+  }
+
+  @Test
+  @Tag("standard-processing")
+  @DisplayName("notifyRecipeRated should have correct annotations")
+  void notifyRecipeRatedShouldHaveCorrectAnnotations() throws NoSuchMethodException {
+    java.lang.reflect.Method method = NotificationServiceClient.class.getDeclaredMethod(
+        "notifyRecipeRated",
+        com.recipe_manager.model.dto.external.notificationservice.request.RecipeRatedRequestDto.class
+    );
+
+    assertThat(method).isNotNull();
+
+    // Should have @PostMapping annotation
+    boolean hasPostMapping = java.util.Arrays.stream(method.getAnnotations())
+        .anyMatch(annotation -> annotation.annotationType().getSimpleName().equals("PostMapping"));
+    assertThat(hasPostMapping).isTrue();
+  }
+
+  @Test
+  @Tag("standard-processing")
   @DisplayName("All methods should return BatchNotificationResponseDto")
   void allMethodsShouldReturnBatchNotificationResponseDto() {
     java.lang.reflect.Method[] methods = NotificationServiceClient.class.getDeclaredMethods();
@@ -129,10 +165,22 @@ class NotificationServiceClientTest {
         com.recipe_manager.model.dto.external.notificationservice.request.RecipeCommentedRequestDto.class
     );
 
+    java.lang.reflect.Method collectedMethod = NotificationServiceClient.class.getDeclaredMethod(
+        "notifyRecipeCollected",
+        com.recipe_manager.model.dto.external.notificationservice.request.RecipeCollectedRequestDto.class
+    );
+
+    java.lang.reflect.Method ratedMethod = NotificationServiceClient.class.getDeclaredMethod(
+        "notifyRecipeRated",
+        com.recipe_manager.model.dto.external.notificationservice.request.RecipeRatedRequestDto.class
+    );
+
     // Verify each method has exactly one parameter
     assertThat(publishedMethod.getParameterCount()).isEqualTo(1);
     assertThat(likedMethod.getParameterCount()).isEqualTo(1);
     assertThat(commentedMethod.getParameterCount()).isEqualTo(1);
+    assertThat(collectedMethod.getParameterCount()).isEqualTo(1);
+    assertThat(ratedMethod.getParameterCount()).isEqualTo(1);
   }
 
   @Test
@@ -216,5 +264,31 @@ class NotificationServiceClientTest {
 
     assertThat(method.getParameterTypes()[0].getSimpleName())
         .isEqualTo("RecipeCommentedRequestDto");
+  }
+
+  @Test
+  @Tag("standard-processing")
+  @DisplayName("notifyRecipeCollected should accept RecipeCollectedRequestDto")
+  void notifyRecipeCollectedShouldAcceptCorrectParameter() throws NoSuchMethodException {
+    java.lang.reflect.Method method = NotificationServiceClient.class.getDeclaredMethod(
+        "notifyRecipeCollected",
+        com.recipe_manager.model.dto.external.notificationservice.request.RecipeCollectedRequestDto.class
+    );
+
+    assertThat(method.getParameterTypes()[0].getSimpleName())
+        .isEqualTo("RecipeCollectedRequestDto");
+  }
+
+  @Test
+  @Tag("standard-processing")
+  @DisplayName("notifyRecipeRated should accept RecipeRatedRequestDto")
+  void notifyRecipeRatedShouldAcceptCorrectParameter() throws NoSuchMethodException {
+    java.lang.reflect.Method method = NotificationServiceClient.class.getDeclaredMethod(
+        "notifyRecipeRated",
+        com.recipe_manager.model.dto.external.notificationservice.request.RecipeRatedRequestDto.class
+    );
+
+    assertThat(method.getParameterTypes()[0].getSimpleName())
+        .isEqualTo("RecipeRatedRequestDto");
   }
 }

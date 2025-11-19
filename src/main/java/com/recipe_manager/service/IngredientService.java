@@ -33,7 +33,6 @@ import com.recipe_manager.model.mapper.RecipeIngredientMapper;
 import com.recipe_manager.model.mapper.RecipeRevisionMapper;
 import com.recipe_manager.model.mapper.ShoppingListMapper;
 import com.recipe_manager.repository.ingredient.IngredientCommentRepository;
-import com.recipe_manager.repository.ingredient.IngredientRepository;
 import com.recipe_manager.repository.recipe.RecipeIngredientRepository;
 import com.recipe_manager.repository.recipe.RecipeRepository;
 import com.recipe_manager.repository.recipe.RecipeRevisionRepository;
@@ -57,9 +56,6 @@ public final class IngredientService {
 
   /** Repository for recipe ingredient data access operations. */
   private final RecipeIngredientRepository recipeIngredientRepository;
-
-  /** Repository for ingredient data access operations. */
-  private final IngredientRepository ingredientRepository;
 
   /** Repository for ingredient comment data access operations. */
   private final IngredientCommentRepository ingredientCommentRepository;
@@ -99,7 +95,6 @@ public final class IngredientService {
 
   public IngredientService(
       final RecipeIngredientRepository recipeIngredientRepository,
-      final IngredientRepository ingredientRepository,
       final IngredientCommentRepository ingredientCommentRepository,
       final RecipeRepository recipeRepository,
       final RecipeRevisionRepository recipeRevisionRepository,
@@ -110,7 +105,6 @@ public final class IngredientService {
       final RecipeScraperService recipeScraperService,
       final NotificationService notificationService) {
     this.recipeIngredientRepository = recipeIngredientRepository;
-    this.ingredientRepository = ingredientRepository;
     this.ingredientCommentRepository = ingredientCommentRepository;
     this.recipeRepository = recipeRepository;
     this.recipeRevisionRepository = recipeRevisionRepository;

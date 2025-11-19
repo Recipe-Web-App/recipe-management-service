@@ -140,7 +140,7 @@ public abstract class AbstractComponentTest {
           notificationService);
     }
     if (recipeIngredientMapper != null && recipeRevisionMapper != null) {
-      realIngredientService = new IngredientService(recipeIngredientRepository, ingredientRepository,
+      realIngredientService = new IngredientService(recipeIngredientRepository,
           ingredientCommentRepository, recipeRepository, recipeRevisionRepository, recipeIngredientMapper,
           ingredientCommentMapper, recipeRevisionMapper, shoppingListMapper, recipeScraperService,
           notificationService);

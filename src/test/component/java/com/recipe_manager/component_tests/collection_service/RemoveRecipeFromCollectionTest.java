@@ -38,7 +38,9 @@ import com.recipe_manager.model.mapper.RecipeCollectionMapper;
 import com.recipe_manager.repository.collection.CollectionCollaboratorRepository;
 import com.recipe_manager.repository.collection.RecipeCollectionItemRepository;
 import com.recipe_manager.repository.collection.RecipeCollectionRepository;
+import com.recipe_manager.repository.recipe.RecipeRepository;
 import com.recipe_manager.service.CollectionService;
+import com.recipe_manager.service.external.notificationservice.NotificationService;
 
 /**
  * Component test for DELETE /collections/{collectionId}/recipes/{recipeId} endpoint.
@@ -69,6 +71,10 @@ class RemoveRecipeFromCollectionTest {
   @Mock private RecipeCollectionItemRepository recipeCollectionItemRepository;
 
   @Mock private CollectionCollaboratorRepository collectionCollaboratorRepository;
+
+  @Mock private RecipeRepository recipeRepository;
+
+  @Mock private NotificationService notificationService;
 
   @Autowired private CollectionMapper collectionMapper;
 
@@ -104,7 +110,9 @@ class RemoveRecipeFromCollectionTest {
             collectionCollaboratorRepository,
             collectionMapper,
             recipeCollectionMapper,
-            recipeCollectionItemMapper);
+            recipeCollectionItemMapper,
+            recipeRepository,
+            notificationService);
     collectionController = new CollectionController(collectionService);
 
     mockMvc =

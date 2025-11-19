@@ -5,6 +5,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import com.recipe_manager.client.common.FeignClientConfig;
+import com.recipe_manager.model.dto.external.notificationservice.request.RecipeCollectedRequestDto;
 import com.recipe_manager.model.dto.external.notificationservice.request.RecipeCommentedRequestDto;
 import com.recipe_manager.model.dto.external.notificationservice.request.RecipeLikedRequestDto;
 import com.recipe_manager.model.dto.external.notificationservice.request.RecipePublishedRequestDto;
@@ -75,4 +76,25 @@ public interface NotificationServiceClient {
   @PostMapping("/notifications/recipe-commented")
   BatchNotificationResponseDto notifyRecipeCommented(
       @RequestBody RecipeCommentedRequestDto request);
+
+  /**
+   * Notify recipe author when their recipe is added to a collection. Sends email notification to
+   * the recipe author with collection and collector information.
+   *
+   * <p>The notification service fetches recipe details from recipe-management-service, collection
+   * details from recipe-management-service, and collector details from user-management-service.
+   *
+   * <p>Privacy considerations: The notification service validates that the collector either has a
+   * public profile or follows the recipe author before sending the notification.
+   *
+   * <p>Requires <strong>notification:admin</strong> scope OR <strong>notification:user</strong>
+   * scope with valid follower relationship.
+   *
+   * @param request contains recipient IDs (typically recipe author), recipe ID, collector ID, and
+   *     collection ID
+   * @return batch response with queued notification IDs mapped to recipients
+   */
+  @PostMapping("/notifications/recipe-collected")
+  BatchNotificationResponseDto notifyRecipeCollected(
+      @RequestBody RecipeCollectedRequestDto request);
 }

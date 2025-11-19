@@ -35,6 +35,7 @@ import com.recipe_manager.exception.GlobalExceptionHandler;
 import com.recipe_manager.model.entity.collection.RecipeCollection;
 import com.recipe_manager.model.entity.collection.RecipeCollectionItem;
 import com.recipe_manager.model.entity.collection.RecipeCollectionItemId;
+import com.recipe_manager.model.entity.recipe.Recipe;
 import com.recipe_manager.model.enums.CollaborationMode;
 import com.recipe_manager.model.enums.CollectionVisibility;
 import com.recipe_manager.model.mapper.CollectionMapper;
@@ -43,7 +44,9 @@ import com.recipe_manager.model.mapper.RecipeCollectionMapper;
 import com.recipe_manager.repository.collection.CollectionCollaboratorRepository;
 import com.recipe_manager.repository.collection.RecipeCollectionItemRepository;
 import com.recipe_manager.repository.collection.RecipeCollectionRepository;
+import com.recipe_manager.repository.recipe.RecipeRepository;
 import com.recipe_manager.service.CollectionService;
+import com.recipe_manager.service.external.notificationservice.NotificationService;
 
 /**
  * Component test for POST /collections/{collectionId}/recipes/{recipeId} endpoint.
@@ -74,6 +77,10 @@ class AddRecipeToCollectionTest {
   @Mock private RecipeCollectionItemRepository recipeCollectionItemRepository;
 
   @Mock private CollectionCollaboratorRepository collectionCollaboratorRepository;
+
+  @Mock private RecipeRepository recipeRepository;
+
+  @Mock private NotificationService notificationService;
 
   @Autowired private CollectionMapper collectionMapper;
 
@@ -109,7 +116,9 @@ class AddRecipeToCollectionTest {
             collectionCollaboratorRepository,
             collectionMapper,
             recipeCollectionMapper,
-            recipeCollectionItemMapper);
+            recipeCollectionItemMapper,
+            recipeRepository,
+            notificationService);
     collectionController = new CollectionController(collectionService);
 
     mockMvc =
@@ -157,6 +166,11 @@ class AddRecipeToCollectionTest {
         .thenReturn(null); // Empty collection
     when(recipeCollectionItemRepository.save(any(RecipeCollectionItem.class)))
         .thenReturn(savedItem);
+
+    Recipe recipe =
+        Recipe.builder().recipeId(recipeId).userId(testUserId).build();
+
+    when(recipeRepository.findById(recipeId)).thenReturn(Optional.of(recipe));
 
     // When/Then
     mockMvc
@@ -206,6 +220,11 @@ class AddRecipeToCollectionTest {
         .thenReturn(30); // Collection has recipes with max displayOrder = 30
     when(recipeCollectionItemRepository.save(any(RecipeCollectionItem.class)))
         .thenReturn(savedItem);
+
+    Recipe recipe =
+        Recipe.builder().recipeId(recipeId).userId(testUserId).build();
+
+    when(recipeRepository.findById(recipeId)).thenReturn(Optional.of(recipe));
 
     // When/Then
     mockMvc
@@ -335,6 +354,13 @@ class AddRecipeToCollectionTest {
     when(recipeCollectionItemRepository.save(any(RecipeCollectionItem.class)))
         .thenReturn(savedItem);
 
+    Recipe recipe = Recipe.builder()
+        .recipeId(recipeId)
+        .userId(testUserId)
+        .build();
+
+    when(recipeRepository.findById(recipeId)).thenReturn(Optional.of(recipe));
+
     // When/Then
     mockMvc
         .perform(post("/collections/{collectionId}/recipes/{recipeId}", collectionId, recipeId))
@@ -376,6 +402,13 @@ class AddRecipeToCollectionTest {
         .thenReturn(null);
     when(recipeCollectionItemRepository.save(any(RecipeCollectionItem.class)))
         .thenReturn(savedItem);
+
+    Recipe recipe = Recipe.builder()
+        .recipeId(recipeId)
+        .userId(otherUserId)
+        .build();
+
+    when(recipeRepository.findById(recipeId)).thenReturn(Optional.of(recipe));
 
     // When/Then
     mockMvc
@@ -421,6 +454,13 @@ class AddRecipeToCollectionTest {
         .thenReturn(null);
     when(recipeCollectionItemRepository.save(any(RecipeCollectionItem.class)))
         .thenReturn(savedItem);
+
+    Recipe recipe = Recipe.builder()
+        .recipeId(recipeId)
+        .userId(otherUserId)
+        .build();
+
+    when(recipeRepository.findById(recipeId)).thenReturn(Optional.of(recipe));
 
     // When/Then
     mockMvc

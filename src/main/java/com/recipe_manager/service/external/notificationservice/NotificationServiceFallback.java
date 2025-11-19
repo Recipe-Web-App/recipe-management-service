@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import com.recipe_manager.client.notificationservice.NotificationServiceClient;
+import com.recipe_manager.model.dto.external.notificationservice.request.RecipeCollectedRequestDto;
 import com.recipe_manager.model.dto.external.notificationservice.request.RecipeCommentedRequestDto;
 import com.recipe_manager.model.dto.external.notificationservice.request.RecipeLikedRequestDto;
 import com.recipe_manager.model.dto.external.notificationservice.request.RecipePublishedRequestDto;
@@ -86,6 +87,28 @@ public final class NotificationServiceFallback implements NotificationServiceCli
 
     return createFallbackResponse(
         "Notification service unavailable - recipe commented notifications not queued");
+  }
+
+  /**
+   * Fallback for recipe collected notifications. Logs the failure and returns a response indicating
+   * the service is unavailable.
+   *
+   * @param request the original notification request
+   * @return fallback response with empty notifications list
+   */
+  @Override
+  public BatchNotificationResponseDto notifyRecipeCollected(
+      final RecipeCollectedRequestDto request) {
+    LOGGER.warn(
+        "Notification service unavailable for recipe collected notification. "
+            + "Recipe ID: {}, Collection ID: {}, Collector ID: {}, Recipients: {}",
+        request.getRecipeId(),
+        request.getCollectionId(),
+        request.getCollectorId(),
+        request.getRecipientIds().size());
+
+    return createFallbackResponse(
+        "Notification service unavailable - recipe collected notifications not queued");
   }
 
   /**

@@ -26,6 +26,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.recipe_manager.client.notificationservice.NotificationServiceClient;
 import com.recipe_manager.client.usermanagement.UserManagementClient;
+import com.recipe_manager.model.dto.external.notificationservice.request.RecipeCollectedRequestDto;
 import com.recipe_manager.model.dto.external.notificationservice.request.RecipeCommentedRequestDto;
 import com.recipe_manager.model.dto.external.notificationservice.request.RecipePublishedRequestDto;
 import com.recipe_manager.model.dto.external.notificationservice.response.BatchNotificationResponseDto;
@@ -225,6 +226,69 @@ class NotificationServiceTest {
 
     CompletableFuture<Void> future =
         notificationService.notifyRecipeCommentedAsync(recipeAuthorId, commentId, commenterId);
+
+    // Should complete without throwing exception
+    future.get();
+    assertThat(future).isCompleted();
+  }
+
+  @Test
+  @Tag("standard-processing")
+  @DisplayName("Should successfully notify recipe collected")
+  void shouldNotifyRecipeCollected() throws Exception {
+    UUID recipeAuthorId = UUID.randomUUID();
+    UUID collectorId = UUID.randomUUID();
+    Long recipeId = 123L;
+    Long collectionId = 456L;
+
+    when(notificationServiceClient.notifyRecipeCollected(any(RecipeCollectedRequestDto.class)))
+        .thenReturn(mockResponse);
+
+    CompletableFuture<Void> future =
+        notificationService.notifyRecipeCollectedAsync(
+            recipeAuthorId, recipeId, collectionId, collectorId);
+
+    future.get(); // Wait for async operation
+
+    verify(notificationServiceClient).notifyRecipeCollected(any(RecipeCollectedRequestDto.class));
+  }
+
+  @Test
+  @Tag("standard-processing")
+  @DisplayName("Should filter out self-notifications when user adds own recipe to collection")
+  void shouldFilterOutSelfNotificationsForRecipeCollected() throws Exception {
+    UUID userId = UUID.randomUUID();
+    Long recipeId = 123L;
+    Long collectionId = 456L;
+
+    CompletableFuture<Void> future =
+        notificationService.notifyRecipeCollectedAsync(
+            userId, // recipe author
+            recipeId,
+            collectionId,
+            userId); // same user collecting
+
+    future.get(); // Wait for async operation
+
+    verify(notificationServiceClient, never())
+        .notifyRecipeCollected(any(RecipeCollectedRequestDto.class));
+  }
+
+  @Test
+  @Tag("error-processing")
+  @DisplayName("Should handle notification service failure gracefully for recipe collected")
+  void shouldHandleRecipeCollectedFailureGracefully() throws Exception {
+    UUID recipeAuthorId = UUID.randomUUID();
+    UUID collectorId = UUID.randomUUID();
+    Long recipeId = 123L;
+    Long collectionId = 456L;
+
+    when(notificationServiceClient.notifyRecipeCollected(any(RecipeCollectedRequestDto.class)))
+        .thenThrow(new RuntimeException("Service unavailable"));
+
+    CompletableFuture<Void> future =
+        notificationService.notifyRecipeCollectedAsync(
+            recipeAuthorId, recipeId, collectionId, collectorId);
 
     // Should complete without throwing exception
     future.get();

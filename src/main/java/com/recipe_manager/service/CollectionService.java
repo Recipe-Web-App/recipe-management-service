@@ -26,6 +26,7 @@ import com.recipe_manager.model.entity.collection.CollectionCollaboratorId;
 import com.recipe_manager.model.entity.collection.RecipeCollection;
 import com.recipe_manager.model.entity.collection.RecipeCollectionItem;
 import com.recipe_manager.model.entity.collection.RecipeCollectionItemId;
+import com.recipe_manager.model.entity.recipe.Recipe;
 import com.recipe_manager.model.enums.CollaborationMode;
 import com.recipe_manager.model.mapper.CollectionMapper;
 import com.recipe_manager.model.mapper.RecipeCollectionItemMapper;
@@ -34,6 +35,8 @@ import com.recipe_manager.repository.collection.CollectionCollaboratorRepository
 import com.recipe_manager.repository.collection.CollectionSummaryProjection;
 import com.recipe_manager.repository.collection.RecipeCollectionItemRepository;
 import com.recipe_manager.repository.collection.RecipeCollectionRepository;
+import com.recipe_manager.repository.recipe.RecipeRepository;
+import com.recipe_manager.service.external.notificationservice.NotificationService;
 import com.recipe_manager.util.SecurityUtils;
 
 /**
@@ -75,6 +78,12 @@ public class CollectionService {
   /** Mapper used for converting between recipe collection item entities and DTOs. */
   private final RecipeCollectionItemMapper recipeCollectionItemMapper;
 
+  /** Repository used for accessing recipe data. */
+  private final RecipeRepository recipeRepository;
+
+  /** Service for sending notifications about recipe events. */
+  private final NotificationService notificationService;
+
   /**
    * Constructs the collection service with required dependencies.
    *
@@ -84,6 +93,8 @@ public class CollectionService {
    * @param collectionMapper the mapper used for converting between projections and DTOs
    * @param recipeCollectionMapper the mapper used for converting between entities and DTOs
    * @param recipeCollectionItemMapper the mapper used for converting between item entities and DTOs
+   * @param recipeRepository the repository used for accessing recipe data
+   * @param notificationService the service for sending notifications
    */
   public CollectionService(
       final RecipeCollectionRepository recipeCollectionRepository,
@@ -91,13 +102,17 @@ public class CollectionService {
       final CollectionCollaboratorRepository collectionCollaboratorRepository,
       final CollectionMapper collectionMapper,
       final RecipeCollectionMapper recipeCollectionMapper,
-      final RecipeCollectionItemMapper recipeCollectionItemMapper) {
+      final RecipeCollectionItemMapper recipeCollectionItemMapper,
+      final RecipeRepository recipeRepository,
+      final NotificationService notificationService) {
     this.recipeCollectionRepository = recipeCollectionRepository;
     this.recipeCollectionItemRepository = recipeCollectionItemRepository;
     this.collectionCollaboratorRepository = collectionCollaboratorRepository;
     this.collectionMapper = collectionMapper;
     this.recipeCollectionMapper = recipeCollectionMapper;
     this.recipeCollectionItemMapper = recipeCollectionItemMapper;
+    this.recipeRepository = recipeRepository;
+    this.notificationService = notificationService;
   }
 
   /**
@@ -361,6 +376,19 @@ public class CollectionService {
 
     // Save the entity
     RecipeCollectionItem savedItem = recipeCollectionItemRepository.save(collectionItem);
+
+    // Trigger async notification to recipe author
+    Recipe recipe =
+        recipeRepository
+            .findById(recipeId)
+            .orElseThrow(() -> new ResourceNotFoundException("Recipe not found"));
+
+    notificationService.notifyRecipeCollectedAsync(
+        recipe.getUserId(), // recipe author (recipient)
+        recipeId, // recipe being collected
+        collectionId, // collection it's added to
+        currentUserId // user who added it (collector)
+        );
 
     // Map to DTO and return 201 Created
     RecipeCollectionItemDto responseDto = recipeCollectionItemMapper.toDto(savedItem);

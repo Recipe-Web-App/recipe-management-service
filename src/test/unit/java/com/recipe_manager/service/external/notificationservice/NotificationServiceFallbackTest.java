@@ -2,6 +2,7 @@ package com.recipe_manager.service.external.notificationservice;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.recipe_manager.model.dto.external.notificationservice.request.RecipeCollectedRequestDto;
 import com.recipe_manager.model.dto.external.notificationservice.request.RecipeCommentedRequestDto;
 import com.recipe_manager.model.dto.external.notificationservice.request.RecipeLikedRequestDto;
 import com.recipe_manager.model.dto.external.notificationservice.request.RecipePublishedRequestDto;
@@ -90,6 +91,31 @@ class NotificationServiceFallbackTest {
 
   @Test
   @Tag("standard-processing")
+  @DisplayName("Should return fallback response for recipe collected notification")
+  void shouldReturnFallbackForRecipeCollected() {
+    Long recipeId = 123L;
+    Long collectionId = 456L;
+    UUID collectorId = UUID.randomUUID();
+    UUID recipientId = UUID.randomUUID();
+    RecipeCollectedRequestDto request = RecipeCollectedRequestDto.builder()
+        .recipientIds(List.of(recipientId))
+        .recipeId(recipeId)
+        .collectorId(collectorId)
+        .collectionId(collectionId)
+        .build();
+
+    BatchNotificationResponseDto response = fallback.notifyRecipeCollected(request);
+
+    assertThat(response).isNotNull();
+    assertThat(response.getNotifications()).isEmpty();
+    assertThat(response.getQueuedCount()).isEqualTo(0);
+    assertThat(response.getMessage())
+        .contains("Notification service unavailable")
+        .contains("recipe collected");
+  }
+
+  @Test
+  @Tag("standard-processing")
   @DisplayName("Should handle multiple recipients in fallback response")
   void shouldHandleMultipleRecipientsInFallback() {
     List<UUID> recipientIds = List.of(
@@ -131,23 +157,34 @@ class NotificationServiceFallbackTest {
         .commentId(888L)
         .build();
 
+    RecipeCollectedRequestDto collectedRequest = RecipeCollectedRequestDto.builder()
+        .recipientIds(List.of(recipientId))
+        .recipeId(999L)
+        .collectorId(UUID.randomUUID())
+        .collectionId(777L)
+        .build();
+
     BatchNotificationResponseDto publishedResponse = fallback.notifyRecipePublished(publishedRequest);
     BatchNotificationResponseDto likedResponse = fallback.notifyRecipeLiked(likedRequest);
     BatchNotificationResponseDto commentedResponse = fallback.notifyRecipeCommented(commentedRequest);
+    BatchNotificationResponseDto collectedResponse = fallback.notifyRecipeCollected(collectedRequest);
 
     // All responses should have the same structure
     assertThat(publishedResponse.getNotifications()).isEmpty();
     assertThat(likedResponse.getNotifications()).isEmpty();
     assertThat(commentedResponse.getNotifications()).isEmpty();
+    assertThat(collectedResponse.getNotifications()).isEmpty();
 
     assertThat(publishedResponse.getQueuedCount()).isEqualTo(0);
     assertThat(likedResponse.getQueuedCount()).isEqualTo(0);
     assertThat(commentedResponse.getQueuedCount()).isEqualTo(0);
+    assertThat(collectedResponse.getQueuedCount()).isEqualTo(0);
 
     // All messages should indicate service unavailable
     assertThat(publishedResponse.getMessage()).contains("Notification service unavailable");
     assertThat(likedResponse.getMessage()).contains("Notification service unavailable");
     assertThat(commentedResponse.getMessage()).contains("Notification service unavailable");
+    assertThat(collectedResponse.getMessage()).contains("Notification service unavailable");
   }
 
   @Test
@@ -186,9 +223,17 @@ class NotificationServiceFallbackTest {
         .commentId(888L)
         .build();
 
+    RecipeCollectedRequestDto collectedRequest = RecipeCollectedRequestDto.builder()
+        .recipientIds(List.of(UUID.randomUUID()))
+        .recipeId(999L)
+        .collectorId(UUID.randomUUID())
+        .collectionId(777L)
+        .build();
+
     assertThat(fallback.notifyRecipePublished(publishedRequest)).isNotNull();
     assertThat(fallback.notifyRecipeLiked(likedRequest)).isNotNull();
     assertThat(fallback.notifyRecipeCommented(commentedRequest)).isNotNull();
+    assertThat(fallback.notifyRecipeCollected(collectedRequest)).isNotNull();
   }
 
   @Test
@@ -213,13 +258,24 @@ class NotificationServiceFallbackTest {
         .commentId(888L)
         .build();
 
+    RecipeCollectedRequestDto collectedRequest = RecipeCollectedRequestDto.builder()
+        .recipientIds(List.of(recipientId))
+        .recipeId(999L)
+        .collectorId(UUID.randomUUID())
+        .collectionId(777L)
+        .build();
+
     String publishedMessage = fallback.notifyRecipePublished(publishedRequest).getMessage();
     String likedMessage = fallback.notifyRecipeLiked(likedRequest).getMessage();
     String commentedMessage = fallback.notifyRecipeCommented(commentedRequest).getMessage();
+    String collectedMessage = fallback.notifyRecipeCollected(collectedRequest).getMessage();
 
     // Messages should be distinct to identify the notification type
     assertThat(publishedMessage).isNotEqualTo(likedMessage);
     assertThat(likedMessage).isNotEqualTo(commentedMessage);
     assertThat(publishedMessage).isNotEqualTo(commentedMessage);
+    assertThat(collectedMessage).isNotEqualTo(publishedMessage);
+    assertThat(collectedMessage).isNotEqualTo(likedMessage);
+    assertThat(collectedMessage).isNotEqualTo(commentedMessage);
   }
 }

@@ -29,6 +29,7 @@ import com.recipe_manager.client.usermanagement.UserManagementClient;
 import com.recipe_manager.model.dto.external.notificationservice.request.RecipeCollectedRequestDto;
 import com.recipe_manager.model.dto.external.notificationservice.request.RecipeCommentedRequestDto;
 import com.recipe_manager.model.dto.external.notificationservice.request.RecipePublishedRequestDto;
+import com.recipe_manager.model.dto.external.notificationservice.request.RecipeRatedRequestDto;
 import com.recipe_manager.model.dto.external.notificationservice.response.BatchNotificationResponseDto;
 import com.recipe_manager.model.dto.external.usermanagement.GetFollowersResponseDto;
 import com.recipe_manager.model.dto.external.usermanagement.UserDto;
@@ -326,5 +327,62 @@ class NotificationServiceTest {
     future.get(); // Wait for completion
     assertThat(future).isCompleted();
     assertThat(future).isDone();
+  }
+
+  @Test
+  @Tag("standard-processing")
+  @DisplayName("Should successfully notify recipe rated")
+  void shouldNotifyRecipeRated() throws Exception {
+    UUID recipeAuthorId = UUID.randomUUID();
+    UUID raterId = UUID.randomUUID();
+    Long recipeId = 123L;
+
+    when(notificationServiceClient.notifyRecipeRated(any(RecipeRatedRequestDto.class)))
+        .thenReturn(mockResponse);
+
+    CompletableFuture<Void> future =
+        notificationService.notifyRecipeRatedAsync(recipeAuthorId, recipeId, raterId);
+
+    future.get(); // Wait for async operation
+
+    verify(notificationServiceClient).notifyRecipeRated(any(RecipeRatedRequestDto.class));
+  }
+
+  @Test
+  @Tag("standard-processing")
+  @DisplayName("Should filter out self-notifications when user rates own recipe")
+  void shouldFilterOutSelfNotificationsForRecipeRated() throws Exception {
+    UUID userId = UUID.randomUUID();
+    Long recipeId = 123L;
+
+    CompletableFuture<Void> future =
+        notificationService.notifyRecipeRatedAsync(
+            userId, // recipe author
+            recipeId,
+            userId); // same user rating
+
+    future.get(); // Wait for async operation
+
+    verify(notificationServiceClient, never())
+        .notifyRecipeRated(any(RecipeRatedRequestDto.class));
+  }
+
+  @Test
+  @Tag("error-processing")
+  @DisplayName("Should handle notification service failure gracefully for recipe rated")
+  void shouldHandleRecipeRatedFailureGracefully() throws Exception {
+    UUID recipeAuthorId = UUID.randomUUID();
+    UUID raterId = UUID.randomUUID();
+    Long recipeId = 123L;
+
+    when(notificationServiceClient.notifyRecipeRated(any(RecipeRatedRequestDto.class)))
+        .thenThrow(new RuntimeException("Service unavailable"));
+
+    CompletableFuture<Void> future =
+        notificationService.notifyRecipeRatedAsync(recipeAuthorId, recipeId, raterId);
+
+    // Should complete without throwing exception
+    future.get();
+    assertThat(future).isCompleted();
   }
 }

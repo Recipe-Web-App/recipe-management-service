@@ -15,6 +15,7 @@ import com.recipe_manager.client.usermanagement.UserManagementClient;
 import com.recipe_manager.model.dto.external.notificationservice.request.RecipeCollectedRequestDto;
 import com.recipe_manager.model.dto.external.notificationservice.request.RecipeCommentedRequestDto;
 import com.recipe_manager.model.dto.external.notificationservice.request.RecipePublishedRequestDto;
+import com.recipe_manager.model.dto.external.notificationservice.request.RecipeRatedRequestDto;
 import com.recipe_manager.model.dto.external.notificationservice.response.BatchNotificationResponseDto;
 import com.recipe_manager.model.dto.external.usermanagement.GetFollowersResponseDto;
 import com.recipe_manager.model.dto.external.usermanagement.UserDto;
@@ -228,6 +229,62 @@ public class NotificationService {
                 recipeId,
                 collectionId,
                 collectorId,
+                e.getMessage(),
+                e);
+          }
+        });
+  }
+
+  /**
+   * Asynchronously notify recipe author when someone rates their recipe. Fire-and-forget operation
+   * that logs errors but does not fail the main request.
+   *
+   * <p>Automatically filters out self-notifications (when rater is the recipe author).
+   *
+   * @param recipeAuthorId UUID of the recipe author to notify
+   * @param recipeId ID of the recipe that was rated
+   * @param raterId UUID of the user who rated the recipe
+   * @return completable future that completes when notification is queued (or fails)
+   */
+  public CompletableFuture<Void> notifyRecipeRatedAsync(
+      final UUID recipeAuthorId, final Long recipeId, final UUID raterId) {
+    return CompletableFuture.runAsync(
+        () -> {
+          try {
+            // Filter out self-notifications (user rating their own recipe)
+            if (recipeAuthorId.equals(raterId)) {
+              LOGGER.debug(
+                  "Skipping self-notification for recipe rated. " + "Recipe ID: {}, User ID: {}",
+                  recipeId,
+                  raterId);
+              return;
+            }
+
+            RecipeRatedRequestDto request =
+                RecipeRatedRequestDto.builder()
+                    .recipientIds(Collections.singletonList(recipeAuthorId))
+                    .recipeId(recipeId)
+                    .raterId(raterId)
+                    .build();
+
+            BatchNotificationResponseDto response =
+                notificationServiceClient.notifyRecipeRated(request);
+
+            LOGGER.info(
+                "Recipe rated notification queued successfully. Recipe ID: {}, "
+                    + "Rater ID: {}, Recipient: {}, Queued: {}",
+                recipeId,
+                raterId,
+                recipeAuthorId,
+                response.getQueuedCount());
+
+          } catch (Exception e) {
+            // Log error but don't fail the rating operation
+            LOGGER.error(
+                "Failed to send recipe rated notification. Recipe ID: {}, "
+                    + "Rater ID: {}, Error: {}",
+                recipeId,
+                raterId,
                 e.getMessage(),
                 e);
           }

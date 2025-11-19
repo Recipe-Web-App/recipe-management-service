@@ -26,6 +26,7 @@ import com.recipe_manager.model.entity.review.Review;
 import com.recipe_manager.model.mapper.ReviewMapper;
 import com.recipe_manager.repository.ReviewRepository;
 import com.recipe_manager.repository.recipe.RecipeRepository;
+import com.recipe_manager.service.external.notificationservice.NotificationService;
 import com.recipe_manager.util.SecurityUtils;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -53,6 +54,8 @@ class ReviewServiceTest {
   private RecipeRepository recipeRepository;
   @Mock
   private ReviewMapper reviewMapper;
+  @Mock
+  private NotificationService notificationService;
 
   private ReviewService reviewService;
 
@@ -63,7 +66,8 @@ class ReviewServiceTest {
 
   @BeforeEach
   void setUp() {
-    reviewService = new ReviewService(reviewRepository, recipeRepository, reviewMapper);
+    reviewService = new ReviewService(reviewRepository, recipeRepository, reviewMapper,
+        notificationService);
   }
 
   @Nested
@@ -122,6 +126,8 @@ class ReviewServiceTest {
           .build();
 
       Recipe recipe = mock(Recipe.class);
+      when(recipe.getUserId()).thenReturn(OTHER_USER_ID);
+
       Review savedReview = mock(Review.class);
       ReviewDto expectedDto = mock(ReviewDto.class);
       when(expectedDto.getRating()).thenReturn(new BigDecimal("4.5"));
@@ -140,6 +146,7 @@ class ReviewServiceTest {
         assertThat(result.getRating()).isEqualTo(new BigDecimal("4.5"));
         assertThat(result.getComment()).isEqualTo("Excellent recipe!");
         verify(reviewRepository).save(any(Review.class));
+        verify(notificationService).notifyRecipeRatedAsync(OTHER_USER_ID, RECIPE_ID, USER_ID);
       }
     }
 

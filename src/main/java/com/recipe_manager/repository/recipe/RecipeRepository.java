@@ -1,5 +1,7 @@
 package com.recipe_manager.repository.recipe;
 
+import java.util.UUID;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -75,4 +77,13 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long> {
       @Param("ingredientsList") String[] ingredientsList,
       @Param("tagsList") String[] tagsList,
       Pageable pageable);
+
+  /**
+   * Find all recipes owned by a specific user with pagination.
+   *
+   * @param userId the user ID to filter by
+   * @param pageable pagination information
+   * @return page of recipes owned by the specified user
+   */
+  Page<Recipe> findByUserId(UUID userId, Pageable pageable);
 }

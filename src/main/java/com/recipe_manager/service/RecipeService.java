@@ -511,6 +511,19 @@ public class RecipeService {
   }
 
   /**
+   * Get all recipes owned by the authenticated user with pagination.
+   *
+   * @param pageable pagination information
+   * @return ResponseEntity with paginated list of user's recipes
+   */
+  public ResponseEntity<SearchRecipesResponse> getMyRecipes(final Pageable pageable) {
+    UUID currentUserId = SecurityUtils.getCurrentUserId();
+    Page<Recipe> recipePage = recipeRepository.findByUserId(currentUserId, pageable);
+
+    return ResponseEntity.ok(buildSearchRecipesResponse(recipePage));
+  }
+
+  /**
    * Builds a SearchRecipesResponse from a Page of Recipe entities.
    *
    * @param recipePage the page of recipes

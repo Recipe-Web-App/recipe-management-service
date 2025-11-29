@@ -1342,6 +1342,184 @@ class RecipeServiceTest {
   }
 
   @Nested
+  @DisplayName("getMyRecipes Tests")
+  class GetMyRecipesTests {
+
+    private Pageable pageable;
+    private Recipe recipe1;
+    private Recipe recipe2;
+    private RecipeDto recipeDto1;
+    private RecipeDto recipeDto2;
+    private Page<Recipe> recipePage;
+    private UUID testUserId;
+
+    @BeforeEach
+    void setUp() {
+      testUserId = UUID.randomUUID();
+      pageable = PageRequest.of(0, 20);
+
+      recipe1 = new Recipe();
+      recipe1.setRecipeId(1L);
+      recipe1.setUserId(testUserId);
+      recipe1.setTitle("My Recipe 1");
+      recipe1.setDescription("Test Description 1");
+
+      recipe2 = new Recipe();
+      recipe2.setRecipeId(2L);
+      recipe2.setUserId(testUserId);
+      recipe2.setTitle("My Recipe 2");
+      recipe2.setDescription("Test Description 2");
+
+      recipeDto1 = RecipeDto.builder()
+          .recipeId(1L)
+          .userId(testUserId)
+          .title("My Recipe 1")
+          .description("Test Description 1")
+          .build();
+
+      recipeDto2 = RecipeDto.builder()
+          .recipeId(2L)
+          .userId(testUserId)
+          .title("My Recipe 2")
+          .description("Test Description 2")
+          .build();
+
+      recipePage = new PageImpl<>(Arrays.asList(recipe1, recipe2), pageable, 2);
+    }
+
+    @Test
+    @Tag("standard-processing")
+    @DisplayName("should return paginated user recipes successfully")
+    void shouldReturnPaginatedUserRecipesSuccessfully() {
+      // Given
+      try (MockedStatic<SecurityUtils> mockedSecurity = Mockito.mockStatic(SecurityUtils.class)) {
+        mockedSecurity.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
+        when(recipeRepository.findByUserId(testUserId, pageable)).thenReturn(recipePage);
+        when(recipeMapper.toDto(recipe1)).thenReturn(recipeDto1);
+        when(recipeMapper.toDto(recipe2)).thenReturn(recipeDto2);
+
+        // When
+        var response = recipeService.getMyRecipes(pageable);
+
+        // Then
+        assertThat(response).isNotNull();
+        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+
+        SearchRecipesResponse responseBody = response.getBody();
+        assertThat(responseBody).isNotNull();
+        assertThat(responseBody.getRecipes()).hasSize(2);
+        assertThat(responseBody.getRecipes().get(0)).isEqualTo(recipeDto1);
+        assertThat(responseBody.getRecipes().get(1)).isEqualTo(recipeDto2);
+        assertThat(responseBody.getPage()).isEqualTo(0);
+        assertThat(responseBody.getSize()).isEqualTo(20);
+        assertThat(responseBody.getTotalElements()).isEqualTo(2L);
+        assertThat(responseBody.getTotalPages()).isEqualTo(1);
+        assertThat(responseBody.isFirst()).isTrue();
+        assertThat(responseBody.isLast()).isTrue();
+        assertThat(responseBody.getNumberOfElements()).isEqualTo(2);
+        assertThat(responseBody.isEmpty()).isFalse();
+
+        verify(recipeRepository).findByUserId(testUserId, pageable);
+        verify(recipeMapper).toDto(recipe1);
+        verify(recipeMapper).toDto(recipe2);
+      }
+    }
+
+    @Test
+    @Tag("standard-processing")
+    @DisplayName("should return empty page when user has no recipes")
+    void shouldReturnEmptyPageWhenUserHasNoRecipes() {
+      // Given
+      Page<Recipe> emptyPage = new PageImpl<>(new ArrayList<>(), pageable, 0);
+
+      try (MockedStatic<SecurityUtils> mockedSecurity = Mockito.mockStatic(SecurityUtils.class)) {
+        mockedSecurity.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
+        when(recipeRepository.findByUserId(testUserId, pageable)).thenReturn(emptyPage);
+
+        // When
+        var response = recipeService.getMyRecipes(pageable);
+
+        // Then
+        assertThat(response).isNotNull();
+        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+
+        SearchRecipesResponse responseBody = response.getBody();
+        assertThat(responseBody).isNotNull();
+        assertThat(responseBody.getRecipes()).isEmpty();
+        assertThat(responseBody.getPage()).isEqualTo(0);
+        assertThat(responseBody.getSize()).isEqualTo(20);
+        assertThat(responseBody.getTotalElements()).isEqualTo(0L);
+        assertThat(responseBody.getTotalPages()).isEqualTo(0);
+        assertThat(responseBody.isFirst()).isTrue();
+        assertThat(responseBody.isLast()).isTrue();
+        assertThat(responseBody.getNumberOfElements()).isEqualTo(0);
+        assertThat(responseBody.isEmpty()).isTrue();
+
+        verify(recipeRepository).findByUserId(testUserId, pageable);
+        verify(recipeMapper, never()).toDto(any());
+      }
+    }
+
+    @Test
+    @Tag("standard-processing")
+    @DisplayName("should handle pagination correctly for multiple pages")
+    void shouldHandlePaginationCorrectlyForMultiplePages() {
+      // Given
+      Pageable secondPage = PageRequest.of(1, 1);
+      Page<Recipe> pagedRecipes = new PageImpl<>(Arrays.asList(recipe2), secondPage, 2);
+
+      try (MockedStatic<SecurityUtils> mockedSecurity = Mockito.mockStatic(SecurityUtils.class)) {
+        mockedSecurity.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
+        when(recipeRepository.findByUserId(testUserId, secondPage)).thenReturn(pagedRecipes);
+        when(recipeMapper.toDto(recipe2)).thenReturn(recipeDto2);
+
+        // When
+        var response = recipeService.getMyRecipes(secondPage);
+
+        // Then
+        assertThat(response).isNotNull();
+        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+
+        SearchRecipesResponse responseBody = response.getBody();
+        assertThat(responseBody).isNotNull();
+        assertThat(responseBody.getRecipes()).hasSize(1);
+        assertThat(responseBody.getRecipes().get(0)).isEqualTo(recipeDto2);
+        assertThat(responseBody.getPage()).isEqualTo(1);
+        assertThat(responseBody.getSize()).isEqualTo(1);
+        assertThat(responseBody.getTotalElements()).isEqualTo(2L);
+        assertThat(responseBody.getTotalPages()).isEqualTo(2);
+        assertThat(responseBody.isFirst()).isFalse();
+        assertThat(responseBody.isLast()).isTrue();
+        assertThat(responseBody.getNumberOfElements()).isEqualTo(1);
+        assertThat(responseBody.isEmpty()).isFalse();
+
+        verify(recipeRepository).findByUserId(testUserId, secondPage);
+        verify(recipeMapper).toDto(recipe2);
+      }
+    }
+
+    @Test
+    @Tag("standard-processing")
+    @DisplayName("should use correct user ID from security context")
+    void shouldUseCorrectUserIdFromSecurityContext() {
+      // Given
+      UUID specificUserId = UUID.fromString("11111111-1111-1111-1111-111111111111");
+      Page<Recipe> emptyPage = new PageImpl<>(new ArrayList<>(), pageable, 0);
+
+      try (MockedStatic<SecurityUtils> mockedSecurity = Mockito.mockStatic(SecurityUtils.class)) {
+        mockedSecurity.when(SecurityUtils::getCurrentUserId).thenReturn(specificUserId);
+        when(recipeRepository.findByUserId(specificUserId, pageable)).thenReturn(emptyPage);
+
+        // When
+        recipeService.getMyRecipes(pageable);
+
+        // Then - verify the specific user ID was used
+        verify(recipeRepository).findByUserId(specificUserId, pageable);
+      }
+    }
+  }
+
+  @Nested
   @DisplayName("searchRecipes Tests")
   class SearchRecipesTests {
 

@@ -61,6 +61,8 @@ tags:
     description: Recipe comment management
   - name: favorites
     description: Recipe favorite management and user favorites collection
+  - name: users
+    description: User-scoped endpoints for accessing authenticated user's resources
 
 paths:
   /recipes:
@@ -484,6 +486,33 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /users/me/recipes:
+    get:
+      tags: [users]
+      summary: Get recipes owned by authenticated user
+      description: |
+        Retrieves all recipes created by the authenticated user with pagination support.
+        Returns recipes in the same format as the main recipes list endpoint.
+
+        This endpoint only returns recipes where the authenticated user is the owner
+        (userId matches the JWT token subject).
+      operationId: getMyRecipes
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+        - $ref: '#/components/parameters/SortParam'
+      responses:
+        '200':
+          description: User's recipes retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchRecipesResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /recipes/{recipeId}/description:
     get:
       tags: [recipes]
@@ -523,7 +552,7 @@ paths:
           content:
             text/plain:
               schema:
-                type: string
+                type: [string, "null"]
                 example: "Recipe history placeholder"
         '401':
           $ref: '#/components/responses/Unauthorized'
@@ -2267,8 +2296,7 @@ components:
         quantity:
           type: number
           format: decimal
-          minimum: 0
-          exclusiveMinimum: true
+          exclusiveMinimum: 0
           description: Ingredient quantity as decimal
           example: 2.25
         unit:
@@ -2744,8 +2772,7 @@ components:
                         servlet:
                           context-path: "/api/v1/recipe-management"
               parentId:
-                type: string
-                nullable: true
+                type: [string, "null"]
           example:
             application:
               beans:
@@ -3082,8 +3109,7 @@ components:
         quantity:
           type: number
           format: double
-          minimum: 0
-          exclusiveMinimum: true
+          exclusiveMinimum: 0
           description: Ingredient quantity
           example: 2.25
         unit:

@@ -1,9 +1,11 @@
 package com.recipe_manager.security;
 
 import java.io.IOException;
+import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -76,8 +78,13 @@ public final class JwtAuthenticationFilter extends OncePerRequestFilter {
       throws ServletException, IOException {
     try {
       String token = extractTokenFromRequest(request);
-      if (StringUtils.hasText(token) && jwtService.isTokenValid(token)) {
-        String username = jwtService.extractUsername(token);
+      if (StringUtils.hasText(token)) {
+        Optional<JwtService.TokenInfo> tokenInfoOpt = jwtService.validateToken(token);
+        if (tokenInfoOpt.isEmpty()) {
+          throw new BadCredentialsException("Invalid or expired token");
+        }
+        JwtService.TokenInfo tokenInfo = tokenInfoOpt.get();
+        String username = tokenInfo.getSubject();
         if (StringUtils.hasText(username)
             && SecurityContextHolder.getContext().getAuthentication() == null) {
           UserDetails userDetails = userDetailsService.loadUserByUsername(username);

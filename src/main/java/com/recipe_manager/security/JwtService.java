@@ -145,6 +145,66 @@ public final class JwtService {
   }
 
   /**
+   * Validates token and returns claims if valid.
+   *
+   * <p>This method first attempts local JWT validation. If that fails and OAuth2 introspection is
+   * enabled, it falls back to token introspection. The returned TokenInfo contains claims extracted
+   * from either the local JWT or the introspection response.
+   *
+   * @param token the JWT token
+   * @return Optional containing TokenInfo if valid, empty if invalid
+   */
+  public Optional<TokenInfo> validateToken(final String token) {
+    // Try local validation first
+    try {
+      if (isLocalTokenValid(token)) {
+        return getTokenInfo(token);
+      }
+    } catch (Exception e) {
+      LOGGER.debug("Local validation failed: {}", e.getMessage());
+    }
+
+    // Try introspection if enabled
+    if (oauth2Config.getEnabled() && oauth2Config.getIntrospectionEnabled()) {
+      return validateTokenViaIntrospection(token);
+    }
+
+    return Optional.empty();
+  }
+
+  /**
+   * Validates token via OAuth2 introspection and maps response to TokenInfo.
+   *
+   * @param token the JWT token
+   * @return Optional containing TokenInfo if active, empty otherwise
+   */
+  private Optional<TokenInfo> validateTokenViaIntrospection(final String token) {
+    try {
+      OAuth2Client.TokenIntrospectionResponse response = oauth2Client.introspectToken(token).join();
+
+      if (response == null || !Boolean.TRUE.equals(response.getActive())) {
+        LOGGER.debug("Token introspection returned inactive or null response");
+        return Optional.empty();
+      }
+
+      LOGGER.debug("Token validated via introspection for subject: {}", response.getSub());
+
+      // Map introspection response to TokenInfo
+      return Optional.of(
+          TokenInfo.builder()
+              .subject(response.getSub())
+              .userId(response.getUserId())
+              .clientId(response.getClientId())
+              .scopes(response.getScopes())
+              .tokenType("access_token")
+              .build());
+    } catch (Exception e) {
+      LOGGER.warn("Token introspection failed: {}", e.getMessage());
+      return Optional.empty();
+    }
+  }
+
+  /**
    * Validates token locally using JWT signature and expiration.
    *
    * @param token the JWT token

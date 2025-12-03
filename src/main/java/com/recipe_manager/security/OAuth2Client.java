@@ -129,11 +129,9 @@ public class OAuth2Client {
     return CompletableFuture.supplyAsync(
         () -> {
           try {
-            String serviceToken = getServiceAccessToken().join();
-
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-            headers.setBearerAuth(serviceToken);
+            headers.setBasicAuth(config.getClientId(), config.getClientSecret());
 
             MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
             body.add("token", token);

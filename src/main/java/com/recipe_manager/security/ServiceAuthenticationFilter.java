@@ -2,9 +2,11 @@ package com.recipe_manager.security;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -83,30 +85,42 @@ public final class ServiceAuthenticationFilter extends OncePerRequestFilter {
       if (StringUtils.hasText(authHeader) && authHeader.startsWith(BEARER_PREFIX)) {
         String token = authHeader.substring(BEARER_PREFIX.length());
 
-        // Validate the JWT token
-        if (jwtService.isTokenValid(token)) {
-          String clientId = jwtService.extractClientId(token);
-          String tokenType = jwtService.extractTokenType(token);
+        // Validate the JWT token and get claims
+        Optional<JwtService.TokenInfo> tokenInfoOpt = jwtService.validateToken(token);
+        if (tokenInfoOpt.isEmpty()) {
+          throw new BadCredentialsException("Invalid or expired token");
+        }
+        JwtService.TokenInfo tokenInfo = tokenInfoOpt.get();
+        String clientId = tokenInfo.getClientId();
+        String tokenType = tokenInfo.getTokenType();
 
-          // Check if this is a service token (client_credentials flow)
-          if ("access_token".equals(tokenType) && StringUtils.hasText(clientId)) {
-            String serviceName = request.getHeader(SERVICE_NAME_HEADER);
+        // Check if this is a service token (client_credentials flow)
+        // Service tokens have client_id but no user subject, or subject equals client_id
+        // User tokens have both client_id AND a valid user subject - those should be
+        // handled by JwtAuthenticationFilter instead
+        String subject = tokenInfo.getSubject();
+        boolean isServiceToken =
+            "access_token".equals(tokenType)
+                && StringUtils.hasText(clientId)
+                && (!StringUtils.hasText(subject) || clientId.equals(subject));
 
-            // Create service authentication
-            UsernamePasswordAuthenticationToken authentication =
-                new UsernamePasswordAuthenticationToken(
-                    "service-" + (StringUtils.hasText(serviceName) ? serviceName : clientId),
-                    null,
-                    Arrays.asList(new SimpleGrantedAuthority("ROLE_SERVICE")));
+        if (isServiceToken) {
+          String serviceName = request.getHeader(SERVICE_NAME_HEADER);
 
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+          // Create service authentication
+          UsernamePasswordAuthenticationToken authentication =
+              new UsernamePasswordAuthenticationToken(
+                  "service-" + (StringUtils.hasText(serviceName) ? serviceName : clientId),
+                  null,
+                  Arrays.asList(new SimpleGrantedAuthority("ROLE_SERVICE")));
 
-            LOGGER.debug(
-                "Service authentication successful: {} (client: {}) - RequestId: {}",
-                serviceName != null ? serviceName : clientId,
-                clientId,
-                extractRequestId(request));
-          }
+          SecurityContextHolder.getContext().setAuthentication(authentication);
+
+          LOGGER.debug(
+              "Service authentication successful: {} (client: {}) - RequestId: {}",
+              serviceName != null ? serviceName : clientId,
+              clientId,
+              extractRequestId(request));
         }
       }
     } catch (Exception e) {

@@ -174,7 +174,7 @@ external:
       client-id: ${OAUTH2_CLIENT_ID:recipe-service-client}
       client-secret: ${OAUTH2_CLIENT_SECRET:your-client-secret}
       introspection-enabled: ${OAUTH2_INTROSPECTION_ENABLED:false}
-      scopes: ${OAUTH2_SCOPES:read,write}
+      scopes: ${OAUTH2_SCOPES:read write}
       token-path: ${OAUTH2_TOKEN_PATH:/api/v1/auth/oauth2/token}
       introspection-path: ${OAUTH2_INTROSPECTION_PATH:/api/v1/auth/oauth2/introspect}
       user-info-path: ${OAUTH2_USERINFO_PATH:/api/v1/auth/oauth2/userinfo}

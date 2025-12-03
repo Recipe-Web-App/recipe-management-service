@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
+import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -110,8 +111,10 @@ class JwtAuthenticationFilterTest {
     String token = "valid.jwt.token";
     request.addHeader("Authorization", "Bearer " + token);
 
-    when(jwtService.isTokenValid(token)).thenReturn(true);
-    when(jwtService.extractUsername(token)).thenReturn("testuser");
+    JwtService.TokenInfo tokenInfo = JwtService.TokenInfo.builder()
+        .subject("testuser")
+        .build();
+    when(jwtService.validateToken(token)).thenReturn(Optional.of(tokenInfo));
 
     // When: filter is applied
     jwtAuthenticationFilter.doFilter(request, response, filterChain);
@@ -131,12 +134,12 @@ class JwtAuthenticationFilterTest {
     String token = "invalid.jwt.token";
     request.addHeader("Authorization", "Bearer " + token);
 
-    when(jwtService.isTokenValid(token)).thenReturn(false);
+    when(jwtService.validateToken(token)).thenReturn(Optional.empty());
 
     // When: filter is applied
     jwtAuthenticationFilter.doFilter(request, response, filterChain);
 
-    // Then: filter chain should continue
+    // Then: filter chain should continue (exception is caught)
     assertNotNull(filterChain);
   }
 
@@ -205,8 +208,10 @@ class JwtAuthenticationFilterTest {
   void shouldSkipIfSecurityContextHasAuthentication() throws Exception {
     String token = "valid.jwt.token";
     request.addHeader("Authorization", "Bearer " + token);
-    when(jwtService.isTokenValid(token)).thenReturn(true);
-    when(jwtService.extractUsername(token)).thenReturn("testuser");
+    JwtService.TokenInfo tokenInfo = JwtService.TokenInfo.builder()
+        .subject("testuser")
+        .build();
+    when(jwtService.validateToken(token)).thenReturn(Optional.of(tokenInfo));
     Authentication existingAuth = new UsernamePasswordAuthenticationToken("user", null, java.util.List.of());
     SecurityContextHolder.getContext().setAuthentication(existingAuth);
     jwtAuthenticationFilter.doFilter(request, response, filterChain);
@@ -219,8 +224,10 @@ class JwtAuthenticationFilterTest {
   void shouldSkipIfUserDetailsServiceReturnsNull() throws Exception {
     String token = "valid.jwt.token";
     request.addHeader("Authorization", "Bearer " + token);
-    when(jwtService.isTokenValid(token)).thenReturn(true);
-    when(jwtService.extractUsername(token)).thenReturn("testuser");
+    JwtService.TokenInfo tokenInfo = JwtService.TokenInfo.builder()
+        .subject("testuser")
+        .build();
+    when(jwtService.validateToken(token)).thenReturn(Optional.of(tokenInfo));
     when(userDetailsService.loadUserByUsername("testuser")).thenReturn(null);
     SecurityContextHolder.clearContext();
     jwtAuthenticationFilter.doFilter(request, response, filterChain);
@@ -233,7 +240,7 @@ class JwtAuthenticationFilterTest {
   void shouldClearContextOnException() throws Exception {
     String token = "valid.jwt.token";
     request.addHeader("Authorization", "Bearer " + token);
-    when(jwtService.isTokenValid(token)).thenThrow(new RuntimeException("fail"));
+    when(jwtService.validateToken(token)).thenThrow(new RuntimeException("fail"));
     SecurityContextHolder.getContext().setAuthentication(null);
     jwtAuthenticationFilter.doFilter(request, response, filterChain);
     assertNull(SecurityContextHolder.getContext().getAuthentication());

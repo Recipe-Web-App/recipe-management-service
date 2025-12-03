@@ -6,9 +6,13 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.lenient;
+
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -301,5 +305,130 @@ class JwtServiceTest {
     String[] roles = jwtService.extractRoles(invalidToken);
     assertNotNull(roles);
     assertEquals(0, roles.length);
+  }
+
+  @Test
+  @Tag("standard-processing")
+  @DisplayName("Should return TokenInfo for valid token via validateToken")
+  void shouldReturnTokenInfoForValidToken() {
+    // Given
+    java.util.Map<String, Object> claims = new java.util.HashMap<>();
+    claims.put("type", "access_token");
+    claims.put("userId", "user-123");
+    claims.put("client_id", "client-abc");
+    String token = jwtService.generateToken(claims, "testuser");
+
+    // When
+    Optional<JwtService.TokenInfo> result = jwtService.validateToken(token);
+
+    // Then
+    assertTrue(result.isPresent());
+    assertEquals("testuser", result.get().getSubject());
+    assertEquals("user-123", result.get().getUserId());
+    assertEquals("client-abc", result.get().getClientId());
+  }
+
+  @Test
+  @Tag("standard-processing")
+  @DisplayName("Should return empty Optional for invalid token via validateToken")
+  void shouldReturnEmptyForInvalidToken() {
+    // Given
+    String invalidToken = "invalid.token.here";
+
+    // When
+    Optional<JwtService.TokenInfo> result = jwtService.validateToken(invalidToken);
+
+    // Then
+    assertTrue(result.isEmpty());
+  }
+
+  @Test
+  @Tag("standard-processing")
+  @DisplayName("Should return empty Optional for expired token via validateToken")
+  void shouldReturnEmptyForExpiredToken() {
+    // Given
+    ReflectionTestUtils.setField(jwtService, "jwtExpiration", -1000L);
+    String token = jwtService.generateToken("testuser");
+
+    // When
+    Optional<JwtService.TokenInfo> result = jwtService.validateToken(token);
+
+    // Then
+    assertTrue(result.isEmpty());
+  }
+
+  @Test
+  @Tag("standard-processing")
+  @DisplayName("Should validate token via introspection when local validation fails")
+  void shouldValidateTokenViaIntrospectionWhenLocalFails() {
+    // Given
+    when(oauth2ServiceConfig.getEnabled()).thenReturn(true);
+    when(oauth2ServiceConfig.getIntrospectionEnabled()).thenReturn(true);
+
+    String token = "external-token";
+    OAuth2Client.TokenIntrospectionResponse introspectionResponse =
+        OAuth2Client.TokenIntrospectionResponse.builder()
+            .active(true)
+            .sub("introspected-user")
+            .userId("user-456")
+            .clientId("client-xyz")
+            .scopes(new String[]{"read", "write"})
+            .build();
+
+    when(oauth2Client.introspectToken(token))
+        .thenReturn(CompletableFuture.completedFuture(introspectionResponse));
+
+    // When
+    Optional<JwtService.TokenInfo> result = jwtService.validateToken(token);
+
+    // Then
+    assertTrue(result.isPresent());
+    assertEquals("introspected-user", result.get().getSubject());
+    assertEquals("user-456", result.get().getUserId());
+    assertEquals("client-xyz", result.get().getClientId());
+    assertEquals("access_token", result.get().getTokenType());
+  }
+
+  @Test
+  @Tag("standard-processing")
+  @DisplayName("Should return empty when introspection returns inactive token")
+  void shouldReturnEmptyWhenIntrospectionReturnsInactive() {
+    // Given
+    when(oauth2ServiceConfig.getEnabled()).thenReturn(true);
+    when(oauth2ServiceConfig.getIntrospectionEnabled()).thenReturn(true);
+
+    String token = "inactive-token";
+    OAuth2Client.TokenIntrospectionResponse introspectionResponse =
+        OAuth2Client.TokenIntrospectionResponse.builder()
+            .active(false)
+            .build();
+
+    when(oauth2Client.introspectToken(token))
+        .thenReturn(CompletableFuture.completedFuture(introspectionResponse));
+
+    // When
+    Optional<JwtService.TokenInfo> result = jwtService.validateToken(token);
+
+    // Then
+    assertTrue(result.isEmpty());
+  }
+
+  @Test
+  @Tag("error-processing")
+  @DisplayName("Should return empty when introspection throws exception")
+  void shouldReturnEmptyWhenIntrospectionThrowsException() {
+    // Given
+    when(oauth2ServiceConfig.getEnabled()).thenReturn(true);
+    when(oauth2ServiceConfig.getIntrospectionEnabled()).thenReturn(true);
+
+    String token = "error-token";
+    when(oauth2Client.introspectToken(token))
+        .thenReturn(CompletableFuture.failedFuture(new RuntimeException("Introspection failed")));
+
+    // When
+    Optional<JwtService.TokenInfo> result = jwtService.validateToken(token);
+
+    // Then
+    assertTrue(result.isEmpty());
   }
 }

@@ -11,6 +11,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
+import java.util.Optional;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -87,7 +88,7 @@ class ServiceAuthenticationFilterTest {
     serviceAuthenticationFilter.doFilter(request, response, filterChain);
 
     // Then
-    verify(jwtService, never()).isTokenValid(anyString());
+    verify(jwtService, never()).validateToken(anyString());
     assertNull(SecurityContextHolder.getContext().getAuthentication());
   }
 
@@ -105,7 +106,7 @@ class ServiceAuthenticationFilterTest {
     serviceAuthenticationFilter.doFilter(request, response, filterChain);
 
     // Then
-    verify(jwtService, never()).isTokenValid(anyString());
+    verify(jwtService, never()).validateToken(anyString());
     assertNull(SecurityContextHolder.getContext().getAuthentication());
   }
 
@@ -123,9 +124,11 @@ class ServiceAuthenticationFilterTest {
     MockHttpServletResponse response = new MockHttpServletResponse();
     MockFilterChain filterChain = new MockFilterChain();
 
-    when(jwtService.isTokenValid(token)).thenReturn(true);
-    when(jwtService.extractClientId(token)).thenReturn(clientId);
-    when(jwtService.extractTokenType(token)).thenReturn("access_token");
+    JwtService.TokenInfo tokenInfo = JwtService.TokenInfo.builder()
+        .clientId(clientId)
+        .tokenType("access_token")
+        .build();
+    when(jwtService.validateToken(token)).thenReturn(Optional.of(tokenInfo));
 
     // When
     serviceAuthenticationFilter.doFilter(request, response, filterChain);
@@ -151,9 +154,11 @@ class ServiceAuthenticationFilterTest {
     MockHttpServletResponse response = new MockHttpServletResponse();
     MockFilterChain filterChain = new MockFilterChain();
 
-    when(jwtService.isTokenValid(token)).thenReturn(true);
-    when(jwtService.extractClientId(token)).thenReturn(clientId);
-    when(jwtService.extractTokenType(token)).thenReturn("access_token");
+    JwtService.TokenInfo tokenInfo = JwtService.TokenInfo.builder()
+        .clientId(clientId)
+        .tokenType("access_token")
+        .build();
+    when(jwtService.validateToken(token)).thenReturn(Optional.of(tokenInfo));
 
     // When
     serviceAuthenticationFilter.doFilter(request, response, filterChain);
@@ -176,17 +181,14 @@ class ServiceAuthenticationFilterTest {
     MockHttpServletResponse response = new MockHttpServletResponse();
     MockFilterChain filterChain = new MockFilterChain();
 
-    when(jwtService.isTokenValid(token)).thenReturn(false);
-    // Ensure no other methods are called when token is invalid
-    lenient().when(jwtService.extractClientId(token)).thenReturn(null);
-    lenient().when(jwtService.extractTokenType(token)).thenReturn(null);
+    when(jwtService.validateToken(token)).thenReturn(Optional.empty());
 
     // When
     serviceAuthenticationFilter.doFilter(request, response, filterChain);
 
-    // Then
+    // Then - exception is caught, auth is null, filter chain continues
     assertNull(SecurityContextHolder.getContext().getAuthentication());
-    verify(jwtService).isTokenValid(token);
+    verify(jwtService).validateToken(token);
   }
 
   @Test
@@ -202,9 +204,11 @@ class ServiceAuthenticationFilterTest {
     MockHttpServletResponse response = new MockHttpServletResponse();
     MockFilterChain filterChain = new MockFilterChain();
 
-    when(jwtService.isTokenValid(token)).thenReturn(true);
-    when(jwtService.extractClientId(token)).thenReturn(clientId);
-    when(jwtService.extractTokenType(token)).thenReturn("refresh_token");
+    JwtService.TokenInfo tokenInfo = JwtService.TokenInfo.builder()
+        .clientId(clientId)
+        .tokenType("refresh_token")
+        .build();
+    when(jwtService.validateToken(token)).thenReturn(Optional.of(tokenInfo));
 
     // When
     serviceAuthenticationFilter.doFilter(request, response, filterChain);
@@ -225,7 +229,7 @@ class ServiceAuthenticationFilterTest {
     serviceAuthenticationFilter.doFilter(request, response, filterChain);
 
     // Then
-    verify(jwtService, never()).isTokenValid(anyString());
+    verify(jwtService, never()).validateToken(anyString());
     assertNull(SecurityContextHolder.getContext().getAuthentication());
   }
 
@@ -242,7 +246,7 @@ class ServiceAuthenticationFilterTest {
     MockHttpServletResponse response = new MockHttpServletResponse();
     MockFilterChain filterChain = new MockFilterChain();
 
-    when(jwtService.isTokenValid(token)).thenThrow(new RuntimeException("Token parsing error"));
+    when(jwtService.validateToken(token)).thenThrow(new RuntimeException("Token parsing error"));
 
     // When
     serviceAuthenticationFilter.doFilter(request, response, filterChain);
@@ -265,7 +269,7 @@ class ServiceAuthenticationFilterTest {
     serviceAuthenticationFilter.doFilter(request, response, filterChain);
 
     // Then
-    verify(jwtService, never()).isTokenValid(anyString());
+    verify(jwtService, never()).validateToken(anyString());
     assertNull(SecurityContextHolder.getContext().getAuthentication());
   }
 
@@ -282,7 +286,68 @@ class ServiceAuthenticationFilterTest {
     serviceAuthenticationFilter.doFilter(request, response, filterChain);
 
     // Then
-    verify(jwtService, never()).isTokenValid(anyString());
+    verify(jwtService, never()).validateToken(anyString());
     assertNull(SecurityContextHolder.getContext().getAuthentication());
+  }
+
+  @Test
+  @DisplayName("Should NOT authenticate as service when token has user subject (user token)")
+  void shouldNotAuthenticateAsServiceWhenTokenHasUserSubject() throws ServletException, IOException {
+    // Given - User token with both subject (user UUID) AND client_id
+    String token = "user-jwt-token";
+    String clientId = "user-client";
+    String userSubject = "fe8305cd-2ee8-463a-a009-c624c2a3ca53"; // User UUID
+
+    MockHttpServletRequest request = new MockHttpServletRequest();
+    request.addHeader("Authorization", "Bearer " + token);
+    request.addHeader("X-Service-Name", "test-service");
+
+    MockHttpServletResponse response = new MockHttpServletResponse();
+    MockFilterChain filterChain = new MockFilterChain();
+
+    JwtService.TokenInfo tokenInfo = JwtService.TokenInfo.builder()
+        .subject(userSubject)
+        .clientId(clientId)
+        .tokenType("access_token")
+        .build();
+    when(jwtService.validateToken(token)).thenReturn(Optional.of(tokenInfo));
+
+    // When
+    serviceAuthenticationFilter.doFilter(request, response, filterChain);
+
+    // Then - Should NOT set service authentication, allowing JwtAuthenticationFilter to handle it
+    assertNull(SecurityContextHolder.getContext().getAuthentication());
+  }
+
+  @Test
+  @DisplayName("Should authenticate as service when subject equals client_id (client_credentials flow)")
+  void shouldAuthenticateAsServiceWhenSubjectEqualsClientId() throws ServletException, IOException {
+    // Given - Service token where subject == client_id (client_credentials flow)
+    String token = "service-jwt-token";
+    String clientId = "recipe-scraper-service";
+
+    MockHttpServletRequest request = new MockHttpServletRequest();
+    request.addHeader("Authorization", "Bearer " + token);
+    request.addHeader("X-Service-Name", "recipe-scraper");
+
+    MockHttpServletResponse response = new MockHttpServletResponse();
+    MockFilterChain filterChain = new MockFilterChain();
+
+    JwtService.TokenInfo tokenInfo = JwtService.TokenInfo.builder()
+        .subject(clientId) // Subject equals client_id in client_credentials flow
+        .clientId(clientId)
+        .tokenType("access_token")
+        .build();
+    when(jwtService.validateToken(token)).thenReturn(Optional.of(tokenInfo));
+
+    // When
+    serviceAuthenticationFilter.doFilter(request, response, filterChain);
+
+    // Then - Should set service authentication
+    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    assertNotNull(auth);
+    assertEquals("service-recipe-scraper", auth.getPrincipal());
+    assertTrue(auth.getAuthorities().stream()
+        .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ROLE_SERVICE")));
   }
 }

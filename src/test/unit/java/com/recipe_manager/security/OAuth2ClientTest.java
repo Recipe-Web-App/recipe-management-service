@@ -130,18 +130,6 @@ class OAuth2ClientTest {
   void introspectToken_ShouldReturnIntrospectionResponse() {
     // Arrange
     String testToken = "test-token";
-    String serviceToken = "service-token";
-
-    // Mock service token response
-    OAuth2Client.TokenResponse tokenResponse = new OAuth2Client.TokenResponse();
-    tokenResponse.setAccessToken(serviceToken);
-    tokenResponse.setExpiresIn(3600L);
-
-    when(restTemplate.postForEntity(
-            eq("http://localhost:8080/api/v1/auth/oauth2/token"),
-            any(HttpEntity.class),
-            eq(OAuth2Client.TokenResponse.class)))
-        .thenReturn(new ResponseEntity<>(tokenResponse, HttpStatus.OK));
 
     // Mock introspection response
     OAuth2Client.TokenIntrospectionResponse introspectionResponse =
@@ -172,18 +160,6 @@ class OAuth2ClientTest {
   void introspectToken_ShouldThrowExceptionOnRestClientError() {
     // Arrange
     String testToken = "test-token";
-    String serviceToken = "service-token";
-
-    // Mock service token response
-    OAuth2Client.TokenResponse tokenResponse = new OAuth2Client.TokenResponse();
-    tokenResponse.setAccessToken(serviceToken);
-    tokenResponse.setExpiresIn(3600L);
-
-    when(restTemplate.postForEntity(
-            eq("http://localhost:8080/api/v1/auth/oauth2/token"),
-            any(HttpEntity.class),
-            eq(OAuth2Client.TokenResponse.class)))
-        .thenReturn(new ResponseEntity<>(tokenResponse, HttpStatus.OK));
 
     when(restTemplate.postForEntity(
             eq("http://localhost:8080/api/v1/auth/oauth2/introspect"),
@@ -264,18 +240,6 @@ class OAuth2ClientTest {
   void introspectToken_ShouldHandleEmptyResponse() {
     // Arrange
     String testToken = "test-token";
-    String serviceToken = "service-token";
-
-    // Mock service token response
-    OAuth2Client.TokenResponse tokenResponse = new OAuth2Client.TokenResponse();
-    tokenResponse.setAccessToken(serviceToken);
-    tokenResponse.setExpiresIn(3600L);
-
-    when(restTemplate.postForEntity(
-            eq("http://localhost:8080/api/v1/auth/oauth2/token"),
-            any(HttpEntity.class),
-            eq(OAuth2Client.TokenResponse.class)))
-        .thenReturn(new ResponseEntity<>(tokenResponse, HttpStatus.OK));
 
     when(restTemplate.postForEntity(
             eq("http://localhost:8080/api/v1/auth/oauth2/introspect"),

@@ -2548,7 +2548,7 @@ components:
               details:
                 status: available
                 responseTime: "245ms"
-                baseUrl: "http://recipe.local"
+                baseUrl: "http://recipe-scraper.local"
         groups:
           type: object
           description: Health indicator groups

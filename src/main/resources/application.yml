@@ -158,7 +158,7 @@ app:
 external:
   services:
     recipe-scraper:
-      base-url: ${RECIPE_SCRAPER_BASE_URL:http://recipe.local}
+      base-url: ${RECIPE_SCRAPER_BASE_URL:http://recipe-scraper.local}
       shopping-info-path: /api/recipe-scraper/recipes/{recipeId}/shopping-info
       enabled: ${RECIPE_SCRAPER_ENABLED:true}
       timeout: ${RECIPE_SCRAPER_TIMEOUT:5s}

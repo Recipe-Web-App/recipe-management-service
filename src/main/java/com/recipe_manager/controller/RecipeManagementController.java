@@ -133,6 +133,18 @@ public class RecipeManagementController {
   }
 
   /**
+   * Get trending recipes with pagination.
+   *
+   * @param pageable pagination parameters
+   * @return ResponseEntity with paginated list of trending recipes
+   */
+  @GetMapping(value = "/trending", produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<SearchRecipesResponse> getTrendingRecipes(
+      @PageableDefault(size = DEFAULT_PAGE_SIZE) final Pageable pageable) {
+    return recipeService.getTrendingRecipes(pageable);
+  }
+
+  /**
    * Update an existing recipe.
    *
    * @param recipeId the recipe ID

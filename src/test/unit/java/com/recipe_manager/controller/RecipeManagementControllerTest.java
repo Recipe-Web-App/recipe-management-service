@@ -3,15 +3,20 @@ package com.recipe_manager.controller;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+
+import org.springframework.data.domain.Pageable;
 
 import com.recipe_manager.model.dto.ingredient.IngredientCommentDto;
 import com.recipe_manager.model.dto.recipe.RecipeDto;
@@ -124,6 +129,35 @@ class RecipeManagementControllerTest {
         .contentType(MediaType.APPLICATION_JSON)
         .content(validSearchRequestJson))
         .andExpect(status().isOk());
+  }
+
+  /**
+   * Test GET /recipe-management/recipes/trending endpoint.
+   */
+  @Test
+  @Tag("standard-processing")
+  @DisplayName("Should handle GET /recipe-management/recipes/trending")
+  void shouldHandleGetTrendingRecipes() throws Exception {
+    SearchRecipesResponse mockResponse = SearchRecipesResponse.builder()
+        .recipes(Collections.emptyList())
+        .page(0)
+        .size(20)
+        .totalElements(0)
+        .totalPages(0)
+        .first(true)
+        .last(true)
+        .numberOfElements(0)
+        .empty(true)
+        .build();
+
+    when(recipeService.getTrendingRecipes(any(Pageable.class)))
+        .thenReturn(ResponseEntity.ok(mockResponse));
+
+    mockMvc.perform(get("/recipes/trending")
+        .accept(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk());
+
+    verify(recipeService).getTrendingRecipes(any(Pageable.class));
   }
 
   /**

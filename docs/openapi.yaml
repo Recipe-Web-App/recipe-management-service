@@ -209,7 +209,7 @@ paths:
 
   /recipes/trending:
     get:
-      tags: [recipes]
+      tags: [search]
       summary: Get trending recipes
       description: |
         Retrieves the most trending recipes with pagination support.

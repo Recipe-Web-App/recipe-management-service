@@ -86,4 +86,39 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long> {
    * @return page of recipes owned by the specified user
    */
   Page<Recipe> findByUserId(UUID userId, Pageable pageable);
+
+  /**
+   * Find trending recipes based on a time-decayed scoring algorithm. Score = Sum(Weight *
+   * exp(-DecayRate * Age)) Weights: Favorites=3.0, Comments=2.0, CollectionAdds=4.0 DecayRate: 0.23
+   * (half-life of ~3 days)
+   *
+   * @param pageable pagination information
+   * @return page of trending recipes
+   */
+  @Query(
+      value =
+          "SELECT r.*, "
+              + "(COALESCE(SUM(3.0 * EXP(-0.23 * EXTRACT(EPOCH FROM (NOW() - rf.favorited_at)) / 86400)), 0) + "
+              + " COALESCE(SUM(2.0 * EXP(-0.23 * EXTRACT(EPOCH FROM (NOW() - rc.created_at)) / 86400)), 0) + "
+              + " COALESCE(SUM(4.0 * EXP(-0.23 * EXTRACT(EPOCH FROM (NOW() - rci.added_at)) / 86400)), 0)) as trending_score "
+              + "FROM recipe_manager.recipes r "
+              + "LEFT JOIN recipe_manager.recipe_favorites rf ON r.recipe_id = rf.recipe_id "
+              + "  AND rf.favorited_at > NOW() - INTERVAL '30 days' "
+              + "LEFT JOIN recipe_manager.recipe_comments rc ON r.recipe_id = rc.recipe_id "
+              + "  AND rc.created_at > NOW() - INTERVAL '30 days' "
+              + "LEFT JOIN recipe_manager.recipe_collection_items rci ON r.recipe_id = rci.recipe_id "
+              + "  AND rci.added_at > NOW() - INTERVAL '30 days' "
+              + "GROUP BY r.recipe_id "
+              + "ORDER BY trending_score DESC, r.created_at DESC",
+      countQuery =
+          "SELECT COUNT(DISTINCT r.recipe_id) "
+              + "FROM recipe_manager.recipes r "
+              + "LEFT JOIN recipe_manager.recipe_favorites rf ON r.recipe_id = rf.recipe_id "
+              + "  AND rf.favorited_at > NOW() - INTERVAL '30 days' "
+              + "LEFT JOIN recipe_manager.recipe_comments rc ON r.recipe_id = rc.recipe_id "
+              + "  AND rc.created_at > NOW() - INTERVAL '30 days' "
+              + "LEFT JOIN recipe_manager.recipe_collection_items rci ON r.recipe_id = rci.recipe_id "
+              + "  AND rci.added_at > NOW() - INTERVAL '30 days'",
+      nativeQuery = true)
+  Page<Recipe> findTrendingRecipes(Pageable pageable);
 }

@@ -511,6 +511,17 @@ public class RecipeService {
   }
 
   /**
+   * Get trending recipes with pagination.
+   *
+   * @param pageable pagination information
+   * @return ResponseEntity containing paginated trending recipes
+   */
+  public ResponseEntity<SearchRecipesResponse> getTrendingRecipes(final Pageable pageable) {
+    Page<Recipe> recipePage = recipeRepository.findTrendingRecipes(pageable);
+    return ResponseEntity.ok(buildSearchRecipesResponse(recipePage));
+  }
+
+  /**
    * Get all recipes owned by the authenticated user with pagination.
    *
    * @param pageable pagination information

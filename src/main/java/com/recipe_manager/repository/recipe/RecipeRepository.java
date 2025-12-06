@@ -109,7 +109,7 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long> {
               + "LEFT JOIN recipe_manager.recipe_collection_items rci ON r.recipe_id = rci.recipe_id "
               + "  AND rci.added_at > NOW() - INTERVAL '30 days' "
               + "GROUP BY r.recipe_id "
-              + "ORDER BY trending_score DESC",
+              + "ORDER BY trending_score DESC, r.created_at DESC",
       countQuery =
           "SELECT COUNT(DISTINCT r.recipe_id) "
               + "FROM recipe_manager.recipes r "

@@ -228,7 +228,7 @@ class OAuth2ClientTest {
             eq("http://localhost:8080/api/v1/auth/oauth2/token"),
             any(HttpEntity.class),
             eq(OAuth2Client.TokenResponse.class)))
-        .thenReturn(new ResponseEntity<>(null, HttpStatus.OK));
+        .thenReturn(ResponseEntity.ok(null));
 
     // Act & Assert
     CompletableFuture<String> result = oauth2Client.getServiceAccessToken();
@@ -245,7 +245,7 @@ class OAuth2ClientTest {
             eq("http://localhost:8080/api/v1/auth/oauth2/introspect"),
             any(HttpEntity.class),
             eq(OAuth2Client.TokenIntrospectionResponse.class)))
-        .thenReturn(new ResponseEntity<>(null, HttpStatus.OK));
+        .thenReturn(ResponseEntity.ok(null));
 
     // Act & Assert
     CompletableFuture<OAuth2Client.TokenIntrospectionResponse> result =
@@ -264,7 +264,7 @@ class OAuth2ClientTest {
             eq(HttpMethod.GET),
             any(HttpEntity.class),
             eq(OAuth2Client.UserInfoResponse.class)))
-        .thenReturn(new ResponseEntity<>(null, HttpStatus.OK));
+        .thenReturn(ResponseEntity.ok(null));
 
     // Act & Assert
     CompletableFuture<OAuth2Client.UserInfoResponse> result = oauth2Client.getUserInfo(accessToken);

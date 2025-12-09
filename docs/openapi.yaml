@@ -2346,13 +2346,17 @@ components:
         - stepId
         - stepNumber
         - instruction
-        - order
       properties:
         stepId:
           type: integer
           format: int64
           description: Step identifier
           example: 101
+        recipeId:
+          type: integer
+          format: int64
+          description: Recipe identifier
+          example: 123
         stepNumber:
           type: integer
           minimum: 1
@@ -2364,49 +2368,38 @@ components:
           maxLength: 1000
           description: Step instructions
           example: "Preheat oven to 375°F (190°C)"
-        duration:
+        optional:
+          type: boolean
+          description: Whether this step is optional
+          example: false
+        timerSeconds:
           type: integer
           minimum: 0
-          description: Step duration in minutes
-          example: 5
-        order:
-          type: integer
-          minimum: 1
-          description: Display order
-          example: 1
+          description: Timer in seconds for this step
+          example: 300
+        createdAt:
+          type: string
+          format: date-time
+          description: The creation timestamp
+          example: "2024-08-28T10:30:00Z"
 
     RecipeTagDto:
       type: object
       required:
         - tagId
         - name
-        - category
       properties:
         tagId:
           type: integer
           format: int64
-          description: Tag identifier
+          description: The tag ID
           example: 201
         name:
           type: string
           minLength: 1
           maxLength: 50
-          description: Tag name
+          description: The tag name
           example: "dessert"
-        category:
-          type: string
-          description: Tag category
-          example: "CATEGORY"
-        description:
-          type: string
-          maxLength: 200
-          description: Tag description
-          example: "Sweet treats and desserts"
-        usageCount:
-          type: integer
-          minimum: 0
-          description: Number of recipes using this tag
-          example: 150
 
     MediaDto:
       type: object
@@ -2953,31 +2946,32 @@ components:
           format: int64
           description: Review identifier
           example: 501
-        userId:
+        recipeId:
           type: integer
           format: int64
-          description: User who wrote the review
-          example: 456
+          description: ID of the recipe being reviewed
+          example: 123
+        userId:
+          type: string
+          format: uuid
+          description: ID of the user who created the review
+          example: "123e4567-e89b-12d3-a456-426614174000"
         rating:
-          type: integer
+          type: number
+          format: decimal
           minimum: 1
           maximum: 5
-          description: Recipe rating (1-5 stars)
-          example: 5
+          description: Rating given to the recipe (1-5 scale)
+          example: 4.5
         comment:
           type: string
           maxLength: 2000
-          description: Review comment
+          description: Optional comment text for the review
           example: "Absolutely delicious! My family loved these cookies."
         createdAt:
           type: string
           format: date-time
-          description: Review creation timestamp
-          example: "2024-08-28T10:55:00Z"
-        updatedAt:
-          type: string
-          format: date-time
-          description: Last update timestamp
+          description: Timestamp when the review was created
           example: "2024-08-28T10:55:00Z"
 
     StepCommentDto:
@@ -2986,40 +2980,49 @@ components:
         - commentId
         - stepId
         - userId
-        - comment
+        - commentText
         - createdAt
       properties:
         commentId:
           type: integer
           format: int64
-          description: Comment identifier
+          description: The unique identifier for the comment
           example: 401
+        recipeId:
+          type: integer
+          format: int64
+          description: The recipe ID this comment belongs to
+          example: 123
         stepId:
           type: integer
           format: int64
-          description: Step identifier
+          description: The step ID this comment belongs to
           example: 101
         userId:
-          type: integer
-          format: int64
-          description: User who wrote the comment
-          example: 456
-        comment:
+          type: string
+          format: uuid
+          description: The ID of the user who created this comment
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        commentText:
           type: string
           minLength: 1
           maxLength: 1000
-          description: Comment text
+          description: The text content of the comment
           example: "Don't forget to preheat early"
+        isPublic:
+          type: boolean
+          description: Whether this comment is public or private
+          example: true
         createdAt:
           type: string
           format: date-time
-          description: Comment creation timestamp
+          description: When this comment was created
           example: "2024-08-28T10:40:00Z"
         updatedAt:
           type: string
           format: date-time
-          description: Last update timestamp
-          example: "2024-08-28T10:40:00Z"
+          description: When this comment was last updated
+          example: "2024-08-28T10:45:00Z"
 
     RecipeCommentDto:
       type: object
@@ -3073,6 +3076,7 @@ components:
       type: object
       required:
         - title
+        - description
         - servings
         - ingredients
         - steps
@@ -3089,17 +3093,18 @@ components:
           description: Recipe description
           example: "Classic homemade chocolate chip cookies"
         servings:
-          type: integer
+          type: number
+          format: decimal
           minimum: 1
           maximum: 1000
           description: Number of servings
-          example: 24
-        prepTime:
+          example: 4
+        preparationTime:
           type: integer
           minimum: 0
           description: Preparation time in minutes
           example: 15
-        cookTime:
+        cookingTime:
           type: integer
           minimum: 0
           description: Cooking time in minutes
@@ -3119,34 +3124,42 @@ components:
         tags:
           type: array
           items:
-            type: string
-            example: "dessert"
+            $ref: '#/components/schemas/RecipeTagDto'
 
     CreateRecipeIngredientRequest:
       type: object
       required:
-        - name
+        - ingredientName
         - quantity
         - unit
       properties:
-        name:
+        ingredientId:
+          type: integer
+          format: int64
+          description: The ingredient ID (optional, for referencing existing ingredients)
+          example: 789
+        ingredientName:
           type: string
           minLength: 1
           maxLength: 100
-          description: Ingredient name
+          description: The ingredient name
           example: "All-purpose flour"
         quantity:
           type: number
-          format: double
+          format: decimal
           exclusiveMinimum: 0
-          description: Ingredient quantity
+          description: The quantity of the ingredient
           example: 2.25
         unit:
           $ref: '#/components/schemas/IngredientUnit'
+        isOptional:
+          type: boolean
+          description: Whether the ingredient is optional
+          example: false
         notes:
           type: string
           maxLength: 500
-          description: Special notes or instructions
+          description: Notes about the ingredient
           example: "Sifted"
 
     CreateRecipeStepRequest:
@@ -3166,11 +3179,15 @@ components:
           maxLength: 1000
           description: Step instructions
           example: "Preheat oven to 375°F (190°C)"
-        duration:
+        optional:
+          type: boolean
+          description: Whether this step is optional
+          example: false
+        timerSeconds:
           type: integer
           minimum: 0
-          description: Step duration in minutes
-          example: 5
+          description: Timer in seconds for this step
+          example: 300
 
     UpdateRecipeRequest:
       type: object
@@ -3185,15 +3202,16 @@ components:
           maxLength: 2000
           description: Recipe description
         servings:
-          type: integer
+          type: number
+          format: decimal
           minimum: 1
           maximum: 1000
           description: Number of servings
-        prepTime:
+        preparationTime:
           type: integer
           minimum: 0
           description: Preparation time in minutes
-        cookTime:
+        cookingTime:
           type: integer
           minimum: 0
           description: Cooking time in minutes
@@ -3203,49 +3221,48 @@ components:
     SearchRecipesRequest:
       type: object
       properties:
-        query:
+        recipeNameQuery:
           type: string
-          description: Text search query
+          description: Text search query for recipe title and description
           example: "chocolate chip"
         ingredients:
           type: array
           items:
             type: string
-          description: Required ingredients
+          description: List of ingredient names to search for
           example: ["flour", "chocolate"]
+        ingredientMatchMode:
+          $ref: '#/components/schemas/IngredientMatchMode'
         tags:
           type: array
           items:
             type: string
-          description: Recipe tags
+          description: List of tag names to search for
           example: ["dessert"]
         difficulty:
-          type: array
-          items:
-            $ref: '#/components/schemas/DifficultyLevel'
-          description: Difficulty levels
-        maxPrepTime:
+          $ref: '#/components/schemas/DifficultyLevel'
+        maxPreparationTime:
           type: integer
           minimum: 0
           description: Maximum preparation time in minutes
           example: 30
-        maxCookTime:
+        maxCookingTime:
           type: integer
           minimum: 0
           description: Maximum cooking time in minutes
           example: 60
-        minRating:
+        minServings:
           type: number
-          format: double
+          format: decimal
           minimum: 0
-          maximum: 5
-          description: Minimum average rating
-          example: 4.0
-        sortBy:
-          type: string
-          enum: ["RATING_DESC", "RATING_ASC", "DATE_DESC", "DATE_ASC", "TITLE_ASC", "TITLE_DESC"]
-          description: Sort order
-          example: "RATING_DESC"
+          description: Minimum number of servings
+          example: 2
+        maxServings:
+          type: number
+          format: decimal
+          minimum: 0
+          description: Maximum number of servings
+          example: 8
 
     SearchRecipesResponse:
       type: object
@@ -3325,53 +3342,52 @@ components:
     ShoppingListItemDto:
       type: object
       required:
-        - name
-        - quantity
+        - ingredientName
+        - totalQuantity
         - unit
-        - category
       properties:
-        name:
+        ingredientId:
+          type: integer
+          format: int64
+          description: The ingredient ID
+          example: 789
+        ingredientName:
           type: string
-          description: Ingredient name
+          description: The ingredient name
           example: "All-purpose flour"
-        quantity:
+        totalQuantity:
           type: number
-          format: double
-          description: Required quantity
+          format: decimal
+          description: The total quantity needed for this ingredient
           example: 2.25
         unit:
           $ref: '#/components/schemas/IngredientUnit'
-        category:
-          type: string
-          description: Shopping category
-          example: "BAKING"
-        notes:
-          type: string
-          description: Special notes
-          example: "Sifted"
+        isOptional:
+          type: boolean
+          description: Whether the ingredient is optional
+          example: false
+        estimatedPrice:
+          type: number
+          format: decimal
+          description: The estimated price for this ingredient
+          example: 3.99
 
     AddIngredientCommentRequest:
       type: object
       required:
         - comment
-        - userId
       properties:
         comment:
           type: string
           minLength: 1
           maxLength: 1000
-          description: Comment text
-        userId:
-          type: integer
-          format: int64
-          description: User ID
+          description: The comment text to add
 
     EditIngredientCommentRequest:
       type: object
       required:
         - commentId
         - comment
-        - userId
       properties:
         commentId:
           type: integer
@@ -3382,25 +3398,16 @@ components:
           minLength: 1
           maxLength: 1000
           description: Updated comment text
-        userId:
-          type: integer
-          format: int64
-          description: User ID
 
     DeleteIngredientCommentRequest:
       type: object
       required:
         - commentId
-        - userId
       properties:
         commentId:
           type: integer
           format: int64
           description: Comment identifier
-        userId:
-          type: integer
-          format: int64
-          description: User ID
 
     IngredientCommentResponse:
       type: object
@@ -3439,24 +3446,22 @@ components:
       type: object
       required:
         - comment
-        - userId
       properties:
         comment:
           type: string
           minLength: 1
           maxLength: 1000
-          description: Comment text
-        userId:
-          type: integer
-          format: int64
-          description: User ID
+          description: The comment text to add
+        isPublic:
+          type: boolean
+          description: Whether this comment should be public or private
+          default: true
 
     EditStepCommentRequest:
       type: object
       required:
         - commentId
         - comment
-        - userId
       properties:
         commentId:
           type: integer
@@ -3467,25 +3472,16 @@ components:
           minLength: 1
           maxLength: 1000
           description: Updated comment text
-        userId:
-          type: integer
-          format: int64
-          description: User ID
 
     DeleteStepCommentRequest:
       type: object
       required:
         - commentId
-        - userId
       properties:
         commentId:
           type: integer
           format: int64
           description: Comment identifier
-        userId:
-          type: integer
-          format: int64
-          description: User ID
 
     StepCommentResponse:
       type: object
@@ -3569,16 +3565,13 @@ components:
     AddTagRequest:
       type: object
       required:
-        - tagName
+        - name
       properties:
-        tagName:
+        name:
           type: string
           minLength: 1
           maxLength: 50
-          description: Tag name
-        category:
-          type: string
-          description: Tag category
+          description: The name of the tag to add
 
     RemoveTagRequest:
       type: object
@@ -3612,41 +3605,33 @@ components:
       type: object
       required:
         - rating
-        - userId
       properties:
         rating:
-          type: integer
-          minimum: 1
-          maximum: 5
-          description: Recipe rating (1-5 stars)
+          type: number
+          format: decimal
+          minimum: 0.0
+          maximum: 5.0
+          description: Rating for the recipe (0.0 to 5.0 scale)
         comment:
           type: string
           maxLength: 2000
-          description: Review comment
-        userId:
-          type: integer
-          format: int64
-          description: User ID
+          description: Optional comment for the review
 
     EditReviewRequest:
       type: object
       required:
         - rating
-        - userId
       properties:
         rating:
-          type: integer
-          minimum: 1
-          maximum: 5
-          description: Updated rating
+          type: number
+          format: decimal
+          minimum: 0.0
+          maximum: 5.0
+          description: Updated rating (0.0 to 5.0 scale)
         comment:
           type: string
           maxLength: 2000
           description: Updated comment
-        userId:
-          type: integer
-          format: int64
-          description: User ID
 
     RecipeRevisionsResponse:
       type: object
@@ -3806,6 +3791,12 @@ components:
       description: Recipe difficulty level
       example: EASY
 
+    IngredientMatchMode:
+      type: string
+      enum: [AND, OR]
+      description: Logic operator for ingredient matching in recipe searches
+      example: AND
+
     IngredientUnit:
       type: string
       enum:
@@ -3855,7 +3846,7 @@ components:
 
     ProcessingStatus:
       type: string
-      enum: [PENDING, PROCESSING, COMPLETE, FAILED]
+      enum: [INITIATED, UPLOADING, PROCESSING, COMPLETE, FAILED, EXPIRED]
       description: Media processing status
       example: COMPLETE
 
@@ -4175,24 +4166,33 @@ components:
         - grantedBy
         - grantedAt
       properties:
+        collectionId:
+          type: integer
+          format: int64
+          description: The collection ID
+          example: 100
         userId:
           type: string
           format: uuid
-          description: UUID of collaborator user
+          description: The collaborator user ID
           example: "123e4567-e89b-12d3-a456-426614174000"
         username:
           type: string
-          description: Collaborator username
+          description: The collaborator username
           example: "john_doe"
         grantedBy:
           type: string
           format: uuid
-          description: UUID of user who granted access
+          description: The user ID who granted access
           example: "456e7890-e89b-12d3-a456-426614174000"
+        grantedByUsername:
+          type: string
+          description: The username of the user who granted access
+          example: "admin_user"
         grantedAt:
           type: string
           format: date-time
-          description: Timestamp when access was granted
+          description: The timestamp when access was granted
           example: "2024-08-28T10:40:00Z"
 
     PageCollectionDto:
@@ -4277,28 +4277,38 @@ components:
         - message
         - timestamp
         - path
+        - status
       properties:
+        timestamp:
+          type: string
+          format: date-time
+          description: Timestamp of when the error occurred
+          example: "2024-08-28T10:30:00.000"
+        status:
+          type: integer
+          description: HTTP status code
+          example: 404
         error:
           type: string
-          description: Error type
+          description: Error title
           example: "Not Found"
         message:
           type: string
           description: Error message
           example: "Recipe with ID 123 not found"
-        timestamp:
-          type: string
-          format: date-time
-          description: Error timestamp
-          example: "2024-08-28T10:30:00Z"
         path:
           type: string
-          description: Request path
+          description: Request path that caused the error
           example: "/recipes/123"
+        requestId:
+          type: string
+          description: Request ID for tracking
+          example: "550e8400-e29b-41d4-a716-446655440000"
         details:
           type: object
-          additionalProperties: true
-          description: Additional error details
+          additionalProperties:
+            type: string
+          description: Optional validation details
 
   responses:
     BadRequest:

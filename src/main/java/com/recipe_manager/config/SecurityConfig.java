@@ -50,14 +50,12 @@ public class SecurityConfig {
    * @param jwtAuthFilter The JWT authentication filter
    * @param serviceAuthFilter The service authentication filter
    * @return Configured SecurityFilterChain
-   * @throws Exception if configuration fails
    */
   @Bean
   public SecurityFilterChain filterChain(
       final HttpSecurity http,
       final JwtAuthenticationFilter jwtAuthFilter,
-      final ServiceAuthenticationFilter serviceAuthFilter)
-      throws Exception {
+      final ServiceAuthenticationFilter serviceAuthFilter) {
     http
         // Disable CSRF for API endpoints
         .csrf(AbstractHttpConfigurer::disable)

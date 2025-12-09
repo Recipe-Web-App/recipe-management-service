@@ -121,10 +121,10 @@ class MediaControllerTest {
         .andExpect(jsonPath("$.content").isArray())
         .andExpect(jsonPath("$.content[0].mediaId").value(1))
         .andExpect(jsonPath("$.content[0].originalFilename").value("test1.jpg"))
-        .andExpect(jsonPath("$.content[0].mediaType").value("IMAGE_JPEG"))
+        .andExpect(jsonPath("$.content[0].mediaType").value("image/jpeg"))
         .andExpect(jsonPath("$.content[1].mediaId").value(2))
         .andExpect(jsonPath("$.content[1].originalFilename").value("test2.mp4"))
-        .andExpect(jsonPath("$.content[1].mediaType").value("VIDEO_MP4"))
+        .andExpect(jsonPath("$.content[1].mediaType").value("video/mp4"))
         .andExpect(jsonPath("$.totalElements").value(2))
         .andExpect(jsonPath("$.size").value(20))
         .andExpect(jsonPath("$.number").value(0));

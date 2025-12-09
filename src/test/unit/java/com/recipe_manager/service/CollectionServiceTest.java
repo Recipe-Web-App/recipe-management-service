@@ -625,7 +625,7 @@ class CollectionServiceTest {
 
     // Then
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-    assertThat(response.getStatusCodeValue()).isEqualTo(201);
+    assertThat(response.getStatusCode().value()).isEqualTo(201);
   }
 
   @Test

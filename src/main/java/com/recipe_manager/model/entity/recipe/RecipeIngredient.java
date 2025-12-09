@@ -3,7 +3,7 @@ package com.recipe_manager.model.entity.recipe;
 import java.math.BigDecimal;
 
 import org.hibernate.annotations.JdbcType;
-import org.hibernate.dialect.PostgreSQLEnumJdbcType;
+import org.hibernate.dialect.type.PostgreSQLEnumJdbcType;
 
 import com.recipe_manager.model.entity.ingredient.Ingredient;
 import com.recipe_manager.model.enums.IngredientUnit;

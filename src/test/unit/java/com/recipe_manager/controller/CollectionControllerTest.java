@@ -470,7 +470,7 @@ class CollectionControllerTest {
 
     // Then
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-    assertThat(response.getStatusCodeValue()).isEqualTo(200);
+    assertThat(response.getStatusCode().value()).isEqualTo(200);
   }
 
   private CollectionDetailsDto createTestDetailsDto(Long collectionId) {
@@ -574,7 +574,7 @@ class CollectionControllerTest {
 
     // Then
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-    assertThat(response.getStatusCodeValue()).isEqualTo(200);
+    assertThat(response.getStatusCode().value()).isEqualTo(200);
   }
 
   @Test
@@ -592,7 +592,7 @@ class CollectionControllerTest {
 
     // Then
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
-    assertThat(response.getStatusCodeValue()).isEqualTo(204);
+    assertThat(response.getStatusCode().value()).isEqualTo(204);
     assertThat(response.getBody()).isNull();
     verify(collectionService).deleteCollection(collectionId);
   }
@@ -658,7 +658,7 @@ class CollectionControllerTest {
 
     // Then
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-    assertThat(response.getStatusCodeValue()).isEqualTo(201);
+    assertThat(response.getStatusCode().value()).isEqualTo(201);
     assertThat(response.getBody()).isNotNull();
     assertThat(response.getBody()).isEqualTo(itemDto);
     assertThat(response.getBody().getCollectionId()).isEqualTo(collectionId);
@@ -745,7 +745,7 @@ class CollectionControllerTest {
 
     // Then
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
-    assertThat(response.getStatusCodeValue()).isEqualTo(204);
+    assertThat(response.getStatusCode().value()).isEqualTo(204);
     assertThat(response.getBody()).isNull();
 
     verify(collectionService).removeRecipeFromCollection(collectionId, recipeId);
@@ -825,7 +825,7 @@ class CollectionControllerTest {
 
     // Then
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-    assertThat(response.getStatusCodeValue()).isEqualTo(200);
+    assertThat(response.getStatusCode().value()).isEqualTo(200);
     assertThat(response.getBody()).isNotNull();
     assertThat(response.getBody().getRecipeId()).isEqualTo(recipeId);
     assertThat(response.getBody().getDisplayOrder()).isEqualTo(15);

@@ -225,6 +225,10 @@ cache:
     recipe-scraper-ttl: ${CACHE_RECIPE_SCRAPER_TTL:10m}
     recipe-scraper-max-size: ${CACHE_RECIPE_SCRAPER_MAX_SIZE:1000}
     enable-stats: ${CACHE_ENABLE_STATS:true}
+  token-introspection:
+    ttl: ${CACHE_TOKEN_INTROSPECTION_TTL:5m}
+    max-size: ${CACHE_TOKEN_INTROSPECTION_MAX_SIZE:10000}
+    inactive-token-ttl: ${CACHE_TOKEN_INTROSPECTION_INACTIVE_TTL:30s}
 
 # Resilience4j configuration
 resilience4j:

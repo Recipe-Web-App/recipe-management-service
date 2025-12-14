@@ -7,6 +7,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -19,6 +20,7 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.github.benmanes.caffeine.cache.Cache;
 import com.recipe_manager.config.ExternalServicesConfig;
 import com.recipe_manager.exception.ExternalServiceException;
 import com.recipe_manager.model.enums.ExternalServiceName;
@@ -62,6 +64,9 @@ public class OAuth2Client {
   /** REST template for HTTP operations. */
   private final RestTemplate restTemplate;
 
+  /** Cache for token introspection responses. */
+  private final Cache<String, TokenIntrospectionResponse> tokenIntrospectionCache;
+
   /** Cached service access token (thread-safe). */
   private final AtomicReference<ServiceToken> cachedServiceToken = new AtomicReference<>();
 
@@ -71,14 +76,20 @@ public class OAuth2Client {
    * @param externalServicesConfig the external services configuration
    * @param restTemplate the REST template for HTTP operations (shared Spring bean - intentionally
    *     stored as reference)
+   * @param tokenIntrospectionCache cache for token introspection responses
    */
   @SuppressFBWarnings("EI_EXPOSE_REP2")
   public OAuth2Client(
-      final ExternalServicesConfig externalServicesConfig, final RestTemplate restTemplate) {
+      final ExternalServicesConfig externalServicesConfig,
+      final RestTemplate restTemplate,
+      @Qualifier("tokenIntrospectionCache")
+          final Cache<String, TokenIntrospectionResponse> tokenIntrospectionCache) {
     this.config = externalServicesConfig.getOauth2Service();
     // RestTemplate is a shared Spring bean designed to be reused
     // Storing the reference is intentional and safe
     this.restTemplate = restTemplate;
+    // Caffeine Cache is thread-safe and designed to be shared
+    this.tokenIntrospectionCache = tokenIntrospectionCache;
   }
 
   /**
@@ -118,6 +129,9 @@ public class OAuth2Client {
   /**
    * Introspects a token to validate it and get token information.
    *
+   * <p>Results are cached with a sliding window TTL that refreshes on access, capped by the token's
+   * actual expiration time. Inactive tokens are cached briefly to prevent abuse.
+   *
    * @param token the token to introspect
    * @return token introspection response
    * @throws ExternalServiceException if introspection fails
@@ -128,6 +142,13 @@ public class OAuth2Client {
   public CompletableFuture<TokenIntrospectionResponse> introspectToken(final String token) {
     return CompletableFuture.supplyAsync(
         () -> {
+          // Check cache first
+          TokenIntrospectionResponse cached = tokenIntrospectionCache.getIfPresent(token);
+          if (cached != null) {
+            LOGGER.debug("Token introspection cache hit");
+            return cached;
+          }
+
           try {
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
@@ -148,7 +169,9 @@ public class OAuth2Client {
                   ExternalServiceName.OAUTH2_SERVICE, "Empty response from token introspection");
             }
 
-            LOGGER.debug("Token introspection completed successfully");
+            // Cache the response (expiry handled by custom Expiry policy in CacheConfig)
+            tokenIntrospectionCache.put(token, response.getBody());
+            LOGGER.debug("Token introspection completed successfully, result cached");
             return response.getBody();
 
           } catch (RestClientException e) {

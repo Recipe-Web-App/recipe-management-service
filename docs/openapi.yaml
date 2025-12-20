@@ -1524,6 +1524,14 @@ paths:
       summary: Create new collection
       description: |
         Creates a new recipe collection owned by the authenticated user.
+
+        **Batch Operations:**
+        - Optionally include `recipeIds` to add recipes to the collection during creation
+        - Optionally include `collaboratorIds` to add collaborators during creation
+          (only applicable when `collaborationMode` is `SPECIFIC_USERS`)
+
+        This reduces multiple API calls to a single request when creating a collection
+        with initial recipes and/or collaborators.
       operationId: createCollection
       requestBody:
         description: Collection creation data
@@ -1543,6 +1551,10 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
         '422':
           $ref: '#/components/responses/ValidationError'
         '500':
@@ -3904,6 +3916,22 @@ components:
           $ref: '#/components/schemas/CollectionVisibility'
         collaborationMode:
           $ref: '#/components/schemas/CollaborationMode'
+        recipeIds:
+          type: array
+          description: Optional list of recipe IDs to add to the collection during creation
+          items:
+            type: integer
+            format: int64
+          example: [123, 456, 789]
+        collaboratorIds:
+          type: array
+          description: |
+            Optional list of user IDs to add as collaborators during creation.
+            Only applicable when collaborationMode is SPECIFIC_USERS.
+          items:
+            type: string
+            format: uuid
+          example: ["123e4567-e89b-12d3-a456-426614174000", "456e7890-e89b-12d3-a456-426614174000"]
 
     UpdateCollectionRequest:
       type: object
@@ -4066,11 +4094,10 @@ components:
         - name
         - visibility
         - collaborationMode
-        - recipeCount
-        - collaboratorCount
         - createdAt
         - updatedAt
         - recipes
+        - collaborators
       properties:
         collectionId:
           type: integer
@@ -4094,16 +4121,6 @@ components:
           $ref: '#/components/schemas/CollectionVisibility'
         collaborationMode:
           $ref: '#/components/schemas/CollaborationMode'
-        recipeCount:
-          type: integer
-          minimum: 0
-          description: Number of recipes in collection
-          example: 12
-        collaboratorCount:
-          type: integer
-          minimum: 0
-          description: Number of collaborators
-          example: 3
         createdAt:
           type: string
           format: date-time
@@ -4119,6 +4136,11 @@ components:
           description: Recipes in collection, ordered by displayOrder
           items:
             $ref: '#/components/schemas/CollectionRecipeDto'
+        collaborators:
+          type: array
+          description: Collaborators for this collection
+          items:
+            $ref: '#/components/schemas/CollaboratorDto'
 
     CollectionRecipeDto:
       type: object

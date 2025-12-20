@@ -1,5 +1,9 @@
 package com.recipe_manager.model.dto.request;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
 import com.recipe_manager.model.enums.CollaborationMode;
 import com.recipe_manager.model.enums.CollectionVisibility;
 
@@ -35,4 +39,13 @@ public final class CreateCollectionRequest {
   /** The collaboration mode. */
   @NotNull(message = "Collaboration mode is required")
   private CollaborationMode collaborationMode;
+
+  /** Optional list of recipe IDs to add to the collection during creation. */
+  @Builder.Default private List<Long> recipeIds = new ArrayList<>();
+
+  /**
+   * Optional list of user IDs to add as collaborators during creation. Only applicable when
+   * collaborationMode is SPECIFIC_USERS.
+   */
+  @Builder.Default private List<UUID> collaboratorIds = new ArrayList<>();
 }

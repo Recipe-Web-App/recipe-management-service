@@ -47,7 +47,7 @@ repos:
 
   # Conventional commits validation
   - repo: https://github.com/compilerla/conventional-pre-commit
-    rev: v4.2.0
+    rev: v4.3.0
     hooks:
       - id: conventional-pre-commit
         stages: [commit-msg]
@@ -68,7 +68,7 @@ repos:
 
   # Enhanced secret detection
   - repo: https://github.com/trufflesecurity/trufflehog
-    rev: v3.90.8
+    rev: v3.92.4
     hooks:
       - id: trufflehog
         name: TruffleHog Secret Detection
@@ -86,7 +86,7 @@ repos:
 
   # Markdown linting
   - repo: https://github.com/igorshubovych/markdownlint-cli
-    rev: v0.45.0
+    rev: v0.47.0
     hooks:
       - id: markdownlint
         name: Markdown Linting

@@ -175,4 +175,52 @@ public interface RecipeCollectionRepository extends JpaRepository<RecipeCollecti
           + "WHERE c.collectionId = :collectionId "
           + "ORDER BY ci.displayOrder ASC")
   Optional<RecipeCollection> findByIdWithItems(@Param("collectionId") Long collectionId);
+
+  /**
+   * Finds collections owned by a specific user with pagination. Returns collection summary data
+   * including recipe and collaborator counts from the vw_collection_summary view.
+   *
+   * @param userId the user ID
+   * @param pageable pagination parameters
+   * @return page of collection summaries owned by the user
+   */
+  @Query(
+      value =
+          "SELECT collection_id, name, description, visibility, collaboration_mode, "
+              + "owner_id, recipe_count, collaborator_count, created_at, updated_at "
+              + "FROM recipe_manager.vw_collection_summary "
+              + "WHERE owner_id = :userId",
+      countQuery =
+          "SELECT COUNT(*) FROM recipe_manager.vw_collection_summary WHERE owner_id = :userId",
+      nativeQuery = true)
+  Page<CollectionSummaryProjection> findOwnedCollections(
+      @Param("userId") UUID userId, Pageable pageable);
+
+  /**
+   * Finds collections owned by or where user is a collaborator with pagination. Returns collection
+   * summary data including recipe and collaborator counts. Uses vw_collection_summary view joined
+   * with collection_collaborators table.
+   *
+   * @param userId the user ID
+   * @param pageable pagination parameters
+   * @return page of collection summaries (owned + collaborating)
+   */
+  @Query(
+      value =
+          "SELECT DISTINCT cs.collection_id, cs.name, cs.description, cs.visibility, "
+              + "cs.collaboration_mode, cs.owner_id, cs.recipe_count, cs.collaborator_count, "
+              + "cs.created_at, cs.updated_at "
+              + "FROM recipe_manager.vw_collection_summary cs "
+              + "LEFT JOIN recipe_manager.collection_collaborators cc "
+              + "ON cs.collection_id = cc.collection_id "
+              + "WHERE cs.owner_id = :userId OR cc.user_id = :userId",
+      countQuery =
+          "SELECT COUNT(DISTINCT cs.collection_id) "
+              + "FROM recipe_manager.vw_collection_summary cs "
+              + "LEFT JOIN recipe_manager.collection_collaborators cc "
+              + "ON cs.collection_id = cc.collection_id "
+              + "WHERE cs.owner_id = :userId OR cc.user_id = :userId",
+      nativeQuery = true)
+  Page<CollectionSummaryProjection> findOwnedAndCollaboratingCollections(
+      @Param("userId") UUID userId, Pageable pageable);
 }

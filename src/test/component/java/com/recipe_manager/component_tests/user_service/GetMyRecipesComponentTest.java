@@ -33,6 +33,7 @@ import com.recipe_manager.repository.recipe.RecipeCommentRepository;
 import com.recipe_manager.repository.recipe.RecipeRepository;
 import com.recipe_manager.repository.recipe.RecipeRevisionRepository;
 import com.recipe_manager.repository.recipe.RecipeTagRepository;
+import com.recipe_manager.service.CollectionService;
 import com.recipe_manager.service.RecipeService;
 import com.recipe_manager.service.external.notificationservice.NotificationService;
 import com.recipe_manager.util.SecurityUtils;
@@ -94,6 +95,8 @@ class GetMyRecipesComponentTest {
 
   @Mock protected NotificationService notificationService;
 
+  @Mock protected CollectionService collectionService;
+
   @Autowired protected RecipeMapper recipeMapper;
 
   @Autowired protected RecipeRevisionMapper recipeRevisionMapper;
@@ -128,7 +131,7 @@ class GetMyRecipesComponentTest {
             recipeCommentMapper,
             notificationService);
 
-    userController = new UserController(recipeService);
+    userController = new UserController(recipeService, collectionService);
 
     mockMvc =
         MockMvcBuilders.standaloneSetup(userController)

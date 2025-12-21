@@ -9,6 +9,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.time.LocalDateTime;
 import java.util.Collections;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -45,6 +46,8 @@ import com.recipe_manager.repository.recipe.RecipeRepository;
 import com.recipe_manager.service.CollectionService;
 import com.recipe_manager.service.external.notificationservice.NotificationService;
 
+import jakarta.persistence.EntityManager;
+
 /**
  * Component test for POST /collections endpoint.
  *
@@ -78,6 +81,8 @@ class CreateCollectionTest {
   @Mock private RecipeRepository recipeRepository;
 
   @Mock private NotificationService notificationService;
+
+  @Mock private EntityManager entityManager;
 
   @Autowired private CollectionMapper collectionMapper;
 
@@ -115,7 +120,8 @@ class CreateCollectionTest {
             recipeCollectionMapper,
             recipeCollectionItemMapper,
             recipeRepository,
-            notificationService);
+            notificationService,
+            entityManager);
     collectionController = new CollectionController(collectionService);
 
     mockMvc =
@@ -158,6 +164,7 @@ class CreateCollectionTest {
             .build();
 
     when(recipeCollectionRepository.save(any(RecipeCollection.class))).thenReturn(savedEntity);
+    when(recipeCollectionRepository.findByIdWithItems(1L)).thenReturn(Optional.of(savedEntity));
 
     // When & Then
     mockMvc
@@ -173,8 +180,10 @@ class CreateCollectionTest {
         .andExpect(jsonPath("$.description").value("Test Description"))
         .andExpect(jsonPath("$.visibility").value("PUBLIC"))
         .andExpect(jsonPath("$.collaborationMode").value("OWNER_ONLY"))
-        .andExpect(jsonPath("$.recipeCount").value(0))
-        .andExpect(jsonPath("$.collaboratorCount").value(0))
+        .andExpect(jsonPath("$.recipes").isArray())
+        .andExpect(jsonPath("$.recipes").isEmpty())
+        .andExpect(jsonPath("$.collaborators").isArray())
+        .andExpect(jsonPath("$.collaborators").isEmpty())
         .andExpect(jsonPath("$.createdAt").exists())
         .andExpect(jsonPath("$.updatedAt").exists());
   }
@@ -462,6 +471,7 @@ class CreateCollectionTest {
             .build();
 
     when(recipeCollectionRepository.save(any(RecipeCollection.class))).thenReturn(savedEntity);
+    when(recipeCollectionRepository.findByIdWithItems(6L)).thenReturn(Optional.of(savedEntity));
 
     // When & Then
     mockMvc
@@ -470,7 +480,9 @@ class CreateCollectionTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody))
         .andExpect(status().isCreated())
-        .andExpect(jsonPath("$.recipeCount").value(0))
-        .andExpect(jsonPath("$.collaboratorCount").value(0));
+        .andExpect(jsonPath("$.recipes").isArray())
+        .andExpect(jsonPath("$.recipes").isEmpty())
+        .andExpect(jsonPath("$.collaborators").isArray())
+        .andExpect(jsonPath("$.collaborators").isEmpty());
   }
 }

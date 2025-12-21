@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
+import com.recipe_manager.model.dto.collection.CollectionCollaboratorDto;
 import com.recipe_manager.model.dto.collection.CollectionRecipeDto;
 import com.recipe_manager.model.enums.CollaborationMode;
 import com.recipe_manager.model.enums.CollectionVisibility;
@@ -40,12 +41,6 @@ public final class CollectionDetailsDto {
   /** The collaboration mode. */
   private CollaborationMode collaborationMode;
 
-  /** Count of recipes in the collection. */
-  private Integer recipeCount;
-
-  /** Count of collaborators. */
-  private Integer collaboratorCount;
-
   /** The creation timestamp. */
   private LocalDateTime createdAt;
 
@@ -54,4 +49,7 @@ public final class CollectionDetailsDto {
 
   /** List of recipes in this collection (ordered by displayOrder). */
   private List<CollectionRecipeDto> recipes;
+
+  /** List of collaborators for this collection. */
+  private List<CollectionCollaboratorDto> collaborators;
 }

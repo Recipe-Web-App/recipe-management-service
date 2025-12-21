@@ -5,10 +5,12 @@ import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
+import com.recipe_manager.model.dto.collection.CollectionCollaboratorDto;
 import com.recipe_manager.model.dto.collection.CollectionRecipeDto;
 import com.recipe_manager.model.dto.response.CollectionDetailsDto;
 import com.recipe_manager.model.dto.response.CollectionDto;
 import com.recipe_manager.model.dto.response.CollectionSummaryResponse;
+import com.recipe_manager.model.entity.collection.CollectionCollaborator;
 import com.recipe_manager.model.entity.collection.RecipeCollection;
 import com.recipe_manager.model.entity.collection.RecipeCollectionItem;
 import com.recipe_manager.repository.collection.CollectionSummaryProjection;
@@ -56,22 +58,13 @@ public interface CollectionMapper {
 
   /**
    * Converts RecipeCollection entity to CollectionDetailsDto (for API response) including all
-   * recipes. Calculates recipe count and collaborator count from the entity's collections and maps
-   * collection items to recipe DTOs.
+   * recipes and collaborators.
    *
-   * @param collection the recipe collection entity with items eagerly loaded
-   * @return the detailed collection DTO with recipes
+   * @param collection the recipe collection entity with items and collaborators eagerly loaded
+   * @return the detailed collection DTO with recipes and collaborators
    */
-  @Mapping(
-      target = "recipeCount",
-      expression =
-          "java(collection.getCollectionItems() != null ? collection.getCollectionItems().size() :"
-              + " 0)")
-  @Mapping(
-      target = "collaboratorCount",
-      expression =
-          "java(collection.getCollaborators() != null ? collection.getCollaborators().size() : 0)")
   @Mapping(target = "recipes", source = "collectionItems")
+  @Mapping(target = "collaborators", source = "collaborators")
   CollectionDetailsDto toDetailsDto(RecipeCollection collection);
 
   /**
@@ -93,4 +86,24 @@ public interface CollectionMapper {
    * @return the list of recipe DTOs
    */
   List<CollectionRecipeDto> toRecipeDtoList(List<RecipeCollectionItem> items);
+
+  /**
+   * Converts CollectionCollaborator entity to CollectionCollaboratorDto.
+   *
+   * @param collaborator the collection collaborator entity
+   * @return the collaborator DTO
+   */
+  @Mapping(target = "collectionId", source = "id.collectionId")
+  @Mapping(target = "userId", source = "id.userId")
+  @Mapping(target = "username", ignore = true)
+  @Mapping(target = "grantedByUsername", ignore = true)
+  CollectionCollaboratorDto toCollaboratorDto(CollectionCollaborator collaborator);
+
+  /**
+   * Converts a list of CollectionCollaborator entities to a list of CollectionCollaboratorDto.
+   *
+   * @param collaborators the list of collection collaborators
+   * @return the list of collaborator DTOs
+   */
+  List<CollectionCollaboratorDto> toCollaboratorDtoList(List<CollectionCollaborator> collaborators);
 }

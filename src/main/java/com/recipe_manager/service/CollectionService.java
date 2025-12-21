@@ -145,8 +145,17 @@ public class CollectionService {
    * <p>Extracts the user ID from the security context, maps the request to an entity, saves it to
    * the database, and returns the created collection with a 201 Created status.
    *
+   * <p>Supports batch operations:
+   *
+   * <ul>
+   *   <li>If recipeIds are provided, adds those recipes to the collection during creation
+   *   <li>If collaboratorIds are provided and collaborationMode is SPECIFIC_USERS, adds those users
+   *       as collaborators
+   * </ul>
+   *
    * @param request the create collection request containing collection details
    * @return ResponseEntity containing the created collection DTO with 201 status
+   * @throws ResourceNotFoundException if any recipe ID or collaborator user ID doesn't exist
    */
   @Transactional
   public ResponseEntity<CollectionDto> createCollection(final CreateCollectionRequest request) {
@@ -162,11 +171,135 @@ public class CollectionService {
     // Save the collection (createdAt and updatedAt are set by JPA annotations)
     RecipeCollection savedCollection = recipeCollectionRepository.save(collection);
 
-    // Convert saved entity to DTO
+    // Process batch recipe additions if provided
+    int recipeCount =
+        addRecipesDuringCreation(request.getRecipeIds(), savedCollection, currentUserId);
+
+    // Process batch collaborator additions if applicable
+    int collaboratorCount =
+        addCollaboratorsDuringCreation(
+            request.getCollaboratorIds(), savedCollection, currentUserId);
+
+    // Convert saved entity to DTO and set counts
     CollectionDto responseDto = collectionMapper.toDto(savedCollection);
+    responseDto.setRecipeCount(recipeCount);
+    responseDto.setCollaboratorCount(collaboratorCount);
 
     // Return 201 Created with the new collection
     return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
+  }
+
+  /**
+   * Adds recipes to a collection during creation.
+   *
+   * @param recipeIds list of recipe IDs to add (may be null or empty)
+   * @param collection the saved collection entity
+   * @param currentUserId the current user ID
+   * @return the number of recipes added
+   * @throws ResourceNotFoundException if any recipe ID doesn't exist
+   */
+  private int addRecipesDuringCreation(
+      final List<Long> recipeIds, final RecipeCollection collection, final UUID currentUserId) {
+    if (recipeIds == null || recipeIds.isEmpty()) {
+      return 0;
+    }
+
+    // Use a set to handle duplicates in the request
+    java.util.Set<Long> uniqueRecipeIds = new java.util.LinkedHashSet<>(recipeIds);
+    int displayOrder = 0;
+
+    for (Long recipeId : uniqueRecipeIds) {
+      // Validate recipe exists
+      Recipe recipe =
+          recipeRepository
+              .findById(recipeId)
+              .orElseThrow(
+                  () -> new ResourceNotFoundException("Recipe with ID " + recipeId + " not found"));
+
+      // Calculate display order
+      displayOrder += DISPLAY_ORDER_INCREMENT;
+
+      // Create the collection item entity
+      RecipeCollectionItemId itemId =
+          RecipeCollectionItemId.builder()
+              .collectionId(collection.getCollectionId())
+              .recipeId(recipeId)
+              .build();
+
+      RecipeCollectionItem collectionItem =
+          RecipeCollectionItem.builder()
+              .id(itemId)
+              .displayOrder(displayOrder)
+              .addedBy(currentUserId)
+              .build();
+
+      // Save the entity
+      recipeCollectionItemRepository.save(collectionItem);
+
+      // Trigger async notification to recipe author
+      notificationService.notifyRecipeCollectedAsync(
+          recipe.getUserId(), recipeId, collection.getCollectionId(), currentUserId);
+    }
+
+    return uniqueRecipeIds.size();
+  }
+
+  /**
+   * Adds collaborators to a collection during creation.
+   *
+   * <p>Only processes collaborators if the collection's collaboration mode is SPECIFIC_USERS.
+   * Silently skips the owner if included in the list.
+   *
+   * @param collaboratorIds list of user IDs to add as collaborators (may be null or empty)
+   * @param collection the saved collection entity
+   * @param currentUserId the current user ID (owner)
+   * @return the number of collaborators added
+   * @throws ResourceNotFoundException if any user ID doesn't exist
+   */
+  private int addCollaboratorsDuringCreation(
+      final List<UUID> collaboratorIds,
+      final RecipeCollection collection,
+      final UUID currentUserId) {
+    // Only add collaborators for SPECIFIC_USERS mode
+    if (collection.getCollaborationMode() != CollaborationMode.SPECIFIC_USERS) {
+      return 0;
+    }
+
+    if (collaboratorIds == null || collaboratorIds.isEmpty()) {
+      return 0;
+    }
+
+    // Use a set to handle duplicates in the request
+    java.util.Set<UUID> uniqueCollaboratorIds = new java.util.LinkedHashSet<>(collaboratorIds);
+    int addedCount = 0;
+
+    for (UUID userId : uniqueCollaboratorIds) {
+      // Skip if this is the owner (owner cannot be a collaborator)
+      if (userId.equals(currentUserId)) {
+        continue;
+      }
+
+      // Create collaborator entity
+      CollectionCollaboratorId collaboratorId =
+          new CollectionCollaboratorId(collection.getCollectionId(), userId);
+      CollectionCollaborator collaborator =
+          CollectionCollaborator.builder()
+              .id(collaboratorId)
+              .collection(collection)
+              .grantedBy(currentUserId)
+              .build();
+
+      // Save the collaborator - this will throw DataIntegrityViolationException if user doesn't
+      // exist
+      try {
+        collectionCollaboratorRepository.save(collaborator);
+        addedCount++;
+      } catch (org.springframework.dao.DataIntegrityViolationException e) {
+        throw new ResourceNotFoundException("User with ID " + userId + " not found");
+      }
+    }
+
+    return addedCount;
   }
 
   /**

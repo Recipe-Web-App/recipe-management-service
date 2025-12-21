@@ -365,9 +365,8 @@ class CollectionControllerTest {
             .description("Detailed Description")
             .visibility(CollectionVisibility.FRIENDS_ONLY)
             .collaborationMode(CollaborationMode.SPECIFIC_USERS)
-            .recipeCount(1)
-            .collaboratorCount(2)
             .recipes(Arrays.asList(recipeDto))
+            .collaborators(Collections.emptyList())
             .createdAt(now)
             .updatedAt(now)
             .build();
@@ -389,9 +388,8 @@ class CollectionControllerTest {
     assertThat(result.getDescription()).isEqualTo("Detailed Description");
     assertThat(result.getVisibility()).isEqualTo(CollectionVisibility.FRIENDS_ONLY);
     assertThat(result.getCollaborationMode()).isEqualTo(CollaborationMode.SPECIFIC_USERS);
-    assertThat(result.getRecipeCount()).isEqualTo(1);
-    assertThat(result.getCollaboratorCount()).isEqualTo(2);
     assertThat(result.getRecipes()).hasSize(1);
+    assertThat(result.getCollaborators()).isEmpty();
     assertThat(result.getCreatedAt()).isEqualTo(now);
     assertThat(result.getUpdatedAt()).isEqualTo(now);
   }
@@ -430,9 +428,8 @@ class CollectionControllerTest {
             .name("Multi-Recipe Collection")
             .visibility(CollectionVisibility.PUBLIC)
             .collaborationMode(CollaborationMode.OWNER_ONLY)
-            .recipeCount(2)
-            .collaboratorCount(0)
             .recipes(Arrays.asList(recipe1, recipe2))
+            .collaborators(Collections.emptyList())
             .createdAt(now)
             .updatedAt(now)
             .build();
@@ -448,7 +445,6 @@ class CollectionControllerTest {
     // Then
     assertThat(response.getBody()).isNotNull();
     assertThat(response.getBody().getRecipes()).hasSize(2);
-    assertThat(response.getBody().getRecipeCount()).isEqualTo(2);
     assertThat(response.getBody().getRecipes().get(0).getRecipeId()).isEqualTo(1L);
     assertThat(response.getBody().getRecipes().get(1).getRecipeId()).isEqualTo(2L);
   }
@@ -494,9 +490,8 @@ class CollectionControllerTest {
         .description("Test Description")
         .visibility(CollectionVisibility.PUBLIC)
         .collaborationMode(CollaborationMode.OWNER_ONLY)
-        .recipeCount(1)
-        .collaboratorCount(0)
         .recipes(Arrays.asList(recipeDto))
+        .collaborators(Collections.emptyList())
         .createdAt(now)
         .updatedAt(now)
         .build();

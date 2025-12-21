@@ -151,9 +151,8 @@ class GetCollectionByIdTest {
         .andExpect(jsonPath("$.description").value("Test Description"))
         .andExpect(jsonPath("$.visibility").value("PUBLIC"))
         .andExpect(jsonPath("$.collaborationMode").value("OWNER_ONLY"))
-        .andExpect(jsonPath("$.recipeCount").value(1))
-        .andExpect(jsonPath("$.collaboratorCount").value(0))
         .andExpect(jsonPath("$.recipes").isArray())
+        .andExpect(jsonPath("$.collaborators").isArray())
         .andExpect(jsonPath("$.recipes.length()").value(1))
         .andExpect(jsonPath("$.recipes[0].recipeId").value(1))
         .andExpect(jsonPath("$.recipes[0].recipeTitle").value("Test Recipe"))
@@ -251,9 +250,10 @@ class GetCollectionByIdTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.collectionId").value(collectionId))
         .andExpect(jsonPath("$.name").value("Empty Collection"))
-        .andExpect(jsonPath("$.recipeCount").value(0))
         .andExpect(jsonPath("$.recipes").isArray())
-        .andExpect(jsonPath("$.recipes.length()").value(0));
+        .andExpect(jsonPath("$.recipes.length()").value(0))
+        .andExpect(jsonPath("$.collaborators").isArray())
+        .andExpect(jsonPath("$.collaborators.length()").value(0));
   }
 
   @Test
@@ -273,7 +273,6 @@ class GetCollectionByIdTest {
         .perform(get("/collections/{collectionId}", collectionId))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.collectionId").value(collectionId))
-        .andExpect(jsonPath("$.recipeCount").value(2))
         .andExpect(jsonPath("$.recipes").isArray())
         .andExpect(jsonPath("$.recipes.length()").value(2))
         .andExpect(jsonPath("$.recipes[0].recipeId").value(1))
@@ -370,9 +369,8 @@ class GetCollectionByIdTest {
         .andExpect(jsonPath("$.description").exists())
         .andExpect(jsonPath("$.visibility").exists())
         .andExpect(jsonPath("$.collaborationMode").exists())
-        .andExpect(jsonPath("$.recipeCount").exists())
-        .andExpect(jsonPath("$.collaboratorCount").exists())
         .andExpect(jsonPath("$.recipes").exists())
+        .andExpect(jsonPath("$.collaborators").exists())
         .andExpect(jsonPath("$.createdAt").exists())
         .andExpect(jsonPath("$.updatedAt").exists());
   }

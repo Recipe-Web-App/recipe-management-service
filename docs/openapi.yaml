@@ -542,6 +542,42 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /users/me/collections:
+    get:
+      tags: [users]
+      summary: Get collections for authenticated user
+      description: |
+        Retrieves collections associated with the authenticated user with pagination support.
+
+        By default, returns only collections owned by the user. Use the `includeCollaborations`
+        parameter to also include collections where the user is defined as a collaborator.
+      operationId: getMyCollections
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+        - $ref: '#/components/parameters/SortParam'
+        - name: includeCollaborations
+          in: query
+          required: false
+          description: |
+            When true, includes collections where the user is a collaborator
+            in addition to collections owned by the user. When false or omitted,
+            only returns collections owned by the user.
+          schema:
+            type: boolean
+            default: false
+      responses:
+        '200':
+          description: User's collections retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageCollectionDto'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /recipes/{recipeId}/description:
     get:
       tags: [recipes]

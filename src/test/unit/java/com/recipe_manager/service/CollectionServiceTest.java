@@ -447,14 +447,15 @@ class CollectionServiceTest {
             .updatedAt(LocalDateTime.now())
             .build();
 
-    CollectionDto expectedDto = createTestDto(1L);
+    CollectionDetailsDto expectedDto = createTestDetailsDto(1L);
 
     when(recipeCollectionMapper.fromRequest(request)).thenReturn(entityToSave);
     when(recipeCollectionRepository.save(any(RecipeCollection.class))).thenReturn(savedEntity);
-    when(collectionMapper.toDto(savedEntity)).thenReturn(expectedDto);
+    when(recipeCollectionRepository.findByIdWithItems(1L)).thenReturn(Optional.of(savedEntity));
+    when(collectionMapper.toDetailsDto(savedEntity)).thenReturn(expectedDto);
 
     // When
-    ResponseEntity<CollectionDto> response;
+    ResponseEntity<CollectionDetailsDto> response;
     try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
       securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
       response = collectionService.createCollection(request);
@@ -467,7 +468,8 @@ class CollectionServiceTest {
 
     verify(recipeCollectionMapper).fromRequest(request);
     verify(recipeCollectionRepository).save(any(RecipeCollection.class));
-    verify(collectionMapper).toDto(savedEntity);
+    verify(recipeCollectionRepository).findByIdWithItems(1L);
+    verify(collectionMapper).toDetailsDto(savedEntity);
   }
 
   @Test
@@ -488,7 +490,9 @@ class CollectionServiceTest {
 
     when(recipeCollectionMapper.fromRequest(any())).thenReturn(entityToSave);
     when(recipeCollectionRepository.save(any())).thenReturn(savedEntity);
-    when(collectionMapper.toDto(any(RecipeCollection.class))).thenReturn(createTestDto(1L));
+    when(recipeCollectionRepository.findByIdWithItems(1L)).thenReturn(Optional.of(savedEntity));
+    when(collectionMapper.toDetailsDto(any(RecipeCollection.class)))
+        .thenReturn(createTestDetailsDto(1L));
 
     // When
     try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
@@ -518,7 +522,9 @@ class CollectionServiceTest {
 
     when(recipeCollectionMapper.fromRequest(request)).thenReturn(entityToSave);
     when(recipeCollectionRepository.save(any(RecipeCollection.class))).thenReturn(savedEntity);
-    when(collectionMapper.toDto(any(RecipeCollection.class))).thenReturn(createTestDto(1L));
+    when(recipeCollectionRepository.findByIdWithItems(1L)).thenReturn(Optional.of(savedEntity));
+    when(collectionMapper.toDetailsDto(any(RecipeCollection.class)))
+        .thenReturn(createTestDetailsDto(1L));
 
     // When
     try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
@@ -551,7 +557,9 @@ class CollectionServiceTest {
 
     when(recipeCollectionMapper.fromRequest(any())).thenReturn(entityToSave);
     when(recipeCollectionRepository.save(any())).thenReturn(savedEntity);
-    when(collectionMapper.toDto(any(RecipeCollection.class))).thenReturn(createTestDto(1L));
+    when(recipeCollectionRepository.findByIdWithItems(1L)).thenReturn(Optional.of(savedEntity));
+    when(collectionMapper.toDetailsDto(any(RecipeCollection.class)))
+        .thenReturn(createTestDetailsDto(1L));
 
     // When
     try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
@@ -566,7 +574,7 @@ class CollectionServiceTest {
   @Test
   @DisplayName("Should map saved entity to DTO")
   @Tag("standard-processing")
-  void shouldMapSavedEntityToDto() {
+  void shouldMapSavedEntityToDetailsDto() {
     // Given
     CreateCollectionRequest request =
         CreateCollectionRequest.builder()
@@ -585,7 +593,8 @@ class CollectionServiceTest {
 
     when(recipeCollectionMapper.fromRequest(any())).thenReturn(entityToSave);
     when(recipeCollectionRepository.save(any())).thenReturn(savedEntity);
-    when(collectionMapper.toDto(savedEntity)).thenReturn(createTestDto(1L));
+    when(recipeCollectionRepository.findByIdWithItems(1L)).thenReturn(Optional.of(savedEntity));
+    when(collectionMapper.toDetailsDto(savedEntity)).thenReturn(createTestDetailsDto(1L));
 
     // When
     try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
@@ -594,7 +603,7 @@ class CollectionServiceTest {
     }
 
     // Then
-    verify(collectionMapper).toDto(savedEntity);
+    verify(collectionMapper).toDetailsDto(savedEntity);
   }
 
   @Test
@@ -614,10 +623,12 @@ class CollectionServiceTest {
 
     when(recipeCollectionMapper.fromRequest(any())).thenReturn(entityToSave);
     when(recipeCollectionRepository.save(any())).thenReturn(savedEntity);
-    when(collectionMapper.toDto(any(RecipeCollection.class))).thenReturn(createTestDto(1L));
+    when(recipeCollectionRepository.findByIdWithItems(1L)).thenReturn(Optional.of(savedEntity));
+    when(collectionMapper.toDetailsDto(any(RecipeCollection.class)))
+        .thenReturn(createTestDetailsDto(1L));
 
     // When
-    ResponseEntity<CollectionDto> response;
+    ResponseEntity<CollectionDetailsDto> response;
     try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
       securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
       response = collectionService.createCollection(request);
@@ -648,21 +659,22 @@ class CollectionServiceTest {
             .collaborationMode(CollaborationMode.SPECIFIC_USERS)
             .build();
 
-    CollectionDto expectedDto =
-        CollectionDto.builder()
+    CollectionDetailsDto expectedDto =
+        CollectionDetailsDto.builder()
             .collectionId(1L)
             .visibility(CollectionVisibility.PRIVATE)
             .collaborationMode(CollaborationMode.SPECIFIC_USERS)
-            .recipeCount(0)
-            .collaboratorCount(0)
+            .recipes(Collections.emptyList())
+            .collaborators(Collections.emptyList())
             .build();
 
     when(recipeCollectionMapper.fromRequest(any())).thenReturn(entityToSave);
     when(recipeCollectionRepository.save(any())).thenReturn(savedEntity);
-    when(collectionMapper.toDto(savedEntity)).thenReturn(expectedDto);
+    when(recipeCollectionRepository.findByIdWithItems(1L)).thenReturn(Optional.of(savedEntity));
+    when(collectionMapper.toDetailsDto(savedEntity)).thenReturn(expectedDto);
 
     // When
-    ResponseEntity<CollectionDto> response;
+    ResponseEntity<CollectionDetailsDto> response;
     try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
       securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
       response = collectionService.createCollection(request);
@@ -692,14 +704,15 @@ class CollectionServiceTest {
     RecipeCollection savedEntity =
         RecipeCollection.builder().collectionId(1L).description(null).build();
 
-    CollectionDto expectedDto = createTestDto(1L);
+    CollectionDetailsDto expectedDto = createTestDetailsDto(1L);
 
     when(recipeCollectionMapper.fromRequest(any())).thenReturn(entityToSave);
     when(recipeCollectionRepository.save(any())).thenReturn(savedEntity);
-    when(collectionMapper.toDto(any(RecipeCollection.class))).thenReturn(expectedDto);
+    when(recipeCollectionRepository.findByIdWithItems(1L)).thenReturn(Optional.of(savedEntity));
+    when(collectionMapper.toDetailsDto(any(RecipeCollection.class))).thenReturn(expectedDto);
 
     // When
-    ResponseEntity<CollectionDto> response;
+    ResponseEntity<CollectionDetailsDto> response;
     try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
       securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
       response = collectionService.createCollection(request);
@@ -3733,13 +3746,7 @@ class CollectionServiceTest {
     Recipe recipe1 = Recipe.builder().recipeId(recipeId1).userId(recipeAuthorId).build();
     Recipe recipe2 = Recipe.builder().recipeId(recipeId2).userId(recipeAuthorId).build();
 
-    CollectionDto expectedDto =
-        CollectionDto.builder()
-            .collectionId(1L)
-            .userId(testUserId)
-            .recipeCount(0)
-            .collaboratorCount(0)
-            .build();
+    CollectionDetailsDto expectedDto = createTestDetailsDto(1L);
 
     when(recipeCollectionMapper.fromRequest(request)).thenReturn(entityToSave);
     when(recipeCollectionRepository.save(any(RecipeCollection.class))).thenReturn(savedEntity);
@@ -3747,10 +3754,11 @@ class CollectionServiceTest {
     when(recipeRepository.findById(recipeId2)).thenReturn(Optional.of(recipe2));
     when(recipeCollectionItemRepository.save(any(RecipeCollectionItem.class)))
         .thenAnswer(invocation -> invocation.getArgument(0));
-    when(collectionMapper.toDto(savedEntity)).thenReturn(expectedDto);
+    when(recipeCollectionRepository.findByIdWithItems(1L)).thenReturn(Optional.of(savedEntity));
+    when(collectionMapper.toDetailsDto(savedEntity)).thenReturn(expectedDto);
 
     // When
-    ResponseEntity<CollectionDto> response;
+    ResponseEntity<CollectionDetailsDto> response;
     try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
       securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
       response = collectionService.createCollection(request);
@@ -3759,7 +3767,6 @@ class CollectionServiceTest {
     // Then
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
     assertThat(response.getBody()).isNotNull();
-    assertThat(response.getBody().getRecipeCount()).isEqualTo(2);
 
     // Verify recipes were saved with correct display order
     ArgumentCaptor<RecipeCollectionItem> itemCaptor =
@@ -3769,6 +3776,12 @@ class CollectionServiceTest {
     List<RecipeCollectionItem> savedItems = itemCaptor.getAllValues();
     assertThat(savedItems.get(0).getDisplayOrder()).isEqualTo(10);
     assertThat(savedItems.get(1).getDisplayOrder()).isEqualTo(20);
+
+    // Verify collection and recipe relationships are set (required for @MapsId)
+    assertThat(savedItems.get(0).getCollection()).isEqualTo(savedEntity);
+    assertThat(savedItems.get(0).getRecipe()).isEqualTo(recipe1);
+    assertThat(savedItems.get(1).getCollection()).isEqualTo(savedEntity);
+    assertThat(savedItems.get(1).getRecipe()).isEqualTo(recipe2);
 
     // Verify notifications were sent
     verify(notificationService, times(2))
@@ -3805,22 +3818,17 @@ class CollectionServiceTest {
             .collaborationMode(CollaborationMode.SPECIFIC_USERS)
             .build();
 
-    CollectionDto expectedDto =
-        CollectionDto.builder()
-            .collectionId(1L)
-            .userId(testUserId)
-            .recipeCount(0)
-            .collaboratorCount(0)
-            .build();
+    CollectionDetailsDto expectedDto = createTestDetailsDto(1L);
 
     when(recipeCollectionMapper.fromRequest(request)).thenReturn(entityToSave);
     when(recipeCollectionRepository.save(any(RecipeCollection.class))).thenReturn(savedEntity);
     when(collectionCollaboratorRepository.save(any(CollectionCollaborator.class)))
         .thenAnswer(invocation -> invocation.getArgument(0));
-    when(collectionMapper.toDto(savedEntity)).thenReturn(expectedDto);
+    when(recipeCollectionRepository.findByIdWithItems(1L)).thenReturn(Optional.of(savedEntity));
+    when(collectionMapper.toDetailsDto(savedEntity)).thenReturn(expectedDto);
 
     // When
-    ResponseEntity<CollectionDto> response;
+    ResponseEntity<CollectionDetailsDto> response;
     try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
       securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
       response = collectionService.createCollection(request);
@@ -3829,7 +3837,6 @@ class CollectionServiceTest {
     // Then
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
     assertThat(response.getBody()).isNotNull();
-    assertThat(response.getBody().getCollaboratorCount()).isEqualTo(2);
 
     // Verify collaborators were saved
     verify(collectionCollaboratorRepository, times(2)).save(any(CollectionCollaborator.class));
@@ -3869,13 +3876,7 @@ class CollectionServiceTest {
 
     Recipe recipe = Recipe.builder().recipeId(recipeId).userId(recipeAuthorId).build();
 
-    CollectionDto expectedDto =
-        CollectionDto.builder()
-            .collectionId(1L)
-            .userId(testUserId)
-            .recipeCount(0)
-            .collaboratorCount(0)
-            .build();
+    CollectionDetailsDto expectedDto = createTestDetailsDto(1L);
 
     when(recipeCollectionMapper.fromRequest(request)).thenReturn(entityToSave);
     when(recipeCollectionRepository.save(any(RecipeCollection.class))).thenReturn(savedEntity);
@@ -3884,10 +3885,11 @@ class CollectionServiceTest {
         .thenAnswer(invocation -> invocation.getArgument(0));
     when(collectionCollaboratorRepository.save(any(CollectionCollaborator.class)))
         .thenAnswer(invocation -> invocation.getArgument(0));
-    when(collectionMapper.toDto(savedEntity)).thenReturn(expectedDto);
+    when(recipeCollectionRepository.findByIdWithItems(1L)).thenReturn(Optional.of(savedEntity));
+    when(collectionMapper.toDetailsDto(savedEntity)).thenReturn(expectedDto);
 
     // When
-    ResponseEntity<CollectionDto> response;
+    ResponseEntity<CollectionDetailsDto> response;
     try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
       securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
       response = collectionService.createCollection(request);
@@ -3896,8 +3898,6 @@ class CollectionServiceTest {
     // Then
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
     assertThat(response.getBody()).isNotNull();
-    assertThat(response.getBody().getRecipeCount()).isEqualTo(1);
-    assertThat(response.getBody().getCollaboratorCount()).isEqualTo(1);
 
     verify(recipeCollectionItemRepository, times(1)).save(any(RecipeCollectionItem.class));
     verify(collectionCollaboratorRepository, times(1)).save(any(CollectionCollaborator.class));
@@ -3932,20 +3932,15 @@ class CollectionServiceTest {
             .collaborationMode(CollaborationMode.OWNER_ONLY)
             .build();
 
-    CollectionDto expectedDto =
-        CollectionDto.builder()
-            .collectionId(1L)
-            .userId(testUserId)
-            .recipeCount(0)
-            .collaboratorCount(0)
-            .build();
+    CollectionDetailsDto expectedDto = createTestDetailsDto(1L);
 
     when(recipeCollectionMapper.fromRequest(request)).thenReturn(entityToSave);
     when(recipeCollectionRepository.save(any(RecipeCollection.class))).thenReturn(savedEntity);
-    when(collectionMapper.toDto(savedEntity)).thenReturn(expectedDto);
+    when(recipeCollectionRepository.findByIdWithItems(1L)).thenReturn(Optional.of(savedEntity));
+    when(collectionMapper.toDetailsDto(savedEntity)).thenReturn(expectedDto);
 
     // When
-    ResponseEntity<CollectionDto> response;
+    ResponseEntity<CollectionDetailsDto> response;
     try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
       securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
       response = collectionService.createCollection(request);
@@ -3954,7 +3949,6 @@ class CollectionServiceTest {
     // Then
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
     assertThat(response.getBody()).isNotNull();
-    assertThat(response.getBody().getCollaboratorCount()).isEqualTo(0);
 
     // Verify collaborators were NOT saved
     verify(collectionCollaboratorRepository, never()).save(any(CollectionCollaborator.class));
@@ -3989,22 +3983,17 @@ class CollectionServiceTest {
             .collaborationMode(CollaborationMode.SPECIFIC_USERS)
             .build();
 
-    CollectionDto expectedDto =
-        CollectionDto.builder()
-            .collectionId(1L)
-            .userId(testUserId)
-            .recipeCount(0)
-            .collaboratorCount(0)
-            .build();
+    CollectionDetailsDto expectedDto = createTestDetailsDto(1L);
 
     when(recipeCollectionMapper.fromRequest(request)).thenReturn(entityToSave);
     when(recipeCollectionRepository.save(any(RecipeCollection.class))).thenReturn(savedEntity);
     when(collectionCollaboratorRepository.save(any(CollectionCollaborator.class)))
         .thenAnswer(invocation -> invocation.getArgument(0));
-    when(collectionMapper.toDto(savedEntity)).thenReturn(expectedDto);
+    when(recipeCollectionRepository.findByIdWithItems(1L)).thenReturn(Optional.of(savedEntity));
+    when(collectionMapper.toDetailsDto(savedEntity)).thenReturn(expectedDto);
 
     // When
-    ResponseEntity<CollectionDto> response;
+    ResponseEntity<CollectionDetailsDto> response;
     try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
       securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
       response = collectionService.createCollection(request);
@@ -4013,7 +4002,6 @@ class CollectionServiceTest {
     // Then
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
     assertThat(response.getBody()).isNotNull();
-    assertThat(response.getBody().getCollaboratorCount()).isEqualTo(1); // Only one (not owner)
 
     // Verify only one collaborator was saved (not the owner)
     verify(collectionCollaboratorRepository, times(1)).save(any(CollectionCollaborator.class));
@@ -4129,20 +4117,15 @@ class CollectionServiceTest {
             .collaborationMode(CollaborationMode.SPECIFIC_USERS)
             .build();
 
-    CollectionDto expectedDto =
-        CollectionDto.builder()
-            .collectionId(1L)
-            .userId(testUserId)
-            .recipeCount(0)
-            .collaboratorCount(0)
-            .build();
+    CollectionDetailsDto expectedDto = createTestDetailsDto(1L);
 
     when(recipeCollectionMapper.fromRequest(request)).thenReturn(entityToSave);
     when(recipeCollectionRepository.save(any(RecipeCollection.class))).thenReturn(savedEntity);
-    when(collectionMapper.toDto(savedEntity)).thenReturn(expectedDto);
+    when(recipeCollectionRepository.findByIdWithItems(1L)).thenReturn(Optional.of(savedEntity));
+    when(collectionMapper.toDetailsDto(savedEntity)).thenReturn(expectedDto);
 
     // When
-    ResponseEntity<CollectionDto> response;
+    ResponseEntity<CollectionDetailsDto> response;
     try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
       securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
       response = collectionService.createCollection(request);
@@ -4151,8 +4134,6 @@ class CollectionServiceTest {
     // Then
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
     assertThat(response.getBody()).isNotNull();
-    assertThat(response.getBody().getRecipeCount()).isEqualTo(0);
-    assertThat(response.getBody().getCollaboratorCount()).isEqualTo(0);
 
     // Verify no recipes or collaborators were saved
     verify(recipeCollectionItemRepository, never()).save(any(RecipeCollectionItem.class));
@@ -4187,23 +4168,18 @@ class CollectionServiceTest {
 
     Recipe recipe = Recipe.builder().recipeId(recipeId).userId(recipeAuthorId).build();
 
-    CollectionDto expectedDto =
-        CollectionDto.builder()
-            .collectionId(1L)
-            .userId(testUserId)
-            .recipeCount(0)
-            .collaboratorCount(0)
-            .build();
+    CollectionDetailsDto expectedDto = createTestDetailsDto(1L);
 
     when(recipeCollectionMapper.fromRequest(request)).thenReturn(entityToSave);
     when(recipeCollectionRepository.save(any(RecipeCollection.class))).thenReturn(savedEntity);
     when(recipeRepository.findById(recipeId)).thenReturn(Optional.of(recipe));
     when(recipeCollectionItemRepository.save(any(RecipeCollectionItem.class)))
         .thenAnswer(invocation -> invocation.getArgument(0));
-    when(collectionMapper.toDto(savedEntity)).thenReturn(expectedDto);
+    when(recipeCollectionRepository.findByIdWithItems(1L)).thenReturn(Optional.of(savedEntity));
+    when(collectionMapper.toDetailsDto(savedEntity)).thenReturn(expectedDto);
 
     // When
-    ResponseEntity<CollectionDto> response;
+    ResponseEntity<CollectionDetailsDto> response;
     try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
       securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
       response = collectionService.createCollection(request);
@@ -4212,7 +4188,6 @@ class CollectionServiceTest {
     // Then
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
     assertThat(response.getBody()).isNotNull();
-    assertThat(response.getBody().getRecipeCount()).isEqualTo(1); // Only one unique recipe
 
     // Verify only one recipe was saved (duplicates skipped)
     verify(recipeCollectionItemRepository, times(1)).save(any(RecipeCollectionItem.class));
@@ -4248,22 +4223,17 @@ class CollectionServiceTest {
             .collaborationMode(CollaborationMode.SPECIFIC_USERS)
             .build();
 
-    CollectionDto expectedDto =
-        CollectionDto.builder()
-            .collectionId(1L)
-            .userId(testUserId)
-            .recipeCount(0)
-            .collaboratorCount(0)
-            .build();
+    CollectionDetailsDto expectedDto = createTestDetailsDto(1L);
 
     when(recipeCollectionMapper.fromRequest(request)).thenReturn(entityToSave);
     when(recipeCollectionRepository.save(any(RecipeCollection.class))).thenReturn(savedEntity);
     when(collectionCollaboratorRepository.save(any(CollectionCollaborator.class)))
         .thenAnswer(invocation -> invocation.getArgument(0));
-    when(collectionMapper.toDto(savedEntity)).thenReturn(expectedDto);
+    when(recipeCollectionRepository.findByIdWithItems(1L)).thenReturn(Optional.of(savedEntity));
+    when(collectionMapper.toDetailsDto(savedEntity)).thenReturn(expectedDto);
 
     // When
-    ResponseEntity<CollectionDto> response;
+    ResponseEntity<CollectionDetailsDto> response;
     try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
       securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
       response = collectionService.createCollection(request);
@@ -4272,7 +4242,6 @@ class CollectionServiceTest {
     // Then
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
     assertThat(response.getBody()).isNotNull();
-    assertThat(response.getBody().getCollaboratorCount()).isEqualTo(1); // Only one unique
 
     // Verify only one collaborator was saved (duplicates skipped)
     verify(collectionCollaboratorRepository, times(1)).save(any(CollectionCollaborator.class));
@@ -4307,20 +4276,15 @@ class CollectionServiceTest {
             .collaborationMode(CollaborationMode.ALL_USERS)
             .build();
 
-    CollectionDto expectedDto =
-        CollectionDto.builder()
-            .collectionId(1L)
-            .userId(testUserId)
-            .recipeCount(0)
-            .collaboratorCount(0)
-            .build();
+    CollectionDetailsDto expectedDto = createTestDetailsDto(1L);
 
     when(recipeCollectionMapper.fromRequest(request)).thenReturn(entityToSave);
     when(recipeCollectionRepository.save(any(RecipeCollection.class))).thenReturn(savedEntity);
-    when(collectionMapper.toDto(savedEntity)).thenReturn(expectedDto);
+    when(recipeCollectionRepository.findByIdWithItems(1L)).thenReturn(Optional.of(savedEntity));
+    when(collectionMapper.toDetailsDto(savedEntity)).thenReturn(expectedDto);
 
     // When
-    ResponseEntity<CollectionDto> response;
+    ResponseEntity<CollectionDetailsDto> response;
     try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
       securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
       response = collectionService.createCollection(request);
@@ -4329,7 +4293,6 @@ class CollectionServiceTest {
     // Then
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
     assertThat(response.getBody()).isNotNull();
-    assertThat(response.getBody().getCollaboratorCount()).isEqualTo(0);
 
     // Verify collaborators were NOT saved
     verify(collectionCollaboratorRepository, never()).save(any(CollectionCollaborator.class));

@@ -158,7 +158,8 @@ public class CollectionService {
    * @throws ResourceNotFoundException if any recipe ID or collaborator user ID doesn't exist
    */
   @Transactional
-  public ResponseEntity<CollectionDto> createCollection(final CreateCollectionRequest request) {
+  public ResponseEntity<CollectionDetailsDto> createCollection(
+      final CreateCollectionRequest request) {
     // Get current authenticated user ID from security context
     UUID currentUserId = SecurityUtils.getCurrentUserId();
 
@@ -172,18 +173,19 @@ public class CollectionService {
     RecipeCollection savedCollection = recipeCollectionRepository.save(collection);
 
     // Process batch recipe additions if provided
-    int recipeCount =
-        addRecipesDuringCreation(request.getRecipeIds(), savedCollection, currentUserId);
+    addRecipesDuringCreation(request.getRecipeIds(), savedCollection, currentUserId);
 
     // Process batch collaborator additions if applicable
-    int collaboratorCount =
-        addCollaboratorsDuringCreation(
-            request.getCollaboratorIds(), savedCollection, currentUserId);
+    addCollaboratorsDuringCreation(request.getCollaboratorIds(), savedCollection, currentUserId);
 
-    // Convert saved entity to DTO and set counts
-    CollectionDto responseDto = collectionMapper.toDto(savedCollection);
-    responseDto.setRecipeCount(recipeCount);
-    responseDto.setCollaboratorCount(collaboratorCount);
+    // Re-fetch collection with items and collaborators eagerly loaded
+    RecipeCollection fullCollection =
+        recipeCollectionRepository
+            .findByIdWithItems(savedCollection.getCollectionId())
+            .orElse(savedCollection);
+
+    // Convert to detailed DTO with full recipe and collaborator lists
+    CollectionDetailsDto responseDto = collectionMapper.toDetailsDto(fullCollection);
 
     // Return 201 Created with the new collection
     return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
@@ -229,6 +231,8 @@ public class CollectionService {
       RecipeCollectionItem collectionItem =
           RecipeCollectionItem.builder()
               .id(itemId)
+              .collection(collection)
+              .recipe(recipe)
               .displayOrder(displayOrder)
               .addedBy(currentUserId)
               .build();

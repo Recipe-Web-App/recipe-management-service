@@ -39,6 +39,9 @@ import com.recipe_manager.repository.recipe.RecipeRepository;
 import com.recipe_manager.service.external.notificationservice.NotificationService;
 import com.recipe_manager.util.SecurityUtils;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+
 /**
  * Service for recipe collection operations.
  *
@@ -84,6 +87,9 @@ public class CollectionService {
   /** Service for sending notifications about recipe events. */
   private final NotificationService notificationService;
 
+  /** Entity manager for managing persistence context. */
+  @PersistenceContext private final EntityManager entityManager;
+
   /**
    * Constructs the collection service with required dependencies.
    *
@@ -95,6 +101,7 @@ public class CollectionService {
    * @param recipeCollectionItemMapper the mapper used for converting between item entities and DTOs
    * @param recipeRepository the repository used for accessing recipe data
    * @param notificationService the service for sending notifications
+   * @param entityManager the entity manager for managing persistence context
    */
   public CollectionService(
       final RecipeCollectionRepository recipeCollectionRepository,
@@ -104,7 +111,8 @@ public class CollectionService {
       final RecipeCollectionMapper recipeCollectionMapper,
       final RecipeCollectionItemMapper recipeCollectionItemMapper,
       final RecipeRepository recipeRepository,
-      final NotificationService notificationService) {
+      final NotificationService notificationService,
+      final EntityManager entityManager) {
     this.recipeCollectionRepository = recipeCollectionRepository;
     this.recipeCollectionItemRepository = recipeCollectionItemRepository;
     this.collectionCollaboratorRepository = collectionCollaboratorRepository;
@@ -113,6 +121,7 @@ public class CollectionService {
     this.recipeCollectionItemMapper = recipeCollectionItemMapper;
     this.recipeRepository = recipeRepository;
     this.notificationService = notificationService;
+    this.entityManager = entityManager;
   }
 
   /**
@@ -177,6 +186,10 @@ public class CollectionService {
 
     // Process batch collaborator additions if applicable
     addCollaboratorsDuringCreation(request.getCollaboratorIds(), savedCollection, currentUserId);
+
+    // Flush pending writes and clear persistence context to ensure fresh load
+    entityManager.flush();
+    entityManager.clear();
 
     // Re-fetch collection with items and collaborators eagerly loaded
     RecipeCollection fullCollection =

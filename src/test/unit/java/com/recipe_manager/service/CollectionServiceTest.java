@@ -19,6 +19,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import jakarta.persistence.EntityManager;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -87,6 +89,8 @@ class CollectionServiceTest {
 
   @Mock private NotificationService notificationService;
 
+  @Mock private EntityManager entityManager;
+
   private CollectionService collectionService;
 
   private UUID testUserId;
@@ -112,7 +116,8 @@ class CollectionServiceTest {
             recipeCollectionMapper,
             recipeCollectionItemMapper,
             recipeRepository,
-            notificationService);
+            notificationService,
+            entityManager);
     testUserId = UUID.randomUUID();
   }
 

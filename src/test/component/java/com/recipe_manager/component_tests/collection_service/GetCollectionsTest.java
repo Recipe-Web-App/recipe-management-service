@@ -49,6 +49,8 @@ import com.recipe_manager.repository.recipe.RecipeRepository;
 import com.recipe_manager.service.CollectionService;
 import com.recipe_manager.service.external.notificationservice.NotificationService;
 
+import jakarta.persistence.EntityManager;
+
 /**
  * Component test for GET /collections endpoint.
  *
@@ -83,6 +85,8 @@ class GetCollectionsTest {
 
   @Mock private NotificationService notificationService;
 
+  @Mock private EntityManager entityManager;
+
   @Autowired private CollectionMapper collectionMapper;
 
   @Autowired private RecipeCollectionMapper recipeCollectionMapper;
@@ -116,7 +120,8 @@ class GetCollectionsTest {
             recipeCollectionMapper,
             recipeCollectionItemMapper,
             recipeRepository,
-            notificationService);
+            notificationService,
+            entityManager);
     collectionController = new CollectionController(collectionService);
 
     mockMvc =

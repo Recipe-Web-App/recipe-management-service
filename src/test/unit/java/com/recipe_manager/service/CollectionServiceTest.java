@@ -839,9 +839,8 @@ class CollectionServiceTest {
             .name("Empty Collection")
             .visibility(CollectionVisibility.PUBLIC)
             .collaborationMode(CollaborationMode.OWNER_ONLY)
-            .recipeCount(0)
-            .collaboratorCount(0)
             .recipes(Collections.emptyList())
+            .collaborators(Collections.emptyList())
             .createdAt(collection.getCreatedAt())
             .updatedAt(collection.getUpdatedAt())
             .build();
@@ -862,7 +861,6 @@ class CollectionServiceTest {
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
     assertThat(response.getBody()).isNotNull();
     assertThat(response.getBody().getRecipes()).isEmpty();
-    assertThat(response.getBody().getRecipeCount()).isEqualTo(0);
   }
 
   @Test
@@ -898,9 +896,8 @@ class CollectionServiceTest {
             .name("Multi-Recipe Collection")
             .visibility(CollectionVisibility.PUBLIC)
             .collaborationMode(CollaborationMode.OWNER_ONLY)
-            .recipeCount(2)
-            .collaboratorCount(0)
             .recipes(Arrays.asList(recipe1, recipe2))
+            .collaborators(Collections.emptyList())
             .createdAt(collection.getCreatedAt())
             .updatedAt(collection.getUpdatedAt())
             .build();
@@ -921,7 +918,6 @@ class CollectionServiceTest {
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
     assertThat(response.getBody()).isNotNull();
     assertThat(response.getBody().getRecipes()).hasSize(2);
-    assertThat(response.getBody().getRecipeCount()).isEqualTo(2);
   }
 
   @Test
@@ -1041,9 +1037,8 @@ class CollectionServiceTest {
         .description("Test Description")
         .visibility(CollectionVisibility.PUBLIC)
         .collaborationMode(CollaborationMode.OWNER_ONLY)
-        .recipeCount(1)
-        .collaboratorCount(0)
         .recipes(Arrays.asList(recipeDto))
+        .collaborators(Collections.emptyList())
         .createdAt(LocalDateTime.now())
         .updatedAt(LocalDateTime.now())
         .build();

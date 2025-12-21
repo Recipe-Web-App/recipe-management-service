@@ -764,11 +764,10 @@ class CollectionMapperTest {
     assertThat(result.getDescription()).isEqualTo("Detailed Description");
     assertThat(result.getVisibility()).isEqualTo(CollectionVisibility.PUBLIC);
     assertThat(result.getCollaborationMode()).isEqualTo(CollaborationMode.OWNER_ONLY);
-    assertThat(result.getRecipeCount()).isEqualTo(0);
-    assertThat(result.getCollaboratorCount()).isEqualTo(0);
     assertThat(result.getCreatedAt()).isEqualTo(now);
     assertThat(result.getUpdatedAt()).isEqualTo(now);
     assertThat(result.getRecipes()).isEmpty();
+    assertThat(result.getCollaborators()).isEmpty();
   }
 
   @Test

@@ -1,0 +1,72 @@
+{
+  "show_whitespaces": "trailing",
+  "indent_guides": {
+    "coloring": "fixed",
+    "background_coloring": "indent_aware"
+  },
+  "preferred_line_length": 100,
+  "hard_tabs": false,
+  "tab_size": 2,
+  "remove_trailing_whitespace_on_save": true,
+  "ensure_final_newline_on_save": true,
+  "git": {
+    "git_gutter": "tracked_files",
+    "inline_blame": {
+      "enabled": true,
+      "delay_ms": 600
+    }
+  },
+  "inlay_hints": {
+    "enabled": true,
+    "show_type_hints": true,
+    "show_parameter_hints": true,
+    "show_other_hints": true
+  },
+  "lsp": {
+    "jdtls": {
+      "settings": {
+        "lombok_support": true
+      },
+      "initialization_options": {
+        "settings": {
+          "java": {
+            "format": {
+              "enabled": false
+            },
+            "saveActions": {
+              "organizeImports": true
+            },
+            "completion": {
+              "favoriteStaticMembers": [
+                "org.junit.jupiter.api.Assertions.*",
+                "org.mockito.Mockito.*",
+                "org.mockito.ArgumentMatchers.*"
+              ]
+            }
+          }
+        }
+      }
+    }
+  },
+  "languages": {
+    "Java": {
+      "tab_size": 2,
+      "preferred_line_length": 100,
+      "format_on_save": "off"
+    },
+    "JSON": {
+      "tab_size": 2,
+      "format_on_save": "on",
+      "prettier": {
+        "allowed": true
+      }
+    },
+    "YAML": {
+      "tab_size": 2,
+      "format_on_save": "on"
+    },
+    "Markdown": {
+      "soft_wrap": "editor_width"
+    }
+  }
+}

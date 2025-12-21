@@ -82,7 +82,7 @@ public class CollectionController {
   @PostMapping(
       consumes = MediaType.APPLICATION_JSON_VALUE,
       produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<CollectionDto> createCollection(
+  public ResponseEntity<CollectionDetailsDto> createCollection(
       @Valid @RequestBody final CreateCollectionRequest request) {
     return collectionService.createCollection(request);
   }

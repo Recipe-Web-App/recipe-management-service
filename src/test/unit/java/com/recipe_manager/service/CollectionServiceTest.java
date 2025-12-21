@@ -3700,4 +3700,638 @@ class CollectionServiceTest {
     verify(collectionCollaboratorRepository)
         .deleteByIdCollectionIdAndIdUserId(collectionId, collaboratorId);
   }
+
+  // ==================== Batch Operations Tests ====================
+
+  @Test
+  @DisplayName("createCollection - Should add recipes during creation when recipeIds provided")
+  @Tag("batch-operations")
+  void shouldAddRecipesDuringCreation() {
+    // Given
+    Long recipeId1 = 100L;
+    Long recipeId2 = 200L;
+    UUID recipeAuthorId = UUID.randomUUID();
+
+    CreateCollectionRequest request =
+        CreateCollectionRequest.builder()
+            .name("Collection with Recipes")
+            .visibility(CollectionVisibility.PUBLIC)
+            .collaborationMode(CollaborationMode.OWNER_ONLY)
+            .recipeIds(Arrays.asList(recipeId1, recipeId2))
+            .build();
+
+    RecipeCollection entityToSave = RecipeCollection.builder().name("Collection with Recipes").build();
+    RecipeCollection savedEntity =
+        RecipeCollection.builder()
+            .collectionId(1L)
+            .userId(testUserId)
+            .name("Collection with Recipes")
+            .visibility(CollectionVisibility.PUBLIC)
+            .collaborationMode(CollaborationMode.OWNER_ONLY)
+            .build();
+
+    Recipe recipe1 = Recipe.builder().recipeId(recipeId1).userId(recipeAuthorId).build();
+    Recipe recipe2 = Recipe.builder().recipeId(recipeId2).userId(recipeAuthorId).build();
+
+    CollectionDto expectedDto =
+        CollectionDto.builder()
+            .collectionId(1L)
+            .userId(testUserId)
+            .recipeCount(0)
+            .collaboratorCount(0)
+            .build();
+
+    when(recipeCollectionMapper.fromRequest(request)).thenReturn(entityToSave);
+    when(recipeCollectionRepository.save(any(RecipeCollection.class))).thenReturn(savedEntity);
+    when(recipeRepository.findById(recipeId1)).thenReturn(Optional.of(recipe1));
+    when(recipeRepository.findById(recipeId2)).thenReturn(Optional.of(recipe2));
+    when(recipeCollectionItemRepository.save(any(RecipeCollectionItem.class)))
+        .thenAnswer(invocation -> invocation.getArgument(0));
+    when(collectionMapper.toDto(savedEntity)).thenReturn(expectedDto);
+
+    // When
+    ResponseEntity<CollectionDto> response;
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
+      response = collectionService.createCollection(request);
+    }
+
+    // Then
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+    assertThat(response.getBody()).isNotNull();
+    assertThat(response.getBody().getRecipeCount()).isEqualTo(2);
+
+    // Verify recipes were saved with correct display order
+    ArgumentCaptor<RecipeCollectionItem> itemCaptor =
+        ArgumentCaptor.forClass(RecipeCollectionItem.class);
+    verify(recipeCollectionItemRepository, times(2)).save(itemCaptor.capture());
+
+    List<RecipeCollectionItem> savedItems = itemCaptor.getAllValues();
+    assertThat(savedItems.get(0).getDisplayOrder()).isEqualTo(10);
+    assertThat(savedItems.get(1).getDisplayOrder()).isEqualTo(20);
+
+    // Verify notifications were sent
+    verify(notificationService, times(2))
+        .notifyRecipeCollectedAsync(eq(recipeAuthorId), anyLong(), eq(1L), eq(testUserId));
+  }
+
+  @Test
+  @DisplayName("createCollection - Should add collaborators during creation when SPECIFIC_USERS mode")
+  @Tag("batch-operations")
+  void shouldAddCollaboratorsDuringCreation() {
+    // Given
+    UUID collaboratorId1 = UUID.randomUUID();
+    UUID collaboratorId2 = UUID.randomUUID();
+
+    CreateCollectionRequest request =
+        CreateCollectionRequest.builder()
+            .name("Collaborative Collection")
+            .visibility(CollectionVisibility.PRIVATE)
+            .collaborationMode(CollaborationMode.SPECIFIC_USERS)
+            .collaboratorIds(Arrays.asList(collaboratorId1, collaboratorId2))
+            .build();
+
+    RecipeCollection entityToSave =
+        RecipeCollection.builder()
+            .name("Collaborative Collection")
+            .collaborationMode(CollaborationMode.SPECIFIC_USERS)
+            .build();
+    RecipeCollection savedEntity =
+        RecipeCollection.builder()
+            .collectionId(1L)
+            .userId(testUserId)
+            .name("Collaborative Collection")
+            .visibility(CollectionVisibility.PRIVATE)
+            .collaborationMode(CollaborationMode.SPECIFIC_USERS)
+            .build();
+
+    CollectionDto expectedDto =
+        CollectionDto.builder()
+            .collectionId(1L)
+            .userId(testUserId)
+            .recipeCount(0)
+            .collaboratorCount(0)
+            .build();
+
+    when(recipeCollectionMapper.fromRequest(request)).thenReturn(entityToSave);
+    when(recipeCollectionRepository.save(any(RecipeCollection.class))).thenReturn(savedEntity);
+    when(collectionCollaboratorRepository.save(any(CollectionCollaborator.class)))
+        .thenAnswer(invocation -> invocation.getArgument(0));
+    when(collectionMapper.toDto(savedEntity)).thenReturn(expectedDto);
+
+    // When
+    ResponseEntity<CollectionDto> response;
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
+      response = collectionService.createCollection(request);
+    }
+
+    // Then
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+    assertThat(response.getBody()).isNotNull();
+    assertThat(response.getBody().getCollaboratorCount()).isEqualTo(2);
+
+    // Verify collaborators were saved
+    verify(collectionCollaboratorRepository, times(2)).save(any(CollectionCollaborator.class));
+  }
+
+  @Test
+  @DisplayName("createCollection - Should add both recipes and collaborators during creation")
+  @Tag("batch-operations")
+  void shouldAddBothRecipesAndCollaboratorsDuringCreation() {
+    // Given
+    Long recipeId = 100L;
+    UUID recipeAuthorId = UUID.randomUUID();
+    UUID collaboratorId = UUID.randomUUID();
+
+    CreateCollectionRequest request =
+        CreateCollectionRequest.builder()
+            .name("Full Collection")
+            .visibility(CollectionVisibility.PRIVATE)
+            .collaborationMode(CollaborationMode.SPECIFIC_USERS)
+            .recipeIds(Arrays.asList(recipeId))
+            .collaboratorIds(Arrays.asList(collaboratorId))
+            .build();
+
+    RecipeCollection entityToSave =
+        RecipeCollection.builder()
+            .name("Full Collection")
+            .collaborationMode(CollaborationMode.SPECIFIC_USERS)
+            .build();
+    RecipeCollection savedEntity =
+        RecipeCollection.builder()
+            .collectionId(1L)
+            .userId(testUserId)
+            .name("Full Collection")
+            .visibility(CollectionVisibility.PRIVATE)
+            .collaborationMode(CollaborationMode.SPECIFIC_USERS)
+            .build();
+
+    Recipe recipe = Recipe.builder().recipeId(recipeId).userId(recipeAuthorId).build();
+
+    CollectionDto expectedDto =
+        CollectionDto.builder()
+            .collectionId(1L)
+            .userId(testUserId)
+            .recipeCount(0)
+            .collaboratorCount(0)
+            .build();
+
+    when(recipeCollectionMapper.fromRequest(request)).thenReturn(entityToSave);
+    when(recipeCollectionRepository.save(any(RecipeCollection.class))).thenReturn(savedEntity);
+    when(recipeRepository.findById(recipeId)).thenReturn(Optional.of(recipe));
+    when(recipeCollectionItemRepository.save(any(RecipeCollectionItem.class)))
+        .thenAnswer(invocation -> invocation.getArgument(0));
+    when(collectionCollaboratorRepository.save(any(CollectionCollaborator.class)))
+        .thenAnswer(invocation -> invocation.getArgument(0));
+    when(collectionMapper.toDto(savedEntity)).thenReturn(expectedDto);
+
+    // When
+    ResponseEntity<CollectionDto> response;
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
+      response = collectionService.createCollection(request);
+    }
+
+    // Then
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+    assertThat(response.getBody()).isNotNull();
+    assertThat(response.getBody().getRecipeCount()).isEqualTo(1);
+    assertThat(response.getBody().getCollaboratorCount()).isEqualTo(1);
+
+    verify(recipeCollectionItemRepository, times(1)).save(any(RecipeCollectionItem.class));
+    verify(collectionCollaboratorRepository, times(1)).save(any(CollectionCollaborator.class));
+  }
+
+  @Test
+  @DisplayName("createCollection - Should ignore collaborators when not SPECIFIC_USERS mode")
+  @Tag("batch-operations")
+  void shouldIgnoreCollaboratorsWhenNotSpecificUsersMode() {
+    // Given
+    UUID collaboratorId = UUID.randomUUID();
+
+    CreateCollectionRequest request =
+        CreateCollectionRequest.builder()
+            .name("Owner Only Collection")
+            .visibility(CollectionVisibility.PUBLIC)
+            .collaborationMode(CollaborationMode.OWNER_ONLY)
+            .collaboratorIds(Arrays.asList(collaboratorId))
+            .build();
+
+    RecipeCollection entityToSave =
+        RecipeCollection.builder()
+            .name("Owner Only Collection")
+            .collaborationMode(CollaborationMode.OWNER_ONLY)
+            .build();
+    RecipeCollection savedEntity =
+        RecipeCollection.builder()
+            .collectionId(1L)
+            .userId(testUserId)
+            .name("Owner Only Collection")
+            .visibility(CollectionVisibility.PUBLIC)
+            .collaborationMode(CollaborationMode.OWNER_ONLY)
+            .build();
+
+    CollectionDto expectedDto =
+        CollectionDto.builder()
+            .collectionId(1L)
+            .userId(testUserId)
+            .recipeCount(0)
+            .collaboratorCount(0)
+            .build();
+
+    when(recipeCollectionMapper.fromRequest(request)).thenReturn(entityToSave);
+    when(recipeCollectionRepository.save(any(RecipeCollection.class))).thenReturn(savedEntity);
+    when(collectionMapper.toDto(savedEntity)).thenReturn(expectedDto);
+
+    // When
+    ResponseEntity<CollectionDto> response;
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
+      response = collectionService.createCollection(request);
+    }
+
+    // Then
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+    assertThat(response.getBody()).isNotNull();
+    assertThat(response.getBody().getCollaboratorCount()).isEqualTo(0);
+
+    // Verify collaborators were NOT saved
+    verify(collectionCollaboratorRepository, never()).save(any(CollectionCollaborator.class));
+  }
+
+  @Test
+  @DisplayName("createCollection - Should skip owner in collaborator list")
+  @Tag("batch-operations")
+  void shouldSkipOwnerInCollaboratorList() {
+    // Given
+    UUID otherCollaboratorId = UUID.randomUUID();
+
+    CreateCollectionRequest request =
+        CreateCollectionRequest.builder()
+            .name("Collection")
+            .visibility(CollectionVisibility.PRIVATE)
+            .collaborationMode(CollaborationMode.SPECIFIC_USERS)
+            .collaboratorIds(Arrays.asList(testUserId, otherCollaboratorId)) // Include owner
+            .build();
+
+    RecipeCollection entityToSave =
+        RecipeCollection.builder()
+            .name("Collection")
+            .collaborationMode(CollaborationMode.SPECIFIC_USERS)
+            .build();
+    RecipeCollection savedEntity =
+        RecipeCollection.builder()
+            .collectionId(1L)
+            .userId(testUserId)
+            .name("Collection")
+            .visibility(CollectionVisibility.PRIVATE)
+            .collaborationMode(CollaborationMode.SPECIFIC_USERS)
+            .build();
+
+    CollectionDto expectedDto =
+        CollectionDto.builder()
+            .collectionId(1L)
+            .userId(testUserId)
+            .recipeCount(0)
+            .collaboratorCount(0)
+            .build();
+
+    when(recipeCollectionMapper.fromRequest(request)).thenReturn(entityToSave);
+    when(recipeCollectionRepository.save(any(RecipeCollection.class))).thenReturn(savedEntity);
+    when(collectionCollaboratorRepository.save(any(CollectionCollaborator.class)))
+        .thenAnswer(invocation -> invocation.getArgument(0));
+    when(collectionMapper.toDto(savedEntity)).thenReturn(expectedDto);
+
+    // When
+    ResponseEntity<CollectionDto> response;
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
+      response = collectionService.createCollection(request);
+    }
+
+    // Then
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+    assertThat(response.getBody()).isNotNull();
+    assertThat(response.getBody().getCollaboratorCount()).isEqualTo(1); // Only one (not owner)
+
+    // Verify only one collaborator was saved (not the owner)
+    verify(collectionCollaboratorRepository, times(1)).save(any(CollectionCollaborator.class));
+  }
+
+  @Test
+  @DisplayName("createCollection - Should throw exception for non-existent recipe")
+  @Tag("batch-operations")
+  void shouldThrowExceptionForNonExistentRecipe() {
+    // Given
+    Long nonExistentRecipeId = 999L;
+
+    CreateCollectionRequest request =
+        CreateCollectionRequest.builder()
+            .name("Collection")
+            .visibility(CollectionVisibility.PUBLIC)
+            .collaborationMode(CollaborationMode.OWNER_ONLY)
+            .recipeIds(Arrays.asList(nonExistentRecipeId))
+            .build();
+
+    RecipeCollection entityToSave = RecipeCollection.builder().name("Collection").build();
+    RecipeCollection savedEntity =
+        RecipeCollection.builder()
+            .collectionId(1L)
+            .userId(testUserId)
+            .name("Collection")
+            .collaborationMode(CollaborationMode.OWNER_ONLY)
+            .build();
+
+    when(recipeCollectionMapper.fromRequest(request)).thenReturn(entityToSave);
+    when(recipeCollectionRepository.save(any(RecipeCollection.class))).thenReturn(savedEntity);
+    when(recipeRepository.findById(nonExistentRecipeId)).thenReturn(Optional.empty());
+
+    // When/Then
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
+
+      assertThatThrownBy(() -> collectionService.createCollection(request))
+          .isInstanceOf(ResourceNotFoundException.class)
+          .hasMessageContaining("Recipe with ID " + nonExistentRecipeId + " not found");
+    }
+  }
+
+  @Test
+  @DisplayName("createCollection - Should throw exception for non-existent collaborator user")
+  @Tag("batch-operations")
+  void shouldThrowExceptionForNonExistentCollaboratorUser() {
+    // Given
+    UUID nonExistentUserId = UUID.randomUUID();
+
+    CreateCollectionRequest request =
+        CreateCollectionRequest.builder()
+            .name("Collection")
+            .visibility(CollectionVisibility.PRIVATE)
+            .collaborationMode(CollaborationMode.SPECIFIC_USERS)
+            .collaboratorIds(Arrays.asList(nonExistentUserId))
+            .build();
+
+    RecipeCollection entityToSave =
+        RecipeCollection.builder()
+            .name("Collection")
+            .collaborationMode(CollaborationMode.SPECIFIC_USERS)
+            .build();
+    RecipeCollection savedEntity =
+        RecipeCollection.builder()
+            .collectionId(1L)
+            .userId(testUserId)
+            .name("Collection")
+            .visibility(CollectionVisibility.PRIVATE)
+            .collaborationMode(CollaborationMode.SPECIFIC_USERS)
+            .build();
+
+    when(recipeCollectionMapper.fromRequest(request)).thenReturn(entityToSave);
+    when(recipeCollectionRepository.save(any(RecipeCollection.class))).thenReturn(savedEntity);
+    when(collectionCollaboratorRepository.save(any(CollectionCollaborator.class)))
+        .thenThrow(new org.springframework.dao.DataIntegrityViolationException("FK violation"));
+
+    // When/Then
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
+
+      assertThatThrownBy(() -> collectionService.createCollection(request))
+          .isInstanceOf(ResourceNotFoundException.class)
+          .hasMessageContaining("User with ID " + nonExistentUserId + " not found");
+    }
+  }
+
+  @Test
+  @DisplayName("createCollection - Should handle empty recipe and collaborator lists")
+  @Tag("batch-operations")
+  void shouldHandleEmptyRecipeAndCollaboratorLists() {
+    // Given
+    CreateCollectionRequest request =
+        CreateCollectionRequest.builder()
+            .name("Empty Collection")
+            .visibility(CollectionVisibility.PUBLIC)
+            .collaborationMode(CollaborationMode.SPECIFIC_USERS)
+            .recipeIds(Collections.emptyList())
+            .collaboratorIds(Collections.emptyList())
+            .build();
+
+    RecipeCollection entityToSave =
+        RecipeCollection.builder()
+            .name("Empty Collection")
+            .collaborationMode(CollaborationMode.SPECIFIC_USERS)
+            .build();
+    RecipeCollection savedEntity =
+        RecipeCollection.builder()
+            .collectionId(1L)
+            .userId(testUserId)
+            .name("Empty Collection")
+            .visibility(CollectionVisibility.PUBLIC)
+            .collaborationMode(CollaborationMode.SPECIFIC_USERS)
+            .build();
+
+    CollectionDto expectedDto =
+        CollectionDto.builder()
+            .collectionId(1L)
+            .userId(testUserId)
+            .recipeCount(0)
+            .collaboratorCount(0)
+            .build();
+
+    when(recipeCollectionMapper.fromRequest(request)).thenReturn(entityToSave);
+    when(recipeCollectionRepository.save(any(RecipeCollection.class))).thenReturn(savedEntity);
+    when(collectionMapper.toDto(savedEntity)).thenReturn(expectedDto);
+
+    // When
+    ResponseEntity<CollectionDto> response;
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
+      response = collectionService.createCollection(request);
+    }
+
+    // Then
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+    assertThat(response.getBody()).isNotNull();
+    assertThat(response.getBody().getRecipeCount()).isEqualTo(0);
+    assertThat(response.getBody().getCollaboratorCount()).isEqualTo(0);
+
+    // Verify no recipes or collaborators were saved
+    verify(recipeCollectionItemRepository, never()).save(any(RecipeCollectionItem.class));
+    verify(collectionCollaboratorRepository, never()).save(any(CollectionCollaborator.class));
+  }
+
+  @Test
+  @DisplayName("createCollection - Should handle duplicate recipe IDs in request")
+  @Tag("batch-operations")
+  void shouldHandleDuplicateRecipeIdsInRequest() {
+    // Given
+    Long recipeId = 100L;
+    UUID recipeAuthorId = UUID.randomUUID();
+
+    CreateCollectionRequest request =
+        CreateCollectionRequest.builder()
+            .name("Collection")
+            .visibility(CollectionVisibility.PUBLIC)
+            .collaborationMode(CollaborationMode.OWNER_ONLY)
+            .recipeIds(Arrays.asList(recipeId, recipeId, recipeId)) // Same ID 3 times
+            .build();
+
+    RecipeCollection entityToSave = RecipeCollection.builder().name("Collection").build();
+    RecipeCollection savedEntity =
+        RecipeCollection.builder()
+            .collectionId(1L)
+            .userId(testUserId)
+            .name("Collection")
+            .visibility(CollectionVisibility.PUBLIC)
+            .collaborationMode(CollaborationMode.OWNER_ONLY)
+            .build();
+
+    Recipe recipe = Recipe.builder().recipeId(recipeId).userId(recipeAuthorId).build();
+
+    CollectionDto expectedDto =
+        CollectionDto.builder()
+            .collectionId(1L)
+            .userId(testUserId)
+            .recipeCount(0)
+            .collaboratorCount(0)
+            .build();
+
+    when(recipeCollectionMapper.fromRequest(request)).thenReturn(entityToSave);
+    when(recipeCollectionRepository.save(any(RecipeCollection.class))).thenReturn(savedEntity);
+    when(recipeRepository.findById(recipeId)).thenReturn(Optional.of(recipe));
+    when(recipeCollectionItemRepository.save(any(RecipeCollectionItem.class)))
+        .thenAnswer(invocation -> invocation.getArgument(0));
+    when(collectionMapper.toDto(savedEntity)).thenReturn(expectedDto);
+
+    // When
+    ResponseEntity<CollectionDto> response;
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
+      response = collectionService.createCollection(request);
+    }
+
+    // Then
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+    assertThat(response.getBody()).isNotNull();
+    assertThat(response.getBody().getRecipeCount()).isEqualTo(1); // Only one unique recipe
+
+    // Verify only one recipe was saved (duplicates skipped)
+    verify(recipeCollectionItemRepository, times(1)).save(any(RecipeCollectionItem.class));
+    verify(recipeRepository, times(1)).findById(recipeId); // Only looked up once
+  }
+
+  @Test
+  @DisplayName("createCollection - Should handle duplicate collaborator IDs in request")
+  @Tag("batch-operations")
+  void shouldHandleDuplicateCollaboratorIdsInRequest() {
+    // Given
+    UUID collaboratorId = UUID.randomUUID();
+
+    CreateCollectionRequest request =
+        CreateCollectionRequest.builder()
+            .name("Collection")
+            .visibility(CollectionVisibility.PRIVATE)
+            .collaborationMode(CollaborationMode.SPECIFIC_USERS)
+            .collaboratorIds(Arrays.asList(collaboratorId, collaboratorId, collaboratorId))
+            .build();
+
+    RecipeCollection entityToSave =
+        RecipeCollection.builder()
+            .name("Collection")
+            .collaborationMode(CollaborationMode.SPECIFIC_USERS)
+            .build();
+    RecipeCollection savedEntity =
+        RecipeCollection.builder()
+            .collectionId(1L)
+            .userId(testUserId)
+            .name("Collection")
+            .visibility(CollectionVisibility.PRIVATE)
+            .collaborationMode(CollaborationMode.SPECIFIC_USERS)
+            .build();
+
+    CollectionDto expectedDto =
+        CollectionDto.builder()
+            .collectionId(1L)
+            .userId(testUserId)
+            .recipeCount(0)
+            .collaboratorCount(0)
+            .build();
+
+    when(recipeCollectionMapper.fromRequest(request)).thenReturn(entityToSave);
+    when(recipeCollectionRepository.save(any(RecipeCollection.class))).thenReturn(savedEntity);
+    when(collectionCollaboratorRepository.save(any(CollectionCollaborator.class)))
+        .thenAnswer(invocation -> invocation.getArgument(0));
+    when(collectionMapper.toDto(savedEntity)).thenReturn(expectedDto);
+
+    // When
+    ResponseEntity<CollectionDto> response;
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
+      response = collectionService.createCollection(request);
+    }
+
+    // Then
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+    assertThat(response.getBody()).isNotNull();
+    assertThat(response.getBody().getCollaboratorCount()).isEqualTo(1); // Only one unique
+
+    // Verify only one collaborator was saved (duplicates skipped)
+    verify(collectionCollaboratorRepository, times(1)).save(any(CollectionCollaborator.class));
+  }
+
+  @Test
+  @DisplayName("createCollection - Should ignore collaborators for ALL_USERS mode")
+  @Tag("batch-operations")
+  void shouldIgnoreCollaboratorsForAllUsersMode() {
+    // Given
+    UUID collaboratorId = UUID.randomUUID();
+
+    CreateCollectionRequest request =
+        CreateCollectionRequest.builder()
+            .name("All Users Collection")
+            .visibility(CollectionVisibility.PUBLIC)
+            .collaborationMode(CollaborationMode.ALL_USERS)
+            .collaboratorIds(Arrays.asList(collaboratorId))
+            .build();
+
+    RecipeCollection entityToSave =
+        RecipeCollection.builder()
+            .name("All Users Collection")
+            .collaborationMode(CollaborationMode.ALL_USERS)
+            .build();
+    RecipeCollection savedEntity =
+        RecipeCollection.builder()
+            .collectionId(1L)
+            .userId(testUserId)
+            .name("All Users Collection")
+            .visibility(CollectionVisibility.PUBLIC)
+            .collaborationMode(CollaborationMode.ALL_USERS)
+            .build();
+
+    CollectionDto expectedDto =
+        CollectionDto.builder()
+            .collectionId(1L)
+            .userId(testUserId)
+            .recipeCount(0)
+            .collaboratorCount(0)
+            .build();
+
+    when(recipeCollectionMapper.fromRequest(request)).thenReturn(entityToSave);
+    when(recipeCollectionRepository.save(any(RecipeCollection.class))).thenReturn(savedEntity);
+    when(collectionMapper.toDto(savedEntity)).thenReturn(expectedDto);
+
+    // When
+    ResponseEntity<CollectionDto> response;
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
+      response = collectionService.createCollection(request);
+    }
+
+    // Then
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+    assertThat(response.getBody()).isNotNull();
+    assertThat(response.getBody().getCollaboratorCount()).isEqualTo(0);
+
+    // Verify collaborators were NOT saved
+    verify(collectionCollaboratorRepository, never()).save(any(CollectionCollaborator.class));
+  }
 }

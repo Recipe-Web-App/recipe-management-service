@@ -4302,4 +4302,138 @@ class CollectionServiceTest {
     // Verify collaborators were NOT saved
     verify(collectionCollaboratorRepository, never()).save(any(CollectionCollaborator.class));
   }
+
+  @Test
+  @DisplayName("getMyCollections - Should get owned collections when includeCollaborations is false")
+  @Tag("standard-processing")
+  void shouldGetOwnedCollectionsWhenIncludeCollaborationsFalse() {
+    // Given
+    Pageable pageable = PageRequest.of(0, 20);
+    List<CollectionSummaryProjection> projections =
+        Arrays.asList(createTestProjection(1L), createTestProjection(2L));
+    Page<CollectionSummaryProjection> projectionPage = new PageImpl<>(projections, pageable, 2);
+
+    CollectionDto dto1 = createTestDto(1L);
+    CollectionDto dto2 = createTestDto(2L);
+
+    when(recipeCollectionRepository.findOwnedCollections(any(UUID.class), any(Pageable.class)))
+        .thenReturn(projectionPage);
+    when(collectionMapper.fromProjection(projections.get(0))).thenReturn(dto1);
+    when(collectionMapper.fromProjection(projections.get(1))).thenReturn(dto2);
+
+    // When
+    ResponseEntity<Page<CollectionDto>> response;
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
+      response = collectionService.getMyCollections(false, pageable);
+    }
+
+    // Then
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    assertThat(response.getBody()).isNotNull();
+    assertThat(response.getBody().getContent()).hasSize(2);
+    assertThat(response.getBody().getTotalElements()).isEqualTo(2);
+
+    verify(recipeCollectionRepository).findOwnedCollections(testUserId, pageable);
+    verify(recipeCollectionRepository, never())
+        .findOwnedAndCollaboratingCollections(any(UUID.class), any(Pageable.class));
+  }
+
+  @Test
+  @DisplayName(
+      "getMyCollections - Should get owned and collaborating collections when includeCollaborations"
+          + " is true")
+  @Tag("standard-processing")
+  void shouldGetOwnedAndCollaboratingCollectionsWhenIncludeCollaborationsTrue() {
+    // Given
+    Pageable pageable = PageRequest.of(0, 20);
+    List<CollectionSummaryProjection> projections =
+        Arrays.asList(createTestProjection(1L), createTestProjection(2L), createTestProjection(3L));
+    Page<CollectionSummaryProjection> projectionPage = new PageImpl<>(projections, pageable, 3);
+
+    CollectionDto dto1 = createTestDto(1L);
+    CollectionDto dto2 = createTestDto(2L);
+    CollectionDto dto3 = createTestDto(3L);
+
+    when(recipeCollectionRepository.findOwnedAndCollaboratingCollections(
+            any(UUID.class), any(Pageable.class)))
+        .thenReturn(projectionPage);
+    when(collectionMapper.fromProjection(projections.get(0))).thenReturn(dto1);
+    when(collectionMapper.fromProjection(projections.get(1))).thenReturn(dto2);
+    when(collectionMapper.fromProjection(projections.get(2))).thenReturn(dto3);
+
+    // When
+    ResponseEntity<Page<CollectionDto>> response;
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
+      response = collectionService.getMyCollections(true, pageable);
+    }
+
+    // Then
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    assertThat(response.getBody()).isNotNull();
+    assertThat(response.getBody().getContent()).hasSize(3);
+    assertThat(response.getBody().getTotalElements()).isEqualTo(3);
+
+    verify(recipeCollectionRepository).findOwnedAndCollaboratingCollections(testUserId, pageable);
+    verify(recipeCollectionRepository, never())
+        .findOwnedCollections(any(UUID.class), any(Pageable.class));
+  }
+
+  @Test
+  @DisplayName("getMyCollections - Should return empty page when user has no collections")
+  @Tag("standard-processing")
+  void shouldReturnEmptyPageWhenUserHasNoCollectionsForGetMyCollections() {
+    // Given
+    Pageable pageable = PageRequest.of(0, 20);
+    Page<CollectionSummaryProjection> emptyPage =
+        new PageImpl<>(Collections.emptyList(), pageable, 0);
+
+    when(recipeCollectionRepository.findOwnedCollections(any(UUID.class), any(Pageable.class)))
+        .thenReturn(emptyPage);
+
+    // When
+    ResponseEntity<Page<CollectionDto>> response;
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
+      response = collectionService.getMyCollections(false, pageable);
+    }
+
+    // Then
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    assertThat(response.getBody()).isNotNull();
+    assertThat(response.getBody().getContent()).isEmpty();
+    assertThat(response.getBody().getTotalElements()).isEqualTo(0);
+  }
+
+  @Test
+  @DisplayName("getMyCollections - Should pass pagination parameters correctly")
+  @Tag("standard-processing")
+  void shouldPassPaginationParametersCorrectlyForGetMyCollections() {
+    // Given
+    Pageable pageable = PageRequest.of(2, 10, Sort.by("createdAt").descending());
+    Page<CollectionSummaryProjection> projectionPage =
+        new PageImpl<>(Arrays.asList(createTestProjection(1L)), pageable, 21);
+
+    when(recipeCollectionRepository.findOwnedCollections(any(UUID.class), eq(pageable)))
+        .thenReturn(projectionPage);
+    when(collectionMapper.fromProjection(any(CollectionSummaryProjection.class)))
+        .thenReturn(createTestDto(1L));
+
+    // When
+    ResponseEntity<Page<CollectionDto>> response;
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
+      response = collectionService.getMyCollections(false, pageable);
+    }
+
+    // Then
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    assertThat(response.getBody()).isNotNull();
+    assertThat(response.getBody().getNumber()).isEqualTo(2);
+    assertThat(response.getBody().getSize()).isEqualTo(10);
+    assertThat(response.getBody().getTotalPages()).isEqualTo(3);
+
+    verify(recipeCollectionRepository).findOwnedCollections(testUserId, pageable);
+  }
 }

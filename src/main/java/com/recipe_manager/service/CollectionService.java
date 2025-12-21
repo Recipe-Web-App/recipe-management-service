@@ -149,6 +149,37 @@ public class CollectionService {
   }
 
   /**
+   * Retrieves collections for the authenticated user with pagination.
+   *
+   * <p>By default, returns only collections owned by the user. When includeCollaborations is true,
+   * also includes collections where the user is defined as a collaborator.
+   *
+   * @param includeCollaborations if true, includes collections where user is a collaborator
+   * @param pageable pagination parameters including page number, size, and sort criteria
+   * @return ResponseEntity containing a page of collection DTOs
+   */
+  @Transactional(readOnly = true)
+  public ResponseEntity<Page<CollectionDto>> getMyCollections(
+      final boolean includeCollaborations, final Pageable pageable) {
+    // Get current authenticated user ID from security context
+    UUID currentUserId = SecurityUtils.getCurrentUserId();
+
+    // Fetch collections based on includeCollaborations flag
+    Page<CollectionSummaryProjection> projectionPage;
+    if (includeCollaborations) {
+      projectionPage =
+          recipeCollectionRepository.findOwnedAndCollaboratingCollections(currentUserId, pageable);
+    } else {
+      projectionPage = recipeCollectionRepository.findOwnedCollections(currentUserId, pageable);
+    }
+
+    // Map projections to DTOs
+    Page<CollectionDto> dtoPage = projectionPage.map(collectionMapper::fromProjection);
+
+    return ResponseEntity.ok(dtoPage);
+  }
+
+  /**
    * Creates a new recipe collection owned by the authenticated user.
    *
    * <p>Extracts the user ID from the security context, maps the request to an entity, saves it to

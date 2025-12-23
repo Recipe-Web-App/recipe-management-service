@@ -153,7 +153,7 @@ print_separator "-"
 kubectl wait --namespace="$NAMESPACE" \
   --for=condition=Ready pod \
   --selector=app=recipe-management-service \
-  --timeout=90s
+  --timeout=120s
 
 print_separator "-"
 echo "✅ Recipe Management Service is up and running in namespace '$NAMESPACE'.'"

@@ -132,8 +132,8 @@ automatically gitignored).
 
 ### Development Environment
 
-- Recipe Management: `http://recipe-management.local/api/v1/recipe-management`
-- Auth Service: `http://user-management.local/api/v1/user-management`
+- Recipe Management: `http://sous-chef-proxy.local/api/v1/recipe-management`
+- Auth Service: `http://sous-chef-proxy.local/api/v1/user-management`
 
 ### Authentication (Auto-managed)
 

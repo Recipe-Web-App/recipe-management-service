@@ -22,7 +22,7 @@ content.
 ## Base URLs
 
 - **Local Development**: `http://localhost:8080/api/v1/recipe-management`
-- **Kubernetes**: `http://recipe-management.local/api/v1/recipe-management`
+- **Kubernetes**: `http://sous-chef-proxy.local/api/v1/recipe-management`
 
 ## Authentication
 

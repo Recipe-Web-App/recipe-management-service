@@ -28,7 +28,7 @@ info:
 servers:
   - url: http://localhost:8080/api/v1/recipe-management
     description: Local development server
-  - url: http://recipe-management.local/api/v1/recipe-management
+  - url: http://sous-chef-proxy.local/api/v1/recipe-management
     description: Kubernetes deployment
 
 security:
@@ -2618,7 +2618,7 @@ components:
               details:
                 status: available
                 responseTime: "245ms"
-                baseUrl: "http://recipe-scraper.local"
+                baseUrl: "http://sous-chef-proxy.local"
         groups:
           type: object
           description: Health indicator groups

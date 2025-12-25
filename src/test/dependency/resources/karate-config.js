@@ -11,7 +11,7 @@ function fn() {
   if (env === 'local') {
     config.baseUrl = 'http://localhost:8080/api/v1/recipe-management';
   } else if (env === 'minikube') {
-    config.baseUrl = 'http://recipe-management.local/api/v1/recipe-management';
+    config.baseUrl = 'http://sous-chef-proxy.local/api/v1/recipe-management';
   } else if (env === 'test') {
     config.baseUrl = 'http://localhost:8080/api/v1/recipe-management';
   }

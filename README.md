@@ -216,7 +216,7 @@ This service integrates with the user-management-service for JWT-based authentic
 
 ```bash
 # Get JWT token from user-management-service
-curl -X POST http://user-management.local/api/v1/auth/login \
+curl -X POST http://sous-chef-proxy.local/api/v1/auth/login \
   -H "Content-Type: application/json" \
   -d '{"username":"user","password":"password"}'
 

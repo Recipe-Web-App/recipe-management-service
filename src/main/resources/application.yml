@@ -161,17 +161,17 @@ app:
 external:
   services:
     recipe-scraper:
-      base-url: ${RECIPE_SCRAPER_BASE_URL:http://recipe-scraper.local}
+      base-url: ${RECIPE_SCRAPER_BASE_URL:http://sous-chef-proxy.local}
       shopping-info-path: /api/recipe-scraper/recipes/{recipeId}/shopping-info
       enabled: ${RECIPE_SCRAPER_ENABLED:true}
       timeout: ${RECIPE_SCRAPER_TIMEOUT:5s}
       api-key: ${RECIPE_SCRAPER_API_KEY:}
     media-manager:
-      base-url: ${MEDIA_MANAGER_BASE_URL:http://media-management.local/api/v1/media-management}
+      base-url: ${MEDIA_MANAGER_BASE_URL:http://sous-chef-proxy.local/api/v1/media-management}
       enabled: ${MEDIA_MANAGER_ENABLED:true}
       timeout: ${MEDIA_MANAGER_TIMEOUT:5s}
     oauth2-service:
-      base-url: ${OAUTH2_SERVICE_BASE_URL:http://auth-service.local}
+      base-url: ${OAUTH2_SERVICE_BASE_URL:http://sous-chef-proxy.local}
       enabled: ${OAUTH2_SERVICE_ENABLED:true}
       timeout: ${OAUTH2_SERVICE_TIMEOUT:5s}
       client-id: ${OAUTH2_CLIENT_ID:recipe-service-client}

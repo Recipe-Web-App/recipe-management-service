@@ -10,7 +10,7 @@
         <collectionProp name="Arguments.arguments">
           <elementProp name="BASE_URL" elementType="Argument">
             <stringProp name="Argument.name">BASE_URL</stringProp>
-            <stringProp name="Argument.value">${__P(test.base.url,http://recipe-management.local)}</stringProp>
+            <stringProp name="Argument.value">${__P(test.base.url,http://sous-chef-proxy.local)}</stringProp>
           </elementProp>
           <elementProp name="API_PATH" elementType="Argument">
             <stringProp name="Argument.name">API_PATH</stringProp>
@@ -63,7 +63,7 @@
           <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
             <collectionProp name="Arguments.arguments"/>
           </elementProp>
-          <stringProp name="HTTPSampler.domain">${__P(host,recipe-management.local)}</stringProp>
+          <stringProp name="HTTPSampler.domain">${__P(host,sous-chef-proxy.local)}</stringProp>
           <stringProp name="HTTPSampler.port">${__P(port,80)}</stringProp>
           <stringProp name="HTTPSampler.protocol">http</stringProp>
           <stringProp name="HTTPSampler.contentEncoding"></stringProp>
@@ -130,7 +130,7 @@
           <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
             <collectionProp name="Arguments.arguments"/>
           </elementProp>
-          <stringProp name="HTTPSampler.domain">${__P(host,recipe-management.local)}</stringProp>
+          <stringProp name="HTTPSampler.domain">${__P(host,sous-chef-proxy.local)}</stringProp>
           <stringProp name="HTTPSampler.port">${__P(port,80)}</stringProp>
           <stringProp name="HTTPSampler.protocol">http</stringProp>
           <stringProp name="HTTPSampler.contentEncoding"></stringProp>
@@ -245,7 +245,7 @@
           <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
             <collectionProp name="Arguments.arguments"/>
           </elementProp>
-          <stringProp name="HTTPSampler.domain">${__P(host,recipe-management.local)}</stringProp>
+          <stringProp name="HTTPSampler.domain">${__P(host,sous-chef-proxy.local)}</stringProp>
           <stringProp name="HTTPSampler.port">${__P(port,80)}</stringProp>
           <stringProp name="HTTPSampler.protocol">http</stringProp>
           <stringProp name="HTTPSampler.contentEncoding"></stringProp>
@@ -312,7 +312,7 @@
           <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
             <collectionProp name="Arguments.arguments"/>
           </elementProp>
-          <stringProp name="HTTPSampler.domain">${__P(host,recipe-management.local)}</stringProp>
+          <stringProp name="HTTPSampler.domain">${__P(host,sous-chef-proxy.local)}</stringProp>
           <stringProp name="HTTPSampler.port">${__P(port,80)}</stringProp>
           <stringProp name="HTTPSampler.protocol">http</stringProp>
           <stringProp name="HTTPSampler.contentEncoding"></stringProp>

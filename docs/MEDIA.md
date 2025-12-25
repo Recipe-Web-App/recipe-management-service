@@ -429,7 +429,7 @@ curl http://localhost:8080/actuator/health/diskSpace
 
 ```bash
 # Check external service connectivity
-curl http://media-management.local/api/v1/media-management/health
+curl http://sous-chef-proxy.local/api/v1/media-management/health
 
 # Verify JWT token
 curl -H "Authorization: Bearer YOUR_TOKEN" \

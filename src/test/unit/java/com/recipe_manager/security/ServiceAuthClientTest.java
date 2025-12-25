@@ -47,7 +47,7 @@ class ServiceAuthClientTest {
     // Set up OAuth2 configuration mocks
     when(externalServicesConfig.getOauth2Service()).thenReturn(oauth2ServiceConfig);
 
-    lenient().when(oauth2ServiceConfig.getBaseUrl()).thenReturn("http://auth-service.local");
+    lenient().when(oauth2ServiceConfig.getBaseUrl()).thenReturn("http://sous-chef-proxy.local");
     lenient().when(oauth2ServiceConfig.getTokenPath()).thenReturn("/api/v1/auth/oauth2/token");
     lenient().when(oauth2ServiceConfig.getClientId()).thenReturn("test-client-id");
     lenient().when(oauth2ServiceConfig.getClientSecret()).thenReturn("test-client-secret");
@@ -113,7 +113,7 @@ class ServiceAuthClientTest {
 
     // Verify REST call was made only once
     verify(restTemplate).postForEntity(
-        eq("http://auth-service.local/api/v1/auth/oauth2/token"),
+        eq("http://sous-chef-proxy.local/api/v1/auth/oauth2/token"),
         any(HttpEntity.class),
         eq(ServiceAuthClient.TokenResponse.class));
   }

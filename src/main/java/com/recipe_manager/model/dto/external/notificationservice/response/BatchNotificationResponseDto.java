@@ -61,9 +61,9 @@ public final class BatchNotificationResponseDto {
   @ToString
   public static final class NotificationDto {
 
-    /** ID of the created notification record. Used to track notification status. */
+    /** UUID of the created notification record. Used to track notification status. */
     @JsonProperty("notification_id")
-    private Long notificationId;
+    private UUID notificationId;
 
     /** UUID of the recipient user for this notification. */
     @JsonProperty("recipient_id")

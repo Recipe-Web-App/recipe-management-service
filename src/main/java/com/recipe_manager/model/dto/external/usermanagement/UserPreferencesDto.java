@@ -1,5 +1,7 @@
 package com.recipe_manager.model.dto.external.usermanagement;
 
+import java.util.UUID;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.AllArgsConstructor;
@@ -8,9 +10,10 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * DTO representing a user's complete set of preferences from the user-management service.
+ * DTO representing a user's preferences response from the user-management service.
  *
- * <p>Contains notification, privacy, and display preferences.
+ * <p>Contains various preference categories. For minimal implementation, only privacy preferences
+ * are used by this service for access control.
  */
 @Data
 @Builder
@@ -18,19 +21,15 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class UserPreferencesDto {
 
-  /** Notification preferences (email, push, various notification types). */
-  @JsonProperty("notification_preferences")
-  private NotificationPreferencesDto notificationPreferences;
+  /** User ID associated with these preferences. */
+  @JsonProperty("userId")
+  private UUID userId;
 
   /**
-   * Privacy preferences (profile visibility, email/name visibility, follow/message permissions).
+   * Privacy preferences (profile visibility, recipe visibility, etc.).
    *
    * <p>Critical for enforcing access control on user-specific data like favorites.
    */
-  @JsonProperty("privacy_preferences")
-  private PrivacyPreferencesDto privacyPreferences;
-
-  /** Display preferences (theme, language, timezone). */
-  @JsonProperty("display_preferences")
-  private DisplayPreferencesDto displayPreferences;
+  @JsonProperty("privacy")
+  private PrivacyPreferencesDto privacy;
 }

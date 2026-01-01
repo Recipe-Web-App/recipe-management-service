@@ -15,7 +15,7 @@ import com.recipe_manager.client.usermanagement.UserManagementClient;
 import com.recipe_manager.exception.BusinessException;
 import com.recipe_manager.exception.ResourceNotFoundException;
 import com.recipe_manager.model.dto.external.usermanagement.GetFollowersResponseDto;
-import com.recipe_manager.model.dto.external.usermanagement.UserPreferenceResponseDto;
+import com.recipe_manager.model.dto.external.usermanagement.UserPreferencesDto;
 import com.recipe_manager.model.dto.recipe.RecipeDto;
 import com.recipe_manager.model.dto.recipe.RecipeFavoriteDto;
 import com.recipe_manager.model.dto.response.SearchRecipesResponse;
@@ -226,11 +226,10 @@ public class FavoriteService {
       throws AccessDeniedException {
 
     // Get user preferences from user-management-service
-    UserPreferenceResponseDto preferences = userManagementClient.getUserPreferences();
+    UserPreferencesDto preferences = userManagementClient.getUserPreferences(targetUserId);
 
     // Extract profile visibility
-    ProfileVisibilityEnum visibility =
-        preferences.getPreferences().getPrivacyPreferences().getProfileVisibility();
+    ProfileVisibilityEnum visibility = preferences.getPrivacy().getProfileVisibility();
 
     // PUBLIC: Anyone can view
     if (visibility == ProfileVisibilityEnum.PUBLIC) {

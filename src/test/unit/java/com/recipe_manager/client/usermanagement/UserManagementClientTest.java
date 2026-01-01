@@ -163,38 +163,37 @@ class UserManagementClientTest {
   @Tag("standard-processing")
   @DisplayName("getUserPreferences should have correct annotations")
   void getUserPreferencesShouldHaveCorrectAnnotations() throws NoSuchMethodException {
-    java.lang.reflect.Method method = UserManagementClient.class.getDeclaredMethod(
-        "getUserPreferences"
-    );
+    java.lang.reflect.Method method =
+        UserManagementClient.class.getDeclaredMethod("getUserPreferences", java.util.UUID.class);
 
     assertThat(method).isNotNull();
 
     // Should have @GetMapping annotation
-    boolean hasGetMapping = java.util.Arrays.stream(method.getAnnotations())
-        .anyMatch(annotation -> annotation.annotationType().getSimpleName().equals("GetMapping"));
+    boolean hasGetMapping =
+        java.util.Arrays.stream(method.getAnnotations())
+            .anyMatch(
+                annotation -> annotation.annotationType().getSimpleName().equals("GetMapping"));
     assertThat(hasGetMapping).isTrue();
   }
 
   @Test
   @Tag("standard-processing")
-  @DisplayName("getUserPreferences should return UserPreferenceResponseDto")
+  @DisplayName("getUserPreferences should return UserPreferencesDto")
   void getUserPreferencesShouldReturnCorrectType() throws NoSuchMethodException {
-    java.lang.reflect.Method method = UserManagementClient.class.getDeclaredMethod(
-        "getUserPreferences"
-    );
+    java.lang.reflect.Method method =
+        UserManagementClient.class.getDeclaredMethod("getUserPreferences", java.util.UUID.class);
 
-    assertThat(method.getReturnType().getSimpleName())
-        .isEqualTo("UserPreferenceResponseDto");
+    assertThat(method.getReturnType().getSimpleName()).isEqualTo("UserPreferencesDto");
   }
 
   @Test
   @Tag("standard-processing")
-  @DisplayName("getUserPreferences should have no parameters")
-  void getUserPreferencesShouldHaveNoParameters() throws NoSuchMethodException {
-    java.lang.reflect.Method method = UserManagementClient.class.getDeclaredMethod(
-        "getUserPreferences"
-    );
+  @DisplayName("getUserPreferences should have userId parameter")
+  void getUserPreferencesShouldHaveUserIdParameter() throws NoSuchMethodException {
+    java.lang.reflect.Method method =
+        UserManagementClient.class.getDeclaredMethod("getUserPreferences", java.util.UUID.class);
 
-    assertThat(method.getParameterCount()).isEqualTo(0);
+    assertThat(method.getParameterCount()).isEqualTo(1);
+    assertThat(method.getParameterTypes()[0]).isEqualTo(java.util.UUID.class);
   }
 }

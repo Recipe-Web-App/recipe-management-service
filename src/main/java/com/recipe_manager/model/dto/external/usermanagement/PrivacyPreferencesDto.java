@@ -1,5 +1,7 @@
 package com.recipe_manager.model.dto.external.usermanagement;
 
+import java.time.OffsetDateTime;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.recipe_manager.model.enums.ProfileVisibilityEnum;
 
@@ -34,22 +36,30 @@ public class PrivacyPreferencesDto {
    *   <li>PRIVATE: Only the user themselves can view
    * </ul>
    */
-  @JsonProperty("profile_visibility")
+  @JsonProperty("profileVisibility")
   private ProfileVisibilityEnum profileVisibility;
 
-  /** Whether to show the user's email address on their profile. */
-  @JsonProperty("show_email")
-  private Boolean showEmail;
+  /** Visibility level for user's recipes. */
+  @JsonProperty("recipeVisibility")
+  private ProfileVisibilityEnum recipeVisibility;
 
-  /** Whether to show the user's full name on their profile. */
-  @JsonProperty("show_full_name")
-  private Boolean showFullName;
+  /** Visibility level for user's activity. */
+  @JsonProperty("activityVisibility")
+  private ProfileVisibilityEnum activityVisibility;
 
-  /** Whether to allow other users to follow this user. */
-  @JsonProperty("allow_follows")
-  private Boolean allowFollows;
+  /** Visibility level for user's contact information. */
+  @JsonProperty("contactInfoVisibility")
+  private ProfileVisibilityEnum contactInfoVisibility;
 
-  /** Whether to allow other users to send messages to this user. */
-  @JsonProperty("allow_messages")
-  private Boolean allowMessages;
+  /** Whether to allow data sharing with partners. */
+  @JsonProperty("dataSharing")
+  private Boolean dataSharing;
+
+  /** Whether to allow analytics tracking. */
+  @JsonProperty("analyticsTracking")
+  private Boolean analyticsTracking;
+
+  /** Last update timestamp. */
+  @JsonProperty("updatedAt")
+  private OffsetDateTime updatedAt;
 }

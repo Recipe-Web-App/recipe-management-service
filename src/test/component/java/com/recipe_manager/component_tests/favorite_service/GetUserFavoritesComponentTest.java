@@ -36,19 +36,15 @@ import com.recipe_manager.client.usermanagement.UserManagementClient;
 import com.recipe_manager.component_tests.AbstractComponentTest;
 import com.recipe_manager.controller.FavoriteController;
 import com.recipe_manager.exception.GlobalExceptionHandler;
-import com.recipe_manager.model.dto.external.usermanagement.DisplayPreferencesDto;
 import com.recipe_manager.model.dto.external.usermanagement.GetFollowersResponseDto;
-import com.recipe_manager.model.dto.external.usermanagement.NotificationPreferencesDto;
 import com.recipe_manager.model.dto.external.usermanagement.PrivacyPreferencesDto;
 import com.recipe_manager.model.dto.external.usermanagement.UserDto;
-import com.recipe_manager.model.dto.external.usermanagement.UserPreferenceResponseDto;
 import com.recipe_manager.model.dto.external.usermanagement.UserPreferencesDto;
 import com.recipe_manager.model.dto.recipe.RecipeDto;
 import com.recipe_manager.model.entity.recipe.Recipe;
 import com.recipe_manager.model.entity.recipe.RecipeFavorite;
 import com.recipe_manager.model.entity.recipe.RecipeFavoriteId;
 import com.recipe_manager.model.enums.ProfileVisibilityEnum;
-import com.recipe_manager.model.enums.ThemeEnum;
 import com.recipe_manager.model.mapper.RecipeFavoriteMapper;
 import com.recipe_manager.model.mapper.RecipeMapper;
 import com.recipe_manager.repository.recipe.RecipeFavoriteRepository;
@@ -143,7 +139,7 @@ class GetUserFavoritesComponentTest extends AbstractComponentTest {
           .andExpect(jsonPath("$.totalElements").value(2));
     }
 
-    verify(userManagementClient, never()).getUserPreferences();
+    verify(userManagementClient, never()).getUserPreferences(any());
   }
 
   @Test
@@ -168,7 +164,7 @@ class GetUserFavoritesComponentTest extends AbstractComponentTest {
           .andExpect(jsonPath("$.recipes.length()").value(1));
     }
 
-    verify(userManagementClient, never()).getUserPreferences();
+    verify(userManagementClient, never()).getUserPreferences(any());
   }
 
   @Test
@@ -204,7 +200,7 @@ class GetUserFavoritesComponentTest extends AbstractComponentTest {
         .thenReturn(favoritesPage);
     when(testRecipeMapper.toDto(any(Recipe.class)))
         .thenAnswer(inv -> createTestRecipeDto(inv.getArgument(0, Recipe.class).getRecipeId()));
-    when(userManagementClient.getUserPreferences())
+    when(userManagementClient.getUserPreferences(otherUserId))
         .thenReturn(createUserPreferences(ProfileVisibilityEnum.PUBLIC));
 
     try (MockedStatic<SecurityUtils> mock = Mockito.mockStatic(SecurityUtils.class)) {
@@ -216,7 +212,7 @@ class GetUserFavoritesComponentTest extends AbstractComponentTest {
           .andExpect(jsonPath("$.recipes.length()").value(1));
     }
 
-    verify(userManagementClient).getUserPreferences();
+    verify(userManagementClient).getUserPreferences(otherUserId);
   }
 
   @Test
@@ -231,7 +227,7 @@ class GetUserFavoritesComponentTest extends AbstractComponentTest {
         .thenReturn(favoritesPage);
     when(testRecipeMapper.toDto(any(Recipe.class)))
         .thenAnswer(inv -> createTestRecipeDto(inv.getArgument(0, Recipe.class).getRecipeId()));
-    when(userManagementClient.getUserPreferences())
+    when(userManagementClient.getUserPreferences(otherUserId))
         .thenReturn(createUserPreferences(ProfileVisibilityEnum.FRIENDS_ONLY));
     when(userManagementClient.getFollowers(eq(otherUserId), isNull(), isNull(), eq(false)))
         .thenReturn(createFollowersResponse(testUserId));
@@ -253,7 +249,7 @@ class GetUserFavoritesComponentTest extends AbstractComponentTest {
   void shouldDenyNonFollowerAccessToFriendsOnly() throws Exception {
     UUID differentUser = UUID.randomUUID();
 
-    when(userManagementClient.getUserPreferences())
+    when(userManagementClient.getUserPreferences(otherUserId))
         .thenReturn(createUserPreferences(ProfileVisibilityEnum.FRIENDS_ONLY));
     when(userManagementClient.getFollowers(eq(otherUserId), any(), any(), anyBoolean()))
         .thenReturn(createFollowersResponse(differentUser));
@@ -273,7 +269,7 @@ class GetUserFavoritesComponentTest extends AbstractComponentTest {
   @Tag("error-handling")
   @DisplayName("Should deny access to PRIVATE user favorites")
   void shouldDenyAccessToPrivateUserFavorites() throws Exception {
-    when(userManagementClient.getUserPreferences())
+    when(userManagementClient.getUserPreferences(otherUserId))
         .thenReturn(createUserPreferences(ProfileVisibilityEnum.PRIVATE));
 
     try (MockedStatic<SecurityUtils> mock = Mockito.mockStatic(SecurityUtils.class)) {
@@ -388,19 +384,13 @@ class GetUserFavoritesComponentTest extends AbstractComponentTest {
     return RecipeFavorite.builder().id(id).recipe(recipe).favoritedAt(LocalDateTime.now()).build();
   }
 
-  private UserPreferenceResponseDto createUserPreferences(ProfileVisibilityEnum visibility) {
+  private UserPreferencesDto createUserPreferences(ProfileVisibilityEnum visibility) {
     PrivacyPreferencesDto privacy =
         PrivacyPreferencesDto.builder().profileVisibility(visibility).build();
-    NotificationPreferencesDto notification =
-        NotificationPreferencesDto.builder().emailNotifications(true).build();
-    DisplayPreferencesDto display = DisplayPreferencesDto.builder().theme(ThemeEnum.LIGHT).build();
-    UserPreferencesDto prefs =
-        UserPreferencesDto.builder()
-            .privacyPreferences(privacy)
-            .notificationPreferences(notification)
-            .displayPreferences(display)
-            .build();
-    return UserPreferenceResponseDto.builder().preferences(prefs).build();
+    return UserPreferencesDto.builder()
+        .userId(otherUserId)
+        .privacy(privacy)
+        .build();
   }
 
   private GetFollowersResponseDto createFollowersResponse(UUID followerId) {

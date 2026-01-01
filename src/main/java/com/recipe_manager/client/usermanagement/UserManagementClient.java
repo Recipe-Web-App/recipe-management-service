@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import com.recipe_manager.client.common.FeignClientConfig;
 import com.recipe_manager.model.dto.external.usermanagement.GetFollowersResponseDto;
-import com.recipe_manager.model.dto.external.usermanagement.UserPreferenceResponseDto;
+import com.recipe_manager.model.dto.external.usermanagement.UserPreferencesDto;
 
 /**
  * Feign client for user-management service. Provides declarative HTTP client interface for
@@ -44,16 +44,16 @@ public interface UserManagementClient {
    * @param countOnly return only the count of results (default: false)
    * @return response containing follower list and pagination information
    */
-  @GetMapping("/user-management/users/{user_id}/followers")
+  @GetMapping("/users/{userId}/followers")
   GetFollowersResponseDto getFollowers(
-      @PathVariable("user_id") UUID userId,
+      @PathVariable("userId") UUID userId,
       @RequestParam(value = "limit", required = false) Integer limit,
       @RequestParam(value = "offset", required = false) Integer offset,
-      @RequestParam(value = "count_only", required = false) Boolean countOnly);
+      @RequestParam(value = "countOnly", required = false) Boolean countOnly);
 
   /**
-   * Get user preferences for the authenticated user. Retrieves notification, privacy, and display
-   * preferences from the user-management service.
+   * Get user preferences for a specific user. Retrieves privacy preferences from the
+   * user-management service.
    *
    * <p>Privacy preferences are critical for enforcing access control on user-specific data like
    * favorite recipes. The profileVisibility field determines who can view the user's favorites:
@@ -64,11 +64,11 @@ public interface UserManagementClient {
    *   <li>PRIVATE: Only the user themselves can view
    * </ul>
    *
-   * <p>Requires OAuth2 Bearer token authentication. The user ID is extracted from the authenticated
-   * request context.
+   * <p>Requires OAuth2 Bearer token authentication.
    *
-   * @return user preferences including notification, privacy, and display settings
+   * @param userId the ID of the user whose preferences to retrieve
+   * @return user preferences including privacy settings
    */
-  @GetMapping("/user-management/notifications/preferences")
-  UserPreferenceResponseDto getUserPreferences();
+  @GetMapping("/users/{userId}/preferences")
+  UserPreferencesDto getUserPreferences(@PathVariable("userId") UUID userId);
 }

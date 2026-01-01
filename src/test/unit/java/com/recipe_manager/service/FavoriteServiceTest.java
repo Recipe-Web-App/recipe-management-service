@@ -36,12 +36,9 @@ import org.springframework.http.ResponseEntity;
 import com.recipe_manager.client.usermanagement.UserManagementClient;
 import com.recipe_manager.exception.BusinessException;
 import com.recipe_manager.exception.ResourceNotFoundException;
-import com.recipe_manager.model.dto.external.usermanagement.DisplayPreferencesDto;
 import com.recipe_manager.model.dto.external.usermanagement.GetFollowersResponseDto;
-import com.recipe_manager.model.dto.external.usermanagement.NotificationPreferencesDto;
 import com.recipe_manager.model.dto.external.usermanagement.PrivacyPreferencesDto;
 import com.recipe_manager.model.dto.external.usermanagement.UserDto;
-import com.recipe_manager.model.dto.external.usermanagement.UserPreferenceResponseDto;
 import com.recipe_manager.model.dto.external.usermanagement.UserPreferencesDto;
 import com.recipe_manager.model.dto.recipe.RecipeDto;
 import com.recipe_manager.model.dto.recipe.RecipeFavoriteDto;
@@ -50,7 +47,6 @@ import com.recipe_manager.model.entity.recipe.Recipe;
 import com.recipe_manager.model.entity.recipe.RecipeFavorite;
 import com.recipe_manager.model.entity.recipe.RecipeFavoriteId;
 import com.recipe_manager.model.enums.ProfileVisibilityEnum;
-import com.recipe_manager.model.enums.ThemeEnum;
 import com.recipe_manager.model.mapper.RecipeFavoriteMapper;
 import com.recipe_manager.model.mapper.RecipeMapper;
 import com.recipe_manager.repository.recipe.RecipeFavoriteRepository;
@@ -122,7 +118,7 @@ class FavoriteServiceTest {
     assertThat(response.getBody()).isNotNull();
     assertThat(response.getBody().getRecipes()).hasSize(1);
     verify(recipeFavoriteRepository).findByUserIdWithRecipe(authenticatedUserId, pageable);
-    verify(userManagementClient, never()).getUserPreferences();
+    verify(userManagementClient, never()).getUserPreferences(any());
   }
 
   @Test
@@ -135,12 +131,12 @@ class FavoriteServiceTest {
     Page<RecipeFavorite> favoritesPage = new PageImpl<>(favorites, pageable, 1);
 
     RecipeDto recipeDto = createTestRecipeDto(101L);
-    UserPreferenceResponseDto preferences = createUserPreferences(ProfileVisibilityEnum.PUBLIC);
+    UserPreferencesDto preferences = createUserPreferences(ProfileVisibilityEnum.PUBLIC);
 
     when(recipeFavoriteRepository.findByUserIdWithRecipe(targetUserId, pageable))
         .thenReturn(favoritesPage);
     when(recipeMapper.toDto(any(Recipe.class))).thenReturn(recipeDto);
-    when(userManagementClient.getUserPreferences()).thenReturn(preferences);
+    when(userManagementClient.getUserPreferences(targetUserId)).thenReturn(preferences);
 
     // When
     ResponseEntity<SearchRecipesResponse> response;
@@ -153,7 +149,7 @@ class FavoriteServiceTest {
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
     assertThat(response.getBody()).isNotNull();
     assertThat(response.getBody().getRecipes()).hasSize(1);
-    verify(userManagementClient).getUserPreferences();
+    verify(userManagementClient).getUserPreferences(targetUserId);
     verify(recipeFavoriteRepository).findByUserIdWithRecipe(targetUserId, pageable);
   }
 
@@ -163,9 +159,9 @@ class FavoriteServiceTest {
   void shouldDenyAccessToPrivateUserFavorites() {
     // Given
     Pageable pageable = PageRequest.of(0, 20);
-    UserPreferenceResponseDto preferences = createUserPreferences(ProfileVisibilityEnum.PRIVATE);
+    UserPreferencesDto preferences = createUserPreferences(ProfileVisibilityEnum.PRIVATE);
 
-    when(userManagementClient.getUserPreferences()).thenReturn(preferences);
+    when(userManagementClient.getUserPreferences(targetUserId)).thenReturn(preferences);
 
     // When / Then
     try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
@@ -176,7 +172,7 @@ class FavoriteServiceTest {
           .hasMessageContaining("User's favorites are private");
     }
 
-    verify(userManagementClient).getUserPreferences();
+    verify(userManagementClient).getUserPreferences(targetUserId);
     verify(recipeFavoriteRepository, never()).findByUserIdWithRecipe(any(), any());
   }
 
@@ -190,14 +186,13 @@ class FavoriteServiceTest {
     Page<RecipeFavorite> favoritesPage = new PageImpl<>(favorites, pageable, 1);
 
     RecipeDto recipeDto = createTestRecipeDto(101L);
-    UserPreferenceResponseDto preferences =
-        createUserPreferences(ProfileVisibilityEnum.FRIENDS_ONLY);
+    UserPreferencesDto preferences = createUserPreferences(ProfileVisibilityEnum.FRIENDS_ONLY);
     GetFollowersResponseDto followers = createFollowersResponse(authenticatedUserId);
 
     when(recipeFavoriteRepository.findByUserIdWithRecipe(targetUserId, pageable))
         .thenReturn(favoritesPage);
     when(recipeMapper.toDto(any(Recipe.class))).thenReturn(recipeDto);
-    when(userManagementClient.getUserPreferences()).thenReturn(preferences);
+    when(userManagementClient.getUserPreferences(targetUserId)).thenReturn(preferences);
     when(userManagementClient.getFollowers(eq(targetUserId), any(), any(), anyBoolean()))
         .thenReturn(followers);
 
@@ -212,7 +207,7 @@ class FavoriteServiceTest {
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
     assertThat(response.getBody()).isNotNull();
     assertThat(response.getBody().getRecipes()).hasSize(1);
-    verify(userManagementClient).getUserPreferences();
+    verify(userManagementClient).getUserPreferences(targetUserId);
     verify(userManagementClient).getFollowers(targetUserId, null, null, false);
   }
 
@@ -222,12 +217,11 @@ class FavoriteServiceTest {
   void shouldDenyNonFollowerAccessToFriendsOnlyFavorites() {
     // Given
     Pageable pageable = PageRequest.of(0, 20);
-    UserPreferenceResponseDto preferences =
-        createUserPreferences(ProfileVisibilityEnum.FRIENDS_ONLY);
+    UserPreferencesDto preferences = createUserPreferences(ProfileVisibilityEnum.FRIENDS_ONLY);
     GetFollowersResponseDto followers =
         createFollowersResponse(UUID.randomUUID()); // Different user
 
-    when(userManagementClient.getUserPreferences()).thenReturn(preferences);
+    when(userManagementClient.getUserPreferences(targetUserId)).thenReturn(preferences);
     when(userManagementClient.getFollowers(eq(targetUserId), any(), any(), anyBoolean()))
         .thenReturn(followers);
 
@@ -240,7 +234,7 @@ class FavoriteServiceTest {
           .hasMessageContaining("Only followers can view them");
     }
 
-    verify(userManagementClient).getUserPreferences();
+    verify(userManagementClient).getUserPreferences(targetUserId);
     verify(userManagementClient).getFollowers(targetUserId, null, null, false);
     verify(recipeFavoriteRepository, never()).findByUserIdWithRecipe(any(), any());
   }
@@ -464,23 +458,14 @@ class FavoriteServiceTest {
         .build();
   }
 
-  private UserPreferenceResponseDto createUserPreferences(ProfileVisibilityEnum visibility) {
+  private UserPreferencesDto createUserPreferences(ProfileVisibilityEnum visibility) {
     PrivacyPreferencesDto privacyPrefs =
         PrivacyPreferencesDto.builder().profileVisibility(visibility).build();
 
-    NotificationPreferencesDto notificationPrefs =
-        NotificationPreferencesDto.builder().emailNotifications(true).build();
-
-    DisplayPreferencesDto displayPrefs = DisplayPreferencesDto.builder().theme(ThemeEnum.LIGHT).build();
-
-    UserPreferencesDto preferences =
-        UserPreferencesDto.builder()
-            .privacyPreferences(privacyPrefs)
-            .notificationPreferences(notificationPrefs)
-            .displayPreferences(displayPrefs)
-            .build();
-
-    return UserPreferenceResponseDto.builder().preferences(preferences).build();
+    return UserPreferencesDto.builder()
+        .userId(targetUserId)
+        .privacy(privacyPrefs)
+        .build();
   }
 
   private GetFollowersResponseDto createFollowersResponse(UUID followerId) {

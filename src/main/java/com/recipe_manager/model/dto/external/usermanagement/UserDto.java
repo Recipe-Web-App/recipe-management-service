@@ -1,5 +1,6 @@
 package com.recipe_manager.model.dto.external.usermanagement;
 
+import java.time.OffsetDateTime;
 import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -12,7 +13,7 @@ import lombok.NoArgsConstructor;
 /**
  * Data Transfer Object representing a user from the user-management service.
  *
- * <p>Contains minimal user information needed for notification purposes.
+ * <p>Contains user information needed for notification and display purposes.
  */
 @Data
 @Builder
@@ -36,7 +37,19 @@ public class UserDto {
   @JsonProperty("fullName")
   private String fullName;
 
+  /** User's biography or description (nullable). */
+  @JsonProperty("bio")
+  private String bio;
+
   /** Whether the user account is active. */
   @JsonProperty("isActive")
   private Boolean isActive;
+
+  /** Timestamp when the user account was created. */
+  @JsonProperty("createdAt")
+  private OffsetDateTime createdAt;
+
+  /** Timestamp when the user account was last updated. */
+  @JsonProperty("updatedAt")
+  private OffsetDateTime updatedAt;
 }

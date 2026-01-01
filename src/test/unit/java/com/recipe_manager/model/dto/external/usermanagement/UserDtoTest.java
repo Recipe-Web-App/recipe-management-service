@@ -180,14 +180,19 @@ class UserDtoTest {
   @DisplayName("Should support all-args constructor")
   void shouldSupportAllArgsConstructor() {
     UUID userId = UUID.randomUUID();
+    java.time.OffsetDateTime now = java.time.OffsetDateTime.now();
 
-    UserDto dto = new UserDto(userId, "testuser", "test@example.com", "Test User", true);
+    UserDto dto =
+        new UserDto(userId, "testuser", "test@example.com", "Test User", "A bio", true, now, now);
 
     assertThat(dto.getUserId()).isEqualTo(userId);
     assertThat(dto.getUsername()).isEqualTo("testuser");
     assertThat(dto.getEmail()).isEqualTo("test@example.com");
     assertThat(dto.getFullName()).isEqualTo("Test User");
+    assertThat(dto.getBio()).isEqualTo("A bio");
     assertThat(dto.getIsActive()).isTrue();
+    assertThat(dto.getCreatedAt()).isEqualTo(now);
+    assertThat(dto.getUpdatedAt()).isEqualTo(now);
   }
 
   @Test

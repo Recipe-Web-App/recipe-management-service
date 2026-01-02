@@ -8,6 +8,9 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.Optional;
+
+import com.recipe_manager.security.DevAuthenticationFilter;
 import com.recipe_manager.security.JwtAuthenticationFilter;
 import com.recipe_manager.security.ServiceAuthenticationFilter;
 
@@ -38,7 +41,7 @@ class SecurityConfigTest {
     JwtAuthenticationFilter jwtFilter = mock(JwtAuthenticationFilter.class);
     ServiceAuthenticationFilter serviceFilter = mock(ServiceAuthenticationFilter.class);
 
-    assertNotNull(config.filterChain(http, jwtFilter, serviceFilter));
+    assertNotNull(config.filterChain(http, jwtFilter, serviceFilter, Optional.empty()));
   }
 
   @Test
@@ -115,7 +118,7 @@ class SecurityConfigTest {
 
     when(http.build()).thenReturn(filterChain);
 
-    SecurityFilterChain result = config.filterChain(http, jwtFilter, serviceFilter);
+    SecurityFilterChain result = config.filterChain(http, jwtFilter, serviceFilter, Optional.empty());
     assertNotNull(result);
     verify(http).build();
   }
@@ -131,7 +134,7 @@ class SecurityConfigTest {
 
     when(http.build()).thenReturn(mock(DefaultSecurityFilterChain.class));
 
-    SecurityFilterChain result = config.filterChain(http, jwtFilter, serviceFilter);
+    SecurityFilterChain result = config.filterChain(http, jwtFilter, serviceFilter, Optional.empty());
     assertNotNull(result);
 
     // Verify that build was called at the end

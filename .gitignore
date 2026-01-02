@@ -28,7 +28,7 @@ replay_pid*
 tmp/
 
 # .env file
-.env
+.env*
 !.env.example
 
 # Build files

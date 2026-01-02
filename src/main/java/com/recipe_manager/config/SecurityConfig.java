@@ -2,6 +2,7 @@ package com.recipe_manager.config;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,6 +19,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import com.recipe_manager.security.DevAuthenticationFilter;
 import com.recipe_manager.security.JwtAuthenticationFilter;
 import com.recipe_manager.security.ServiceAuthenticationFilter;
 
@@ -49,13 +51,15 @@ public class SecurityConfig {
    * @param http The HttpSecurity object to configure
    * @param jwtAuthFilter The JWT authentication filter
    * @param serviceAuthFilter The service authentication filter
+   * @param devAuthFilter Optional dev authentication filter (only present when OAuth2 disabled)
    * @return Configured SecurityFilterChain
    */
   @Bean
   public SecurityFilterChain filterChain(
       final HttpSecurity http,
       final JwtAuthenticationFilter jwtAuthFilter,
-      final ServiceAuthenticationFilter serviceAuthFilter) {
+      final ServiceAuthenticationFilter serviceAuthFilter,
+      final Optional<DevAuthenticationFilter> devAuthFilter) {
     http
         // Disable CSRF for API endpoints
         .csrf(AbstractHttpConfigurer::disable)
@@ -89,6 +93,10 @@ public class SecurityConfig {
         .addFilterBefore(serviceAuthFilter, UsernamePasswordAuthenticationFilter.class)
         // Add JWT filter after service auth filter
         .addFilterAfter(jwtAuthFilter, ServiceAuthenticationFilter.class);
+
+    // Add dev auth filter first if present (only when OAuth2 is disabled)
+    devAuthFilter.ifPresent(
+        filter -> http.addFilterBefore(filter, ServiceAuthenticationFilter.class));
 
     return http.build();
   }

@@ -44,7 +44,7 @@ class CollectionCollaboratorMapperTest {
         CollectionCollaborator.builder().id(id).grantedBy(grantedBy).grantedAt(now).build();
 
     CollectionCollaboratorDto result =
-        collectionCollaboratorMapper.toDto(collaborator, username, grantedByUsername);
+        collectionCollaboratorMapper.toDtoWithUsernames(collaborator, username, grantedByUsername);
 
     assertThat(result).isNotNull();
     assertThat(result.getCollectionId()).isEqualTo(1L);
@@ -59,7 +59,7 @@ class CollectionCollaboratorMapperTest {
   @DisplayName("Should handle null CollectionCollaborator entity")
   void shouldHandleNullCollectionCollaboratorEntity() {
     CollectionCollaboratorDto result =
-        collectionCollaboratorMapper.toDto(null, "test_user", "granted_user");
+        collectionCollaboratorMapper.toDtoWithUsernames(null, "test_user", "granted_user");
     assertThat(result).isNull();
   }
 
@@ -75,7 +75,7 @@ class CollectionCollaboratorMapperTest {
         CollectionCollaborator.builder().id(id).grantedBy(grantedBy).build();
 
     CollectionCollaboratorDto result =
-        collectionCollaboratorMapper.toDto(collaborator, null, "granted_user");
+        collectionCollaboratorMapper.toDtoWithUsernames(collaborator, null, "granted_user");
 
     assertThat(result).isNotNull();
     assertThat(result.getUsername()).isNull();
@@ -93,7 +93,7 @@ class CollectionCollaboratorMapperTest {
         CollectionCollaborator.builder().id(id).grantedBy(UUID.randomUUID()).build();
 
     CollectionCollaboratorDto result =
-        collectionCollaboratorMapper.toDto(collaborator, "jane_smith", "owner_user");
+        collectionCollaboratorMapper.toDtoWithUsernames(collaborator, "jane_smith", "owner_user");
 
     assertThat(result.getCollectionId()).isEqualTo(5L);
     assertThat(result.getUserId()).isEqualTo(userId);
@@ -104,7 +104,7 @@ class CollectionCollaboratorMapperTest {
   @Test
   @DisplayName("Should handle both null parameters")
   void shouldHandleBothNull() {
-    CollectionCollaboratorDto result = collectionCollaboratorMapper.toDto(null, null, null);
+    CollectionCollaboratorDto result = collectionCollaboratorMapper.toDtoWithUsernames(null, null, null);
     assertThat(result).isNull();
   }
 
@@ -120,7 +120,7 @@ class CollectionCollaboratorMapperTest {
         CollectionCollaborator.builder().id(id).grantedBy(grantedBy).build();
 
     CollectionCollaboratorDto result =
-        collectionCollaboratorMapper.toDto(collaborator, "test_user", null);
+        collectionCollaboratorMapper.toDtoWithUsernames(collaborator, "test_user", null);
 
     assertThat(result).isNotNull();
     assertThat(result.getUsername()).isEqualTo("test_user");

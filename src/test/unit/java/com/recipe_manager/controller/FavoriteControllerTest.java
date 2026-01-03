@@ -359,14 +359,19 @@ class FavoriteControllerTest {
     verify(favoriteService).isFavorited(testRecipeId);
   }
 
-  // ==================== Collection Favorites Placeholder Tests ====================
+  // ==================== Collection Favorites Tests ====================
 
   @Test
-  @DisplayName("Should return empty page for getFavoriteCollections placeholder")
+  @DisplayName("Should delegate getFavoriteCollections to service with userId")
   @Tag("standard-processing")
-  void shouldReturnEmptyPageForGetFavoriteCollectionsPlaceholder() throws AccessDeniedException {
+  void shouldDelegateGetFavoriteCollectionsToServiceWithUserId() throws AccessDeniedException {
     // Given
     Pageable pageable = PageRequest.of(0, 20);
+    Page<CollectionDto> emptyPage = Page.empty(pageable);
+    ResponseEntity<Page<CollectionDto>> expectedResponse = ResponseEntity.ok(emptyPage);
+
+    when(favoriteService.getFavoriteCollections(eq(testUserId), any(Pageable.class)))
+        .thenReturn(expectedResponse);
 
     // When
     ResponseEntity<Page<CollectionDto>> result =
@@ -375,17 +380,20 @@ class FavoriteControllerTest {
     // Then
     assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
     assertThat(result.getBody()).isNotNull();
-    assertThat(result.getBody().isEmpty()).isTrue();
-    assertThat(result.getBody().getTotalElements()).isZero();
+    verify(favoriteService).getFavoriteCollections(testUserId, pageable);
   }
 
   @Test
-  @DisplayName("Should return empty page for getFavoriteCollections with null userId")
+  @DisplayName("Should delegate getFavoriteCollections to service with null userId")
   @Tag("standard-processing")
-  void shouldReturnEmptyPageForGetFavoriteCollectionsWithNullUserId()
-      throws AccessDeniedException {
+  void shouldDelegateGetFavoriteCollectionsToServiceWithNullUserId() throws AccessDeniedException {
     // Given
     Pageable pageable = PageRequest.of(0, 20);
+    Page<CollectionDto> emptyPage = Page.empty(pageable);
+    ResponseEntity<Page<CollectionDto>> expectedResponse = ResponseEntity.ok(emptyPage);
+
+    when(favoriteService.getFavoriteCollections(eq(null), any(Pageable.class)))
+        .thenReturn(expectedResponse);
 
     // When
     ResponseEntity<Page<CollectionDto>> result =
@@ -393,16 +401,20 @@ class FavoriteControllerTest {
 
     // Then
     assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
-    assertThat(result.getBody()).isNotNull();
-    assertThat(result.getBody().isEmpty()).isTrue();
+    verify(favoriteService).getFavoriteCollections(null, pageable);
   }
 
   @Test
-  @DisplayName("Should return 201 Created with null body for favoriteCollection placeholder")
+  @DisplayName("Should delegate favoriteCollection to service and return 201 Created")
   @Tag("standard-processing")
-  void shouldReturn201CreatedForFavoriteCollectionPlaceholder() {
+  void shouldDelegateFavoriteCollectionToService() throws AccessDeniedException {
     // Given
     Long testCollectionId = 301L;
+    CollectionFavoriteDto favoriteDto = createTestCollectionFavoriteDto(testCollectionId);
+    ResponseEntity<CollectionFavoriteDto> expectedResponse =
+        ResponseEntity.status(HttpStatus.CREATED).body(favoriteDto);
+
+    when(favoriteService.favoriteCollection(testCollectionId)).thenReturn(expectedResponse);
 
     // When
     ResponseEntity<CollectionFavoriteDto> result =
@@ -410,15 +422,20 @@ class FavoriteControllerTest {
 
     // Then
     assertThat(result.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-    assertThat(result.getBody()).isNull();
+    assertThat(result.getBody()).isNotNull();
+    assertThat(result.getBody().getCollectionId()).isEqualTo(testCollectionId);
+    verify(favoriteService).favoriteCollection(testCollectionId);
   }
 
   @Test
-  @DisplayName("Should return 204 No Content for unfavoriteCollection placeholder")
+  @DisplayName("Should delegate unfavoriteCollection to service and return 204 No Content")
   @Tag("standard-processing")
-  void shouldReturn204NoContentForUnfavoriteCollectionPlaceholder() {
+  void shouldDelegateUnfavoriteCollectionToService() {
     // Given
     Long testCollectionId = 301L;
+    ResponseEntity<Void> expectedResponse = ResponseEntity.noContent().build();
+
+    when(favoriteService.unfavoriteCollection(testCollectionId)).thenReturn(expectedResponse);
 
     // When
     ResponseEntity<Void> result = favoriteController.unfavoriteCollection(testCollectionId);
@@ -426,14 +443,37 @@ class FavoriteControllerTest {
     // Then
     assertThat(result.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
     assertThat(result.getBody()).isNull();
+    verify(favoriteService).unfavoriteCollection(testCollectionId);
   }
 
   @Test
-  @DisplayName("Should return false for isCollectionFavorited placeholder")
+  @DisplayName("Should delegate isCollectionFavorited to service and return result")
   @Tag("standard-processing")
-  void shouldReturnFalseForIsCollectionFavoritedPlaceholder() {
+  void shouldDelegateIsCollectionFavoritedToService() {
     // Given
     Long testCollectionId = 301L;
+    ResponseEntity<Boolean> expectedResponse = ResponseEntity.ok(true);
+
+    when(favoriteService.isCollectionFavorited(testCollectionId)).thenReturn(expectedResponse);
+
+    // When
+    ResponseEntity<Boolean> result = favoriteController.isCollectionFavorited(testCollectionId);
+
+    // Then
+    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+    assertThat(result.getBody()).isTrue();
+    verify(favoriteService).isCollectionFavorited(testCollectionId);
+  }
+
+  @Test
+  @DisplayName("Should return false when collection is not favorited")
+  @Tag("standard-processing")
+  void shouldReturnFalseWhenCollectionNotFavorited() {
+    // Given
+    Long testCollectionId = 301L;
+    ResponseEntity<Boolean> expectedResponse = ResponseEntity.ok(false);
+
+    when(favoriteService.isCollectionFavorited(testCollectionId)).thenReturn(expectedResponse);
 
     // When
     ResponseEntity<Boolean> result = favoriteController.isCollectionFavorited(testCollectionId);
@@ -441,6 +481,7 @@ class FavoriteControllerTest {
     // Then
     assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
     assertThat(result.getBody()).isFalse();
+    verify(favoriteService).isCollectionFavorited(testCollectionId);
   }
 
   // ==================== Helper Methods ====================
@@ -475,6 +516,14 @@ class FavoriteControllerTest {
                 >= Math.ceil((double) totalElements / pageable.getPageSize()) - 1)
         .numberOfElements(recipes.size())
         .empty(recipes.isEmpty())
+        .build();
+  }
+
+  private CollectionFavoriteDto createTestCollectionFavoriteDto(Long collectionId) {
+    return CollectionFavoriteDto.builder()
+        .userId(testUserId)
+        .collectionId(collectionId)
+        .favoritedAt(LocalDateTime.now())
         .build();
   }
 }

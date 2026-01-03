@@ -22,6 +22,7 @@ import com.recipe_manager.model.mapper.CollectionMapperImpl;
 import com.recipe_manager.model.mapper.RecipeCollectionItemMapper;
 import com.recipe_manager.model.mapper.RecipeCollectionItemMapperImpl;
 import com.recipe_manager.model.mapper.RecipeCollectionMapper;
+import com.recipe_manager.model.mapper.CollectionCollaboratorMapperImpl;
 import com.recipe_manager.model.mapper.RecipeCollectionMapperImpl;
 import com.recipe_manager.repository.collection.CollectionCollaboratorRepository;
 import com.recipe_manager.repository.collection.CollectionSummaryProjection;
@@ -63,7 +64,8 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
     classes = {
       CollectionMapperImpl.class,
       RecipeCollectionMapperImpl.class,
-      RecipeCollectionItemMapperImpl.class
+      RecipeCollectionItemMapperImpl.class,
+      CollectionCollaboratorMapperImpl.class
     })
 @TestPropertySource(
     properties = {

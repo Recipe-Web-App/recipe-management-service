@@ -6,7 +6,6 @@ import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -174,8 +173,7 @@ public class FavoriteController {
       @RequestParam(value = "userId", required = false) final UUID userId,
       @PageableDefault(size = DEFAULT_PAGE_SIZE) final Pageable pageable)
       throws AccessDeniedException {
-    // TODO: Implement service call
-    return ResponseEntity.ok(Page.empty());
+    return favoriteService.getFavoriteCollections(userId, pageable);
   }
 
   /**
@@ -195,9 +193,8 @@ public class FavoriteController {
    */
   @PostMapping(value = "/collections/{collectionId}", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<CollectionFavoriteDto> favoriteCollection(
-      @PathVariable final Long collectionId) {
-    // TODO: Implement service call
-    return ResponseEntity.status(HttpStatus.CREATED).body(null);
+      @PathVariable final Long collectionId) throws AccessDeniedException {
+    return favoriteService.favoriteCollection(collectionId);
   }
 
   /**
@@ -213,8 +210,7 @@ public class FavoriteController {
    */
   @DeleteMapping("/collections/{collectionId}")
   public ResponseEntity<Void> unfavoriteCollection(@PathVariable final Long collectionId) {
-    // TODO: Implement service call
-    return ResponseEntity.noContent().build();
+    return favoriteService.unfavoriteCollection(collectionId);
   }
 
   /**
@@ -230,7 +226,6 @@ public class FavoriteController {
       value = "/collections/{collectionId}/is-favorited",
       produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<Boolean> isCollectionFavorited(@PathVariable final Long collectionId) {
-    // TODO: Implement service call
-    return ResponseEntity.ok(false);
+    return favoriteService.isCollectionFavorited(collectionId);
   }
 }

@@ -62,7 +62,8 @@ import jakarta.persistence.EntityManager;
     classes = {
       com.recipe_manager.model.mapper.CollectionMapperImpl.class,
       com.recipe_manager.model.mapper.RecipeCollectionMapperImpl.class,
-      com.recipe_manager.model.mapper.RecipeCollectionItemMapperImpl.class
+      com.recipe_manager.model.mapper.RecipeCollectionItemMapperImpl.class,
+      com.recipe_manager.model.mapper.CollectionCollaboratorMapperImpl.class
     })
 @TestPropertySource(
     properties = {

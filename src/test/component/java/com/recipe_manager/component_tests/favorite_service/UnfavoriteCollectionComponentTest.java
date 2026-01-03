@@ -24,76 +24,92 @@ import com.recipe_manager.client.usermanagement.UserManagementClient;
 import com.recipe_manager.component_tests.AbstractComponentTest;
 import com.recipe_manager.controller.FavoriteController;
 import com.recipe_manager.exception.GlobalExceptionHandler;
+import com.recipe_manager.model.mapper.CollectionFavoriteMapper;
+import com.recipe_manager.model.mapper.CollectionMapper;
 import com.recipe_manager.model.mapper.RecipeFavoriteMapper;
 import com.recipe_manager.model.mapper.RecipeMapper;
+import com.recipe_manager.repository.collection.CollectionFavoriteRepository;
+import com.recipe_manager.repository.collection.RecipeCollectionRepository;
 import com.recipe_manager.repository.recipe.RecipeFavoriteRepository;
 import com.recipe_manager.service.FavoriteService;
 import com.recipe_manager.util.SecurityUtils;
 
 /**
- * Component tests for removing recipe favorites.
+ * Component tests for removing collection favorites.
  *
- * <p>Tests the DELETE /favorites/recipes/{recipeId} endpoint with real service and mapper logic,
- * mocking only repositories and external dependencies.
+ * <p>Tests the DELETE /favorites/collections/{collectionId} endpoint with real service and mapper
+ * logic, mocking only repositories and external dependencies.
  */
-@SpringBootTest(classes = {
-    com.recipe_manager.model.mapper.RecipeFavoriteMapperImpl.class
-})
-@TestPropertySource(properties = {
-    "spring.datasource.url=jdbc:h2:mem:testdb",
-    "spring.jpa.hibernate.ddl-auto=none",
-    "spring.flyway.enabled=false"
-})
+@SpringBootTest(
+    classes = {
+      com.recipe_manager.model.mapper.RecipeFavoriteMapperImpl.class,
+      com.recipe_manager.model.mapper.CollectionFavoriteMapperImpl.class,
+      com.recipe_manager.model.mapper.CollectionMapperImpl.class
+    })
+@TestPropertySource(
+    properties = {
+      "spring.datasource.url=jdbc:h2:mem:testdb",
+      "spring.jpa.hibernate.ddl-auto=none",
+      "spring.flyway.enabled=false"
+    })
 @Tag("component")
-class RemoveFavoriteComponentTest extends AbstractComponentTest {
+class UnfavoriteCollectionComponentTest extends AbstractComponentTest {
 
   private FavoriteService favoriteService;
   private FavoriteController favoriteController;
 
-  // Fields for dependencies NOT in AbstractComponentTest
+  // Mocked dependencies
   private RecipeFavoriteRepository recipeFavoriteRepository;
   private RecipeMapper testRecipeMapper;
   private UserManagementClient userManagementClient;
+  private CollectionFavoriteRepository collectionFavoriteRepository;
+  private RecipeCollectionRepository recipeCollectionRepository;
 
   @Autowired(required = false)
   private RecipeFavoriteMapper recipeFavoriteMapper;
 
+  @Autowired(required = false)
+  private CollectionFavoriteMapper collectionFavoriteMapper;
+
+  @Autowired(required = false)
+  private CollectionMapper collectionMapper;
+
   private UUID testUserId;
-  private Long testRecipeId;
+  private Long testCollectionId;
 
   @Override
   @BeforeEach
   protected void setUp() {
-    super.setUp(); // MUST call parent setup first
+    super.setUp();
     useRealFavoriteService();
   }
 
   private void useRealFavoriteService() {
     testUserId = UUID.fromString("123e4567-e89b-12d3-a456-426614174000");
-    testRecipeId = 100L;
+    testCollectionId = 200L;
 
-    // Mock dependencies NOT in base class
+    // Mock dependencies
     this.recipeFavoriteRepository = Mockito.mock(RecipeFavoriteRepository.class);
     this.testRecipeMapper = Mockito.mock(RecipeMapper.class);
     this.userManagementClient = Mockito.mock(UserManagementClient.class);
+    this.collectionFavoriteRepository = Mockito.mock(CollectionFavoriteRepository.class);
+    this.recipeCollectionRepository = Mockito.mock(RecipeCollectionRepository.class);
 
-    if (recipeFavoriteMapper == null) {
-      throw new RuntimeException("RecipeFavoriteMapper not available in test context");
+    if (collectionFavoriteMapper == null) {
+      throw new RuntimeException("CollectionFavoriteMapper not available in test context");
     }
 
-    // Create real service with all dependencies (including collection favorites - mocked)
+    // Create real service with all dependencies
     this.favoriteService =
         new FavoriteService(
             recipeFavoriteRepository,
-            recipeRepository, // From AbstractComponentTest
-            Mockito.mock(
-                com.recipe_manager.repository.collection.CollectionFavoriteRepository.class),
-            Mockito.mock(
-                com.recipe_manager.repository.collection.RecipeCollectionRepository.class),
+            recipeRepository,
+            collectionFavoriteRepository,
+            recipeCollectionRepository,
             recipeFavoriteMapper,
-            testRecipeMapper, // Mocked for this test
-            Mockito.mock(com.recipe_manager.model.mapper.CollectionFavoriteMapper.class),
-            Mockito.mock(com.recipe_manager.model.mapper.CollectionMapper.class),
+            testRecipeMapper,
+            collectionFavoriteMapper,
+            collectionMapper,
             userManagementClient);
 
     // Create controller
@@ -108,45 +124,53 @@ class RemoveFavoriteComponentTest extends AbstractComponentTest {
 
   @Test
   @Tag("standard-processing")
-  @DisplayName("Should remove favorite successfully and return 204 No Content")
-  void shouldRemoveFavoriteSuccessfully() throws Exception {
+  @DisplayName("Should remove collection favorite successfully and return 204 No Content")
+  void shouldRemoveCollectionFavoriteSuccessfully() throws Exception {
     // Given
-    when(recipeFavoriteRepository.existsByIdUserIdAndIdRecipeId(testUserId, testRecipeId))
+    when(collectionFavoriteRepository.existsByIdUserIdAndIdCollectionId(
+            testUserId, testCollectionId))
         .thenReturn(true);
 
     // When/Then
-    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+    try (MockedStatic<SecurityUtils> securityUtilsMock =
+        Mockito.mockStatic(SecurityUtils.class)) {
       securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
 
       mockMvc
-          .perform(delete("/favorites/recipes/{recipeId}", testRecipeId))
+          .perform(delete("/favorites/collections/{collectionId}", testCollectionId))
           .andExpect(status().isNoContent());
     }
 
-    verify(recipeFavoriteRepository).existsByIdUserIdAndIdRecipeId(testUserId, testRecipeId);
-    verify(recipeFavoriteRepository).deleteByIdUserIdAndIdRecipeId(testUserId, testRecipeId);
+    verify(collectionFavoriteRepository)
+        .existsByIdUserIdAndIdCollectionId(testUserId, testCollectionId);
+    verify(collectionFavoriteRepository)
+        .deleteByIdUserIdAndIdCollectionId(testUserId, testCollectionId);
   }
 
   @Test
   @Tag("error-handling")
-  @DisplayName("Should return 404 Not Found when favorite does not exist")
+  @DisplayName("Should return 404 Not Found when collection favorite does not exist")
   void shouldReturn404WhenFavoriteNotFound() throws Exception {
     // Given
-    when(recipeFavoriteRepository.existsByIdUserIdAndIdRecipeId(testUserId, testRecipeId))
+    when(collectionFavoriteRepository.existsByIdUserIdAndIdCollectionId(
+            testUserId, testCollectionId))
         .thenReturn(false);
 
     // When/Then
-    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+    try (MockedStatic<SecurityUtils> securityUtilsMock =
+        Mockito.mockStatic(SecurityUtils.class)) {
       securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
 
       mockMvc
-          .perform(delete("/favorites/recipes/{recipeId}", testRecipeId))
+          .perform(delete("/favorites/collections/{collectionId}", testCollectionId))
           .andExpect(status().isNotFound())
           .andExpect(jsonPath("$.error").value("Resource not found"))
-          .andExpect(jsonPath("$.message").value("Favorite not found for this user and recipe"));
+          .andExpect(
+              jsonPath("$.message").value("Favorite not found for this user and collection"));
     }
 
-    verify(recipeFavoriteRepository).existsByIdUserIdAndIdRecipeId(testUserId, testRecipeId);
+    verify(collectionFavoriteRepository)
+        .existsByIdUserIdAndIdCollectionId(testUserId, testCollectionId);
   }
 
   @Test
@@ -154,20 +178,23 @@ class RemoveFavoriteComponentTest extends AbstractComponentTest {
   @DisplayName("Should verify repository delete method called with correct parameters")
   void shouldVerifyRepositoryDeleteMethodCalled() throws Exception {
     // Given
-    when(recipeFavoriteRepository.existsByIdUserIdAndIdRecipeId(testUserId, testRecipeId))
+    when(collectionFavoriteRepository.existsByIdUserIdAndIdCollectionId(
+            testUserId, testCollectionId))
         .thenReturn(true);
 
     // When
-    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+    try (MockedStatic<SecurityUtils> securityUtilsMock =
+        Mockito.mockStatic(SecurityUtils.class)) {
       securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
 
       mockMvc
-          .perform(delete("/favorites/recipes/{recipeId}", testRecipeId))
+          .perform(delete("/favorites/collections/{collectionId}", testCollectionId))
           .andExpect(status().isNoContent());
     }
 
     // Then - Verify delete called with correct parameters
-    verify(recipeFavoriteRepository).deleteByIdUserIdAndIdRecipeId(eq(testUserId), eq(testRecipeId));
+    verify(collectionFavoriteRepository)
+        .deleteByIdUserIdAndIdCollectionId(eq(testUserId), eq(testCollectionId));
   }
 
   @Test
@@ -175,15 +202,17 @@ class RemoveFavoriteComponentTest extends AbstractComponentTest {
   @DisplayName("Should return empty response body on successful deletion")
   void shouldReturnEmptyResponseBodyOnSuccess() throws Exception {
     // Given
-    when(recipeFavoriteRepository.existsByIdUserIdAndIdRecipeId(testUserId, testRecipeId))
+    when(collectionFavoriteRepository.existsByIdUserIdAndIdCollectionId(
+            testUserId, testCollectionId))
         .thenReturn(true);
 
     // When/Then
-    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+    try (MockedStatic<SecurityUtils> securityUtilsMock =
+        Mockito.mockStatic(SecurityUtils.class)) {
       securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
 
       mockMvc
-          .perform(delete("/favorites/recipes/{recipeId}", testRecipeId))
+          .perform(delete("/favorites/collections/{collectionId}", testCollectionId))
           .andExpect(status().isNoContent())
           .andExpect(jsonPath("$").doesNotExist());
     }

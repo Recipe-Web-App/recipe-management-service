@@ -379,7 +379,8 @@
             <goals>
               <goal>jmeter</goal>
             </goals>
-            <phase>verify</phase>
+            <!-- Performance tests excluded from default build; run with: mvn jmeter:jmeter -->
+            <phase>none</phase>
           </execution>
         </executions>
       </plugin>

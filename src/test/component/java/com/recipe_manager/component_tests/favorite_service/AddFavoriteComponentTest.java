@@ -88,13 +88,19 @@ class AddFavoriteComponentTest extends AbstractComponentTest {
       throw new RuntimeException("RecipeFavoriteMapper not available in test context");
     }
 
-    // Create real service with all dependencies
+    // Create real service with all dependencies (including collection favorites - mocked)
     this.favoriteService =
         new FavoriteService(
             recipeFavoriteRepository,
             recipeRepository, // From AbstractComponentTest
+            Mockito.mock(
+                com.recipe_manager.repository.collection.CollectionFavoriteRepository.class),
+            Mockito.mock(
+                com.recipe_manager.repository.collection.RecipeCollectionRepository.class),
             recipeFavoriteMapper,
             testRecipeMapper, // Mocked for this test
+            Mockito.mock(com.recipe_manager.model.mapper.CollectionFavoriteMapper.class),
+            Mockito.mock(com.recipe_manager.model.mapper.CollectionMapper.class),
             userManagementClient);
 
     // Create controller

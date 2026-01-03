@@ -4436,7 +4436,9 @@ components:
 
     PageCollectionDto:
       type: object
-      description: Paginated collection response matching Spring Page structure
+      description: |
+        Paginated collection response representing Spring Data's Page<CollectionDto>.
+        This schema matches the native Spring Page structure serialized to JSON.
       properties:
         content:
           type: array

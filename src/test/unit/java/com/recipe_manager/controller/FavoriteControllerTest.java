@@ -20,12 +20,15 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import com.recipe_manager.model.dto.collection.CollectionFavoriteDto;
 import com.recipe_manager.model.dto.recipe.RecipeDto;
+import com.recipe_manager.model.dto.response.CollectionDto;
 import com.recipe_manager.model.dto.recipe.RecipeFavoriteDto;
 import com.recipe_manager.model.dto.response.SearchRecipesResponse;
 import com.recipe_manager.service.FavoriteService;
@@ -354,6 +357,90 @@ class FavoriteControllerTest {
 
     // Then
     verify(favoriteService).isFavorited(testRecipeId);
+  }
+
+  // ==================== Collection Favorites Placeholder Tests ====================
+
+  @Test
+  @DisplayName("Should return empty page for getFavoriteCollections placeholder")
+  @Tag("standard-processing")
+  void shouldReturnEmptyPageForGetFavoriteCollectionsPlaceholder() throws AccessDeniedException {
+    // Given
+    Pageable pageable = PageRequest.of(0, 20);
+
+    // When
+    ResponseEntity<Page<CollectionDto>> result =
+        favoriteController.getFavoriteCollections(testUserId, pageable);
+
+    // Then
+    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+    assertThat(result.getBody()).isNotNull();
+    assertThat(result.getBody().isEmpty()).isTrue();
+    assertThat(result.getBody().getTotalElements()).isZero();
+  }
+
+  @Test
+  @DisplayName("Should return empty page for getFavoriteCollections with null userId")
+  @Tag("standard-processing")
+  void shouldReturnEmptyPageForGetFavoriteCollectionsWithNullUserId()
+      throws AccessDeniedException {
+    // Given
+    Pageable pageable = PageRequest.of(0, 20);
+
+    // When
+    ResponseEntity<Page<CollectionDto>> result =
+        favoriteController.getFavoriteCollections(null, pageable);
+
+    // Then
+    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+    assertThat(result.getBody()).isNotNull();
+    assertThat(result.getBody().isEmpty()).isTrue();
+  }
+
+  @Test
+  @DisplayName("Should return 201 Created with null body for favoriteCollection placeholder")
+  @Tag("standard-processing")
+  void shouldReturn201CreatedForFavoriteCollectionPlaceholder() {
+    // Given
+    Long testCollectionId = 301L;
+
+    // When
+    ResponseEntity<CollectionFavoriteDto> result =
+        favoriteController.favoriteCollection(testCollectionId);
+
+    // Then
+    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+    assertThat(result.getBody()).isNull();
+  }
+
+  @Test
+  @DisplayName("Should return 204 No Content for unfavoriteCollection placeholder")
+  @Tag("standard-processing")
+  void shouldReturn204NoContentForUnfavoriteCollectionPlaceholder() {
+    // Given
+    Long testCollectionId = 301L;
+
+    // When
+    ResponseEntity<Void> result = favoriteController.unfavoriteCollection(testCollectionId);
+
+    // Then
+    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+    assertThat(result.getBody()).isNull();
+  }
+
+  @Test
+  @DisplayName("Should return false for isCollectionFavorited placeholder")
+  @Tag("standard-processing")
+  void shouldReturnFalseForIsCollectionFavoritedPlaceholder() {
+    // Given
+    Long testCollectionId = 301L;
+
+    // When
+    ResponseEntity<Boolean> result = favoriteController.isCollectionFavorited(testCollectionId);
+
+    // Then
+    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+    assertThat(result.getBody()).isFalse();
   }
 
   // ==================== Helper Methods ====================

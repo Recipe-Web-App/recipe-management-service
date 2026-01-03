@@ -41,14 +41,25 @@ import com.recipe_manager.model.dto.external.usermanagement.PrivacyPreferencesDt
 import com.recipe_manager.model.dto.external.usermanagement.UserDto;
 import com.recipe_manager.model.dto.external.usermanagement.UserPreferencesDto;
 import com.recipe_manager.model.dto.recipe.RecipeDto;
+import com.recipe_manager.model.dto.collection.CollectionFavoriteDto;
 import com.recipe_manager.model.dto.recipe.RecipeFavoriteDto;
+import com.recipe_manager.model.dto.response.CollectionDto;
 import com.recipe_manager.model.dto.response.SearchRecipesResponse;
+import com.recipe_manager.model.entity.collection.CollectionFavorite;
+import com.recipe_manager.model.entity.collection.CollectionFavoriteId;
+import com.recipe_manager.model.entity.collection.RecipeCollection;
 import com.recipe_manager.model.entity.recipe.Recipe;
 import com.recipe_manager.model.entity.recipe.RecipeFavorite;
 import com.recipe_manager.model.entity.recipe.RecipeFavoriteId;
+import com.recipe_manager.model.enums.CollaborationMode;
+import com.recipe_manager.model.enums.CollectionVisibility;
 import com.recipe_manager.model.enums.ProfileVisibilityEnum;
+import com.recipe_manager.model.mapper.CollectionFavoriteMapper;
+import com.recipe_manager.model.mapper.CollectionMapper;
 import com.recipe_manager.model.mapper.RecipeFavoriteMapper;
 import com.recipe_manager.model.mapper.RecipeMapper;
+import com.recipe_manager.repository.collection.CollectionFavoriteRepository;
+import com.recipe_manager.repository.collection.RecipeCollectionRepository;
 import com.recipe_manager.repository.recipe.RecipeFavoriteRepository;
 import com.recipe_manager.repository.recipe.RecipeRepository;
 import com.recipe_manager.util.SecurityUtils;
@@ -62,9 +73,17 @@ class FavoriteServiceTest {
 
   @Mock private RecipeRepository recipeRepository;
 
+  @Mock private CollectionFavoriteRepository collectionFavoriteRepository;
+
+  @Mock private RecipeCollectionRepository recipeCollectionRepository;
+
   @Mock private RecipeFavoriteMapper recipeFavoriteMapper;
 
   @Mock private RecipeMapper recipeMapper;
+
+  @Mock private CollectionFavoriteMapper collectionFavoriteMapper;
+
+  @Mock private CollectionMapper collectionMapper;
 
   @Mock private UserManagementClient userManagementClient;
 
@@ -73,6 +92,7 @@ class FavoriteServiceTest {
   private UUID authenticatedUserId;
   private UUID targetUserId;
   private Long testRecipeId;
+  private Long testCollectionId;
 
   @BeforeEach
   void setUp() {
@@ -80,12 +100,17 @@ class FavoriteServiceTest {
         new FavoriteService(
             recipeFavoriteRepository,
             recipeRepository,
+            collectionFavoriteRepository,
+            recipeCollectionRepository,
             recipeFavoriteMapper,
             recipeMapper,
+            collectionFavoriteMapper,
+            collectionMapper,
             userManagementClient);
     authenticatedUserId = UUID.randomUUID();
     targetUserId = UUID.randomUUID();
     testRecipeId = 100L;
+    testCollectionId = 200L;
   }
 
   // ==================== getUserFavorites Tests ====================
@@ -475,6 +500,362 @@ class FavoriteServiceTest {
     return GetFollowersResponseDto.builder()
         .followedUsers(Arrays.asList(follower))
         .totalCount(1)
+        .build();
+  }
+
+  // ==================== getFavoriteCollections Tests ====================
+
+  @Test
+  @DisplayName("Should get own favorite collections without privacy check")
+  @Tag("standard-processing")
+  void shouldGetOwnFavoriteCollectionsWithoutPrivacyCheck() throws AccessDeniedException {
+    // Given
+    Pageable pageable = PageRequest.of(0, 20);
+    List<CollectionFavorite> favorites =
+        Arrays.asList(createTestCollectionFavorite(authenticatedUserId, 201L));
+    Page<CollectionFavorite> favoritesPage = new PageImpl<>(favorites, pageable, 1);
+
+    CollectionDto collectionDto = createTestCollectionDto(201L);
+
+    when(collectionFavoriteRepository.findByUserIdWithCollection(authenticatedUserId, pageable))
+        .thenReturn(favoritesPage);
+    when(collectionMapper.toDto(any(RecipeCollection.class))).thenReturn(collectionDto);
+
+    // When
+    ResponseEntity<Page<CollectionDto>> response;
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(authenticatedUserId);
+      response = favoriteService.getFavoriteCollections(null, pageable);
+    }
+
+    // Then
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    assertThat(response.getBody()).isNotNull();
+    assertThat(response.getBody().getContent()).hasSize(1);
+    verify(collectionFavoriteRepository).findByUserIdWithCollection(authenticatedUserId, pageable);
+    verify(userManagementClient, never()).getUserPreferences(any());
+  }
+
+  @Test
+  @DisplayName("Should get other user favorite collections with PUBLIC privacy")
+  @Tag("standard-processing")
+  void shouldGetOtherUserFavoriteCollectionsWithPublicPrivacy() throws AccessDeniedException {
+    // Given
+    Pageable pageable = PageRequest.of(0, 20);
+    List<CollectionFavorite> favorites =
+        Arrays.asList(createTestCollectionFavorite(targetUserId, 201L));
+    Page<CollectionFavorite> favoritesPage = new PageImpl<>(favorites, pageable, 1);
+
+    CollectionDto collectionDto = createTestCollectionDto(201L);
+    UserPreferencesDto preferences = createUserPreferences(ProfileVisibilityEnum.PUBLIC);
+
+    when(collectionFavoriteRepository.findByUserIdWithCollection(targetUserId, pageable))
+        .thenReturn(favoritesPage);
+    when(collectionMapper.toDto(any(RecipeCollection.class))).thenReturn(collectionDto);
+    when(userManagementClient.getUserPreferences(targetUserId)).thenReturn(preferences);
+
+    // When
+    ResponseEntity<Page<CollectionDto>> response;
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(authenticatedUserId);
+      response = favoriteService.getFavoriteCollections(targetUserId, pageable);
+    }
+
+    // Then
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    assertThat(response.getBody()).isNotNull();
+    assertThat(response.getBody().getContent()).hasSize(1);
+    verify(userManagementClient).getUserPreferences(targetUserId);
+  }
+
+  @Test
+  @DisplayName("Should deny access to PRIVATE user favorite collections")
+  @Tag("error-handling")
+  void shouldDenyAccessToPrivateUserFavoriteCollections() {
+    // Given
+    Pageable pageable = PageRequest.of(0, 20);
+    UserPreferencesDto preferences = createUserPreferences(ProfileVisibilityEnum.PRIVATE);
+
+    when(userManagementClient.getUserPreferences(targetUserId)).thenReturn(preferences);
+
+    // When / Then
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(authenticatedUserId);
+
+      assertThatThrownBy(() -> favoriteService.getFavoriteCollections(targetUserId, pageable))
+          .isInstanceOf(AccessDeniedException.class)
+          .hasMessageContaining("User's favorites are private");
+    }
+
+    verify(userManagementClient).getUserPreferences(targetUserId);
+    verify(collectionFavoriteRepository, never()).findByUserIdWithCollection(any(), any());
+  }
+
+  @Test
+  @DisplayName("Should return empty page when user has no favorite collections")
+  @Tag("standard-processing")
+  void shouldReturnEmptyPageWhenUserHasNoFavoriteCollections() throws AccessDeniedException {
+    // Given
+    Pageable pageable = PageRequest.of(0, 20);
+    Page<CollectionFavorite> emptyPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
+
+    when(collectionFavoriteRepository.findByUserIdWithCollection(authenticatedUserId, pageable))
+        .thenReturn(emptyPage);
+
+    // When
+    ResponseEntity<Page<CollectionDto>> response;
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(authenticatedUserId);
+      response = favoriteService.getFavoriteCollections(null, pageable);
+    }
+
+    // Then
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    assertThat(response.getBody()).isNotNull();
+    assertThat(response.getBody().getContent()).isEmpty();
+    assertThat(response.getBody().getTotalElements()).isZero();
+  }
+
+  // ==================== favoriteCollection Tests ====================
+
+  @Test
+  @DisplayName("Should favorite collection successfully")
+  @Tag("standard-processing")
+  void shouldFavoriteCollectionSuccessfully() throws AccessDeniedException {
+    // Given
+    RecipeCollection collection = createTestCollection(testCollectionId);
+    CollectionFavorite favorite =
+        createTestCollectionFavorite(authenticatedUserId, testCollectionId);
+    CollectionFavoriteDto dto =
+        createTestCollectionFavoriteDto(authenticatedUserId, testCollectionId);
+
+    when(collectionFavoriteRepository.existsByIdUserIdAndIdCollectionId(
+            authenticatedUserId, testCollectionId))
+        .thenReturn(false);
+    when(recipeCollectionRepository.findById(testCollectionId))
+        .thenReturn(Optional.of(collection));
+    when(recipeCollectionRepository.hasViewAccess(testCollectionId, authenticatedUserId))
+        .thenReturn(true);
+    when(collectionFavoriteRepository.save(any(CollectionFavorite.class))).thenReturn(favorite);
+    when(collectionFavoriteMapper.toDto(favorite)).thenReturn(dto);
+
+    // When
+    ResponseEntity<CollectionFavoriteDto> response;
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(authenticatedUserId);
+      response = favoriteService.favoriteCollection(testCollectionId);
+    }
+
+    // Then
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+    assertThat(response.getBody()).isNotNull();
+    assertThat(response.getBody()).isEqualTo(dto);
+    verify(collectionFavoriteRepository).save(any(CollectionFavorite.class));
+  }
+
+  @Test
+  @DisplayName("Should throw exception when collection already favorited")
+  @Tag("error-handling")
+  void shouldThrowExceptionWhenCollectionAlreadyFavorited() {
+    // Given
+    when(collectionFavoriteRepository.existsByIdUserIdAndIdCollectionId(
+            authenticatedUserId, testCollectionId))
+        .thenReturn(true);
+
+    // When / Then
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(authenticatedUserId);
+
+      assertThatThrownBy(() -> favoriteService.favoriteCollection(testCollectionId))
+          .isInstanceOf(BusinessException.class)
+          .hasMessageContaining("User has already favorited this collection");
+    }
+
+    verify(collectionFavoriteRepository, never()).save(any());
+  }
+
+  @Test
+  @DisplayName("Should throw exception when collection not found")
+  @Tag("error-handling")
+  void shouldThrowExceptionWhenCollectionNotFound() {
+    // Given
+    when(collectionFavoriteRepository.existsByIdUserIdAndIdCollectionId(
+            authenticatedUserId, testCollectionId))
+        .thenReturn(false);
+    when(recipeCollectionRepository.findById(testCollectionId)).thenReturn(Optional.empty());
+
+    // When / Then
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(authenticatedUserId);
+
+      assertThatThrownBy(() -> favoriteService.favoriteCollection(testCollectionId))
+          .isInstanceOf(ResourceNotFoundException.class)
+          .hasMessageContaining("Collection not found with ID: " + testCollectionId);
+    }
+
+    verify(collectionFavoriteRepository, never()).save(any());
+  }
+
+  @Test
+  @DisplayName("Should throw exception when user cannot view collection")
+  @Tag("error-handling")
+  void shouldThrowExceptionWhenUserCannotViewCollection() {
+    // Given
+    RecipeCollection collection = createTestCollection(testCollectionId);
+
+    when(collectionFavoriteRepository.existsByIdUserIdAndIdCollectionId(
+            authenticatedUserId, testCollectionId))
+        .thenReturn(false);
+    when(recipeCollectionRepository.findById(testCollectionId))
+        .thenReturn(Optional.of(collection));
+    when(recipeCollectionRepository.hasViewAccess(testCollectionId, authenticatedUserId))
+        .thenReturn(false);
+
+    // When / Then
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(authenticatedUserId);
+
+      assertThatThrownBy(() -> favoriteService.favoriteCollection(testCollectionId))
+          .isInstanceOf(AccessDeniedException.class)
+          .hasMessageContaining("You do not have access to view this collection");
+    }
+
+    verify(collectionFavoriteRepository, never()).save(any());
+  }
+
+  // ==================== unfavoriteCollection Tests ====================
+
+  @Test
+  @DisplayName("Should unfavorite collection successfully")
+  @Tag("standard-processing")
+  void shouldUnfavoriteCollectionSuccessfully() {
+    // Given
+    when(collectionFavoriteRepository.existsByIdUserIdAndIdCollectionId(
+            authenticatedUserId, testCollectionId))
+        .thenReturn(true);
+
+    // When
+    ResponseEntity<Void> response;
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(authenticatedUserId);
+      response = favoriteService.unfavoriteCollection(testCollectionId);
+    }
+
+    // Then
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+    verify(collectionFavoriteRepository)
+        .deleteByIdUserIdAndIdCollectionId(authenticatedUserId, testCollectionId);
+  }
+
+  @Test
+  @DisplayName("Should throw exception when collection favorite not found for removal")
+  @Tag("error-handling")
+  void shouldThrowExceptionWhenCollectionFavoriteNotFoundForRemoval() {
+    // Given
+    when(collectionFavoriteRepository.existsByIdUserIdAndIdCollectionId(
+            authenticatedUserId, testCollectionId))
+        .thenReturn(false);
+
+    // When / Then
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(authenticatedUserId);
+
+      assertThatThrownBy(() -> favoriteService.unfavoriteCollection(testCollectionId))
+          .isInstanceOf(ResourceNotFoundException.class)
+          .hasMessageContaining("Favorite not found for this user and collection");
+    }
+
+    verify(collectionFavoriteRepository, never()).deleteByIdUserIdAndIdCollectionId(any(), any());
+  }
+
+  // ==================== isCollectionFavorited Tests ====================
+
+  @Test
+  @DisplayName("Should return true when collection is favorited")
+  @Tag("standard-processing")
+  void shouldReturnTrueWhenCollectionIsFavorited() {
+    // Given
+    when(collectionFavoriteRepository.existsByIdUserIdAndIdCollectionId(
+            authenticatedUserId, testCollectionId))
+        .thenReturn(true);
+
+    // When
+    ResponseEntity<Boolean> response;
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(authenticatedUserId);
+      response = favoriteService.isCollectionFavorited(testCollectionId);
+    }
+
+    // Then
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    assertThat(response.getBody()).isTrue();
+  }
+
+  @Test
+  @DisplayName("Should return false when collection is not favorited")
+  @Tag("standard-processing")
+  void shouldReturnFalseWhenCollectionIsNotFavorited() {
+    // Given
+    when(collectionFavoriteRepository.existsByIdUserIdAndIdCollectionId(
+            authenticatedUserId, testCollectionId))
+        .thenReturn(false);
+
+    // When
+    ResponseEntity<Boolean> response;
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(authenticatedUserId);
+      response = favoriteService.isCollectionFavorited(testCollectionId);
+    }
+
+    // Then
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    assertThat(response.getBody()).isFalse();
+  }
+
+  // ==================== Collection Favorite Helper Methods ====================
+
+  private CollectionFavorite createTestCollectionFavorite(UUID userId, Long collectionId) {
+    CollectionFavoriteId id =
+        CollectionFavoriteId.builder().userId(userId).collectionId(collectionId).build();
+
+    RecipeCollection collection = createTestCollection(collectionId);
+
+    return CollectionFavorite.builder()
+        .id(id)
+        .collection(collection)
+        .favoritedAt(LocalDateTime.now())
+        .build();
+  }
+
+  private RecipeCollection createTestCollection(Long collectionId) {
+    return RecipeCollection.builder()
+        .collectionId(collectionId)
+        .userId(targetUserId)
+        .name("Test Collection " + collectionId)
+        .description("Test Description")
+        .visibility(CollectionVisibility.PUBLIC)
+        .collaborationMode(CollaborationMode.OWNER_ONLY)
+        .build();
+  }
+
+  private CollectionDto createTestCollectionDto(Long collectionId) {
+    return CollectionDto.builder()
+        .collectionId(collectionId)
+        .userId(targetUserId)
+        .name("Test Collection " + collectionId)
+        .description("Test Description")
+        .visibility(CollectionVisibility.PUBLIC)
+        .collaborationMode(CollaborationMode.OWNER_ONLY)
+        .recipeCount(0)
+        .collaboratorCount(0)
+        .build();
+  }
+
+  private CollectionFavoriteDto createTestCollectionFavoriteDto(UUID userId, Long collectionId) {
+    return CollectionFavoriteDto.builder()
+        .userId(userId)
+        .collectionId(collectionId)
+        .favoritedAt(LocalDateTime.now())
         .build();
   }
 }

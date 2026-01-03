@@ -60,7 +60,7 @@ tags:
   - name: comments
     description: Recipe comment management
   - name: favorites
-    description: Recipe favorite management and user favorites collection
+    description: Recipe and collection favorite management
   - name: users
     description: User-scoped endpoints for accessing authenticated user's resources
 
@@ -510,6 +510,164 @@ paths:
                 notFavorited:
                   value: false
                   summary: Recipe is not favorited
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /favorites/collections:
+    get:
+      tags: [favorites]
+      summary: Get all favorited collections
+      description: |
+        Retrieves all collections favorited by a specified user with pagination support.
+        Returns collections in the same format as the main collections list endpoint.
+
+        **Privacy Controls:**
+        This endpoint integrates with user-management-service to check user privacy
+        preferences. If the target user's profile is private, only users they follow
+        can retrieve their favorites list. Returns 403 Forbidden if the requesting
+        user is not authorized to view the favorites.
+
+        **Default Behavior:**
+        If userId is not provided, returns favorites for the authenticated user.
+      operationId: getFavoriteCollections
+      parameters:
+        - $ref: '#/components/parameters/UserIdParam'
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+        - $ref: '#/components/parameters/SortParam'
+      responses:
+        '200':
+          description: Favorited collections retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageCollectionDto'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Forbidden - User's favorites are private and requester is not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "Forbidden"
+                message: "User's favorites are private. Only followers can view them."
+                timestamp: "2024-08-28T10:30:00Z"
+                path: "/favorites/collections"
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /favorites/collections/{collectionId}:
+    post:
+      tags: [favorites]
+      summary: Favorite a collection
+      description: |
+        Adds a collection to the authenticated user's favorites.
+
+        **Visibility:**
+        Users can only favorite collections they have access to view. This includes
+        PUBLIC collections and collections where the user has been granted access
+        (e.g., as a collaborator or through other permission mechanisms).
+
+        Returns 403 Forbidden if the user does not have access to view the collection.
+        Returns 409 Conflict if the collection is already favorited by this user.
+      operationId: favoriteCollection
+      parameters:
+        - $ref: '#/components/parameters/CollectionIdParam'
+      responses:
+        '201':
+          description: Collection favorited successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CollectionFavoriteDto'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Forbidden - User does not have access to view this collection
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "Forbidden"
+                message: "You do not have access to view this collection"
+                timestamp: "2024-08-28T10:30:00Z"
+                path: "/favorites/collections/301"
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Conflict - Collection is already favorited by this user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "Conflict"
+                message: "User has already favorited this collection"
+                timestamp: "2024-08-28T10:30:00Z"
+                path: "/favorites/collections/301"
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    delete:
+      tags: [favorites]
+      summary: Unfavorite a collection
+      description: |
+        Removes a collection from the authenticated user's favorites.
+
+        Returns 404 if the favorite does not exist (i.e., the collection was not
+        favorited by this user).
+      operationId: unfavoriteCollection
+      parameters:
+        - $ref: '#/components/parameters/CollectionIdParam'
+      responses:
+        '204':
+          description: Collection unfavorited successfully
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Not Found - Collection was not favorited by this user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "Not Found"
+                message: "Favorite not found for this user and collection"
+                timestamp: "2024-08-28T10:30:00Z"
+                path: "/favorites/collections/301"
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /favorites/collections/{collectionId}/is-favorited:
+    get:
+      tags: [favorites]
+      summary: Check if collection is favorited
+      description: |
+        Checks whether the authenticated user has favorited the specified collection.
+
+        Returns a boolean value indicating favorite status.
+      operationId: isCollectionFavorited
+      parameters:
+        - $ref: '#/components/parameters/CollectionIdParam'
+      responses:
+        '200':
+          description: Successfully retrieved favorite status
+          content:
+            application/json:
+              schema:
+                type: boolean
+              examples:
+                favorited:
+                  value: true
+                  summary: Collection is favorited
+                notFavorited:
+                  value: false
+                  summary: Collection is not favorited
         '401':
           $ref: '#/components/responses/Unauthorized'
         '500':
@@ -2934,6 +3092,29 @@ components:
           description: Timestamp when recipe was favorited
           example: "2024-08-28T10:35:00Z"
 
+    CollectionFavoriteDto:
+      type: object
+      required:
+        - collectionId
+        - userId
+        - favoritedAt
+      properties:
+        collectionId:
+          type: integer
+          format: int64
+          description: Collection identifier
+          example: 301
+        userId:
+          type: string
+          format: uuid
+          description: UUID of user who favorited the collection
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        favoritedAt:
+          type: string
+          format: date-time
+          description: Timestamp when collection was favorited
+          example: "2024-08-28T10:35:00Z"
+
     RecipeRevisionDto:
       type: object
       required:
@@ -4255,7 +4436,9 @@ components:
 
     PageCollectionDto:
       type: object
-      description: Paginated collection response matching Spring Page structure
+      description: |
+        Paginated collection response representing Spring Data's Page<CollectionDto>.
+        This schema matches the native Spring Page structure serialized to JSON.
       properties:
         content:
           type: array

@@ -3929,6 +3929,9 @@ components:
 
     CollectionTagResponse:
       type: object
+      required:
+        - collectionId
+        - tags
       properties:
         collectionId:
           type: integer
@@ -3936,20 +3939,9 @@ components:
           description: Collection identifier
         tags:
           type: array
+          description: List of tags for the collection
           items:
             $ref: '#/components/schemas/CollectionTagDto'
-        tag:
-          $ref: '#/components/schemas/CollectionTagDto'
-        addedAt:
-          type: string
-          format: date-time
-          description: Tag addition timestamp
-        removedAt:
-          type: string
-          format: date-time
-          description: Tag removal timestamp
-        removedTag:
-          $ref: '#/components/schemas/CollectionTagDto'
 
     AddTagRequest:
       type: object

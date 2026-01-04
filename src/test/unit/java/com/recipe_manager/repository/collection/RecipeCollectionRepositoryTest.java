@@ -450,6 +450,75 @@ class RecipeCollectionRepositoryTest {
     assertThat(hasAccess).isFalse();
   }
 
+  @Test
+  @DisplayName("findTrendingCollections returns paginated trending collections for user")
+  @Tag("standard-processing")
+  void findTrendingCollections_returnsPaginatedResults() {
+    // Given
+    UUID userId = UUID.randomUUID();
+    Pageable pageable = PageRequest.of(0, 10);
+    List<RecipeCollection> collections =
+        Arrays.asList(createTestCollection(1L), createTestCollection(2L));
+    Page<RecipeCollection> expectedPage = new PageImpl<>(collections, pageable, 2);
+
+    when(recipeCollectionRepository.findTrendingCollections(userId, pageable))
+        .thenReturn(expectedPage);
+
+    // When
+    Page<RecipeCollection> result =
+        recipeCollectionRepository.findTrendingCollections(userId, pageable);
+
+    // Then
+    assertThat(result).isNotNull();
+    assertThat(result.getContent()).hasSize(2);
+    assertThat(result.getTotalElements()).isEqualTo(2);
+  }
+
+  @Test
+  @DisplayName("findTrendingCollections returns empty page when no accessible trending collections")
+  @Tag("standard-processing")
+  void findTrendingCollections_returnsEmptyPageWhenNoTrendingCollections() {
+    // Given
+    UUID userId = UUID.randomUUID();
+    Pageable pageable = PageRequest.of(0, 10);
+    Page<RecipeCollection> emptyPage = Page.empty(pageable);
+
+    when(recipeCollectionRepository.findTrendingCollections(userId, pageable))
+        .thenReturn(emptyPage);
+
+    // When
+    Page<RecipeCollection> result =
+        recipeCollectionRepository.findTrendingCollections(userId, pageable);
+
+    // Then
+    assertThat(result).isNotNull();
+    assertThat(result.getContent()).isEmpty();
+    assertThat(result.getTotalElements()).isZero();
+  }
+
+  @Test
+  @DisplayName("findTrendingCollections respects pagination parameters")
+  @Tag("standard-processing")
+  void findTrendingCollections_respectsPaginationParameters() {
+    // Given
+    UUID userId = UUID.randomUUID();
+    Pageable pageable = PageRequest.of(1, 5); // Second page, 5 items per page
+    List<RecipeCollection> collections = Arrays.asList(createTestCollection(1L));
+    Page<RecipeCollection> expectedPage = new PageImpl<>(collections, pageable, 6);
+
+    when(recipeCollectionRepository.findTrendingCollections(userId, pageable))
+        .thenReturn(expectedPage);
+
+    // When
+    Page<RecipeCollection> result =
+        recipeCollectionRepository.findTrendingCollections(userId, pageable);
+
+    // Then
+    assertThat(result.getNumber()).isEqualTo(1);
+    assertThat(result.getSize()).isEqualTo(5);
+    assertThat(result.getTotalPages()).isEqualTo(2);
+  }
+
   private RecipeCollection createTestCollection(Long collectionId) {
     return RecipeCollection.builder()
         .collectionId(collectionId)

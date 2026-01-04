@@ -1804,6 +1804,131 @@ class CollectionServiceTest {
     assertThat(response.getBody().getContent()).hasSize(2);
   }
 
+  // ==================== getTrendingCollections Tests ====================
+
+  @Test
+  @DisplayName("Should get trending collections successfully")
+  @Tag("standard-processing")
+  void shouldGetTrendingCollectionsSuccessfully() {
+    // Given
+    Pageable pageable = PageRequest.of(0, 20);
+    List<RecipeCollection> collections =
+        Arrays.asList(
+            RecipeCollection.builder()
+                .collectionId(1L)
+                .userId(testUserId)
+                .name("Trending Collection 1")
+                .visibility(CollectionVisibility.PUBLIC)
+                .collaborationMode(CollaborationMode.OWNER_ONLY)
+                .build(),
+            RecipeCollection.builder()
+                .collectionId(2L)
+                .userId(testUserId)
+                .name("Trending Collection 2")
+                .visibility(CollectionVisibility.PUBLIC)
+                .collaborationMode(CollaborationMode.OWNER_ONLY)
+                .build());
+
+    Page<RecipeCollection> collectionPage = new PageImpl<>(collections, pageable, 2);
+
+    CollectionDto dto1 = createTestDto(1L);
+    CollectionDto dto2 = createTestDto(2L);
+
+    when(recipeCollectionRepository.findTrendingCollections(any(UUID.class), any(Pageable.class)))
+        .thenReturn(collectionPage);
+    when(collectionMapper.toDto(collections.get(0))).thenReturn(dto1);
+    when(collectionMapper.toDto(collections.get(1))).thenReturn(dto2);
+
+    // When
+    ResponseEntity<Page<CollectionDto>> response;
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
+      response = collectionService.getTrendingCollections(pageable);
+    }
+
+    // Then
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    assertThat(response.getBody()).isNotNull();
+    assertThat(response.getBody().getContent()).hasSize(2);
+    assertThat(response.getBody().getTotalElements()).isEqualTo(2);
+
+    verify(recipeCollectionRepository).findTrendingCollections(testUserId, pageable);
+    verify(collectionMapper, times(2)).toDto(any(RecipeCollection.class));
+  }
+
+  @Test
+  @DisplayName("Should get trending collections with empty results")
+  @Tag("edge-case")
+  void shouldGetTrendingCollectionsWithEmptyResults() {
+    // Given
+    Pageable pageable = PageRequest.of(0, 20);
+    Page<RecipeCollection> emptyPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
+
+    when(recipeCollectionRepository.findTrendingCollections(any(UUID.class), any(Pageable.class)))
+        .thenReturn(emptyPage);
+
+    // When
+    ResponseEntity<Page<CollectionDto>> response;
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
+      response = collectionService.getTrendingCollections(pageable);
+    }
+
+    // Then
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    assertThat(response.getBody()).isNotNull();
+    assertThat(response.getBody().getContent()).isEmpty();
+    assertThat(response.getBody().getTotalElements()).isEqualTo(0);
+  }
+
+  @Test
+  @DisplayName("Should apply pagination correctly for trending collections")
+  @Tag("standard-processing")
+  void shouldApplyPaginationCorrectlyForTrendingCollections() {
+    // Given
+    Pageable pageable = PageRequest.of(1, 10);
+    List<RecipeCollection> collections =
+        Collections.singletonList(
+            RecipeCollection.builder()
+                .collectionId(11L)
+                .userId(testUserId)
+                .name("Page 2 Collection")
+                .visibility(CollectionVisibility.PUBLIC)
+                .collaborationMode(CollaborationMode.OWNER_ONLY)
+                .build());
+
+    // Total must be >= offset + pageSize (10 + 10 = 20) to avoid PageImpl recalculating total
+    Page<RecipeCollection> collectionPage = new PageImpl<>(collections, pageable, 25);
+
+    when(recipeCollectionRepository.findTrendingCollections(any(UUID.class), eq(pageable)))
+        .thenReturn(collectionPage);
+
+    when(collectionMapper.toDto(any(RecipeCollection.class)))
+        .thenAnswer(
+            invocation -> {
+              RecipeCollection entity = invocation.getArgument(0);
+              return CollectionDto.builder()
+                  .collectionId(entity.getCollectionId())
+                  .name(entity.getName())
+                  .build();
+            });
+
+    // When
+    ResponseEntity<Page<CollectionDto>> response;
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
+      response = collectionService.getTrendingCollections(pageable);
+    }
+
+    // Then
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    assertThat(response.getBody()).isNotNull();
+    assertThat(response.getBody().getNumber()).isEqualTo(1);
+    assertThat(response.getBody().getSize()).isEqualTo(10);
+    assertThat(response.getBody().getTotalElements()).isEqualTo(25);
+    assertThat(response.getBody().getTotalPages()).isEqualTo(3);
+  }
+
   @Test
   @DisplayName("Should add recipe successfully to empty collection with displayOrder 10")
   @Tag("standard-processing")

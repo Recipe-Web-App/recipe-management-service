@@ -161,6 +161,22 @@ public class CollectionController {
   }
 
   /**
+   * Get trending collections accessible to the authenticated user.
+   *
+   * <p>Returns collections ordered by trending score, which considers recent engagement metrics
+   * including favorites and recipe additions with time-decay weighting. Maximum of 100 trending
+   * collections are returned.
+   *
+   * @param pageable pagination parameters (page, size)
+   * @return ResponseEntity with paginated list of trending collections
+   */
+  @GetMapping(value = "/trending", produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<Page<CollectionDto>> getTrendingCollections(
+      @PageableDefault(size = DEFAULT_PAGE_SIZE) final Pageable pageable) {
+    return collectionService.getTrendingCollections(pageable);
+  }
+
+  /**
    * Add a recipe to a collection.
    *
    * <p>Adds a recipe to a collection with automatic display order assignment. The user must have

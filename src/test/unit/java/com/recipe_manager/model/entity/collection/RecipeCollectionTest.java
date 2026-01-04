@@ -88,6 +88,8 @@ class RecipeCollectionTest {
     assertTrue(collection.getCollectionItems().isEmpty());
     assertNotNull(collection.getCollaborators());
     assertTrue(collection.getCollaborators().isEmpty());
+    assertNotNull(collection.getCollectionTags());
+    assertTrue(collection.getCollectionTags().isEmpty());
   }
 
   @Test
@@ -97,6 +99,7 @@ class RecipeCollectionTest {
     LocalDateTime now = LocalDateTime.now();
     ArrayList<RecipeCollectionItem> items = new ArrayList<>();
     ArrayList<CollectionCollaborator> collaborators = new ArrayList<>();
+    ArrayList<CollectionTag> tags = new ArrayList<>();
 
     RecipeCollection collection =
         new RecipeCollection(
@@ -109,7 +112,8 @@ class RecipeCollectionTest {
             now,
             now,
             items,
-            collaborators);
+            collaborators,
+            tags);
 
     assertEquals(1L, collection.getCollectionId());
     assertEquals(userId, collection.getUserId());
@@ -121,6 +125,7 @@ class RecipeCollectionTest {
     assertEquals(now, collection.getUpdatedAt());
     assertEquals(items, collection.getCollectionItems());
     assertEquals(collaborators, collection.getCollaborators());
+    assertEquals(tags, collection.getCollectionTags());
   }
 
   @Test
@@ -131,6 +136,7 @@ class RecipeCollectionTest {
     LocalDateTime now = LocalDateTime.now();
     ArrayList<RecipeCollectionItem> items = new ArrayList<>();
     ArrayList<CollectionCollaborator> collaborators = new ArrayList<>();
+    ArrayList<CollectionTag> tags = new ArrayList<>();
 
     collection.setCollectionId(2L);
     collection.setUserId(userId);
@@ -142,6 +148,7 @@ class RecipeCollectionTest {
     collection.setUpdatedAt(now);
     collection.setCollectionItems(items);
     collection.setCollaborators(collaborators);
+    collection.setCollectionTags(tags);
 
     assertEquals(2L, collection.getCollectionId());
     assertEquals(userId, collection.getUserId());
@@ -153,6 +160,7 @@ class RecipeCollectionTest {
     assertEquals(now, collection.getUpdatedAt());
     assertEquals(items, collection.getCollectionItems());
     assertEquals(collaborators, collection.getCollaborators());
+    assertEquals(tags, collection.getCollectionTags());
   }
 
   @Test
@@ -361,9 +369,10 @@ class RecipeCollectionTest {
     assertTrue(toString.contains("name=My Collection"));
     assertTrue(toString.contains("PUBLIC"));
     assertTrue(toString.contains("OWNER_ONLY"));
-    // CollectionItems and collaborators should be excluded from toString
+    // CollectionItems, collaborators, and collectionTags should be excluded from toString
     assertTrue(!toString.contains("collectionItems="));
     assertTrue(!toString.contains("collaborators="));
+    assertTrue(!toString.contains("collectionTags="));
   }
 
   @Test
@@ -381,5 +390,7 @@ class RecipeCollectionTest {
     assertTrue(collection.getCollectionItems().isEmpty());
     assertNotNull(collection.getCollaborators());
     assertTrue(collection.getCollaborators().isEmpty());
+    assertNotNull(collection.getCollectionTags());
+    assertTrue(collection.getCollectionTags().isEmpty());
   }
 }

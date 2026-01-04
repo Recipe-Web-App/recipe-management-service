@@ -506,6 +506,33 @@ public class CollectionService {
   }
 
   /**
+   * Retrieves trending collections accessible to the authenticated user.
+   *
+   * <p>Collections are ordered by trending score based on recent engagement:
+   *
+   * <ul>
+   *   <li>Favorites (weight: 3.0)
+   *   <li>Recipe additions (weight: 4.0)
+   *   <li>Time decay: half-life of ~3 days
+   *   <li>Maximum 100 trending collections are considered
+   * </ul>
+   *
+   * @param pageable pagination parameters
+   * @return ResponseEntity containing paginated trending collections
+   */
+  @Transactional(readOnly = true)
+  public ResponseEntity<Page<CollectionDto>> getTrendingCollections(final Pageable pageable) {
+    UUID currentUserId = SecurityUtils.getCurrentUserId();
+
+    Page<RecipeCollection> collections =
+        recipeCollectionRepository.findTrendingCollections(currentUserId, pageable);
+
+    Page<CollectionDto> dtoPage = collections.map(collectionMapper::toDto);
+
+    return ResponseEntity.ok(dtoPage);
+  }
+
+  /**
    * Adds a recipe to a collection. User must have edit permission on the collection.
    *
    * @param collectionId the ID of the collection to add the recipe to

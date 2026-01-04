@@ -24,4 +24,10 @@ class CollectionKarateRunner {
   Karate testUpdateCollection() {
     return Karate.run("feature/collection/update-collection.feature").relativeTo(getClass());
   }
+
+  @Karate.Test
+  @DisplayName("Get Trending Collections Endpoint")
+  Karate testGetTrendingCollections() {
+    return Karate.run("feature/collection/get-trending-collections.feature").relativeTo(getClass());
+  }
 }

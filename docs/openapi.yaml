@@ -1837,7 +1837,7 @@ paths:
 
   /collections/search:
     post:
-      tags: [collections]
+      tags: [search]
       summary: Search collections
       description: |
         Advanced collection search with multiple filter criteria including visibility,
@@ -1863,6 +1863,35 @@ paths:
                 $ref: '#/components/schemas/PageCollectionDto'
         '400':
           $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /collections/trending:
+    get:
+      tags: [search]
+      summary: Get trending collections
+      description: |
+        Retrieves the most trending collections with pagination support.
+
+        Collections are ordered by trending score in descending order, so the first
+        item in the response is the "most trending" collection.
+
+        **Trending Factors:**
+        Trending score considers recent engagement metrics including favorites,
+        recipe additions, and user interactions.
+      operationId: getTrendingCollections
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+      responses:
+        '200':
+          description: Trending collections retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageCollectionDto'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '500':

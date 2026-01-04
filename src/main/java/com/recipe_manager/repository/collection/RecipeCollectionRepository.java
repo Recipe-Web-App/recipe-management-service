@@ -223,4 +223,54 @@ public interface RecipeCollectionRepository extends JpaRepository<RecipeCollecti
       nativeQuery = true)
   Page<CollectionSummaryProjection> findOwnedAndCollaboratingCollections(
       @Param("userId") UUID userId, Pageable pageable);
+
+  /**
+   * Find trending collections accessible to the user based on a time-decayed scoring algorithm.
+   * Returns at most 100 trending collections, which can then be paginated by the client. Score =
+   * Sum(Weight * exp(-DecayRate * Age)) Weights: Favorites=3.0, RecipeAdds=4.0 DecayRate: 0.23
+   * (half-life of ~3 days)
+   *
+   * @param userId the user requesting trending collections
+   * @param pageable pagination information (within the top 100)
+   * @return page of trending collections the user can access (max 100 total)
+   */
+  @Query(
+      value =
+          "WITH top_trending AS ("
+              + "  SELECT c.collection_id, c.user_id, c.name, c.description, c.visibility, "
+              + "    c.collaboration_mode, c.created_at, c.updated_at, "
+              + "    (COALESCE(fav.fav_score, 0) + COALESCE(adds.add_score, 0)) as trending_score "
+              + "  FROM recipe_manager.recipe_collections c "
+              + "  INNER JOIN recipe_manager.vw_user_collection_access vca "
+              + "    ON c.collection_id = vca.collection_id AND vca.accessor_user_id = :userId "
+              + "  LEFT JOIN ("
+              + "    SELECT cf.collection_id, "
+              + "      SUM(3.0 * EXP(-0.23 * EXTRACT(EPOCH FROM (NOW() - cf.favorited_at)) / 86400))"
+              + "        as fav_score "
+              + "    FROM recipe_manager.collection_favorites cf "
+              + "    WHERE cf.favorited_at > NOW() - INTERVAL '30 days' "
+              + "    GROUP BY cf.collection_id"
+              + "  ) fav ON c.collection_id = fav.collection_id "
+              + "  LEFT JOIN ("
+              + "    SELECT rci.collection_id, "
+              + "      SUM(4.0 * EXP(-0.23 * EXTRACT(EPOCH FROM (NOW() - rci.added_at)) / 86400))"
+              + "        as add_score "
+              + "    FROM recipe_manager.recipe_collection_items rci "
+              + "    WHERE rci.added_at > NOW() - INTERVAL '30 days' "
+              + "    GROUP BY rci.collection_id"
+              + "  ) adds ON c.collection_id = adds.collection_id "
+              + "  ORDER BY trending_score DESC, c.created_at DESC "
+              + "  LIMIT 100"
+              + ") "
+              + "SELECT collection_id, user_id, name, description, visibility, "
+              + "  collaboration_mode, created_at, updated_at "
+              + "FROM top_trending "
+              + "ORDER BY trending_score DESC, created_at DESC",
+      countQuery =
+          "SELECT LEAST(COUNT(*), 100) "
+              + "FROM recipe_manager.recipe_collections c "
+              + "INNER JOIN recipe_manager.vw_user_collection_access vca "
+              + "  ON c.collection_id = vca.collection_id AND vca.accessor_user_id = :userId",
+      nativeQuery = true)
+  Page<RecipeCollection> findTrendingCollections(@Param("userId") UUID userId, Pageable pageable);
 }

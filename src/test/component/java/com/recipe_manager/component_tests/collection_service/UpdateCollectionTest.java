@@ -45,6 +45,7 @@ import com.recipe_manager.repository.collection.RecipeCollectionItemRepository;
 import com.recipe_manager.repository.collection.RecipeCollectionRepository;
 import com.recipe_manager.repository.recipe.RecipeRepository;
 import com.recipe_manager.service.CollectionService;
+import com.recipe_manager.service.CollectionTagService;
 import com.recipe_manager.service.external.notificationservice.NotificationService;
 
 import jakarta.persistence.EntityManager;
@@ -84,6 +85,8 @@ class UpdateCollectionTest {
   @Mock private NotificationService notificationService;
 
   @Mock private EntityManager entityManager;
+
+  @Mock private CollectionTagService collectionTagService;
 
   @Autowired private CollectionMapper collectionMapper;
 
@@ -125,7 +128,7 @@ class UpdateCollectionTest {
             recipeRepository,
             notificationService,
             entityManager);
-    collectionController = new CollectionController(collectionService);
+    collectionController = new CollectionController(collectionService, collectionTagService);
 
     mockMvc =
         MockMvcBuilders.standaloneSetup(collectionController)

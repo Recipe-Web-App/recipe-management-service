@@ -3,6 +3,7 @@ package com.recipe_manager.controller;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -17,12 +18,16 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.recipe_manager.model.dto.collection.CollectionCollaboratorDto;
 import com.recipe_manager.model.dto.collection.RecipeCollectionItemDto;
+import com.recipe_manager.model.dto.request.AddTagRequest;
 import com.recipe_manager.model.dto.request.CreateCollectionRequest;
+import com.recipe_manager.model.dto.request.RemoveTagRequest;
 import com.recipe_manager.model.dto.request.SearchCollectionsRequest;
 import com.recipe_manager.model.dto.request.UpdateCollectionRequest;
 import com.recipe_manager.model.dto.response.CollectionDetailsDto;
 import com.recipe_manager.model.dto.response.CollectionDto;
+import com.recipe_manager.model.dto.response.CollectionTagResponse;
 import com.recipe_manager.service.CollectionService;
+import com.recipe_manager.service.CollectionTagService;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import jakarta.validation.Valid;
@@ -43,16 +48,22 @@ public class CollectionController {
   /** Service for collection operations. */
   private final CollectionService collectionService;
 
+  /** Service for collection tag operations. */
+  private final CollectionTagService collectionTagService;
+
   /**
    * Constructs the controller with required services.
    *
    * @param collectionService the collection service
+   * @param collectionTagService the collection tag service
    */
   @SuppressFBWarnings(
       value = "EI_EXPOSE_REP2",
-      justification = "CollectionService is a Spring-managed bean injected via constructor")
-  public CollectionController(final CollectionService collectionService) {
+      justification = "Services are Spring-managed beans injected via constructor")
+  public CollectionController(
+      final CollectionService collectionService, final CollectionTagService collectionTagService) {
     this.collectionService = collectionService;
+    this.collectionTagService = collectionTagService;
   }
 
   /**
@@ -342,5 +353,62 @@ public class CollectionController {
   public ResponseEntity<Void> removeCollaborator(
       @PathVariable final Long collectionId, @PathVariable final java.util.UUID userId) {
     return collectionService.removeCollaborator(collectionId, userId);
+  }
+
+  // ============================================
+  // Tag Endpoints
+  // ============================================
+
+  /**
+   * Get all tags for a collection.
+   *
+   * <p>Retrieves all tags associated with a collection for categorization and discovery.
+   *
+   * @param collectionId the ID of the collection
+   * @return ResponseEntity containing the collection ID and list of tags
+   */
+  @GetMapping(value = "/{collectionId}/tags", produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<CollectionTagResponse> getCollectionTags(
+      @PathVariable final Long collectionId) {
+    CollectionTagResponse response = collectionTagService.getTags(collectionId);
+    return ResponseEntity.ok(response);
+  }
+
+  /**
+   * Add a tag to a collection.
+   *
+   * <p>Associates a tag with a collection for categorization. Creates the tag if it doesn't exist.
+   *
+   * @param collectionId the ID of the collection
+   * @param request the add tag request containing the tag name
+   * @return ResponseEntity with the updated list of tags and 201 Created status
+   */
+  @PostMapping(
+      value = "/{collectionId}/tags",
+      consumes = MediaType.APPLICATION_JSON_VALUE,
+      produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<CollectionTagResponse> addTagToCollection(
+      @PathVariable final Long collectionId, @Valid @RequestBody final AddTagRequest request) {
+    CollectionTagResponse response = collectionTagService.addTag(collectionId, request);
+    return ResponseEntity.status(HttpStatus.CREATED).body(response);
+  }
+
+  /**
+   * Remove a tag from a collection.
+   *
+   * <p>Removes the association between a tag and a collection. The tag itself is not deleted.
+   *
+   * @param collectionId the ID of the collection
+   * @param request the remove tag request containing the tag name
+   * @return ResponseEntity with the updated list of tags
+   */
+  @DeleteMapping(
+      value = "/{collectionId}/tags",
+      consumes = MediaType.APPLICATION_JSON_VALUE,
+      produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<CollectionTagResponse> removeTagFromCollection(
+      @PathVariable final Long collectionId, @Valid @RequestBody final RemoveTagRequest request) {
+    CollectionTagResponse response = collectionTagService.removeTag(collectionId, request);
+    return ResponseEntity.ok(response);
   }
 }

@@ -29,14 +29,19 @@ import org.springframework.http.ResponseEntity;
 
 import com.recipe_manager.model.dto.collection.CollectionCollaboratorDto;
 import com.recipe_manager.model.dto.collection.CollectionRecipeDto;
+import com.recipe_manager.model.dto.collection.CollectionTagDto;
 import com.recipe_manager.model.dto.collection.RecipeCollectionItemDto;
+import com.recipe_manager.model.dto.request.AddTagRequest;
+import com.recipe_manager.model.dto.request.RemoveTagRequest;
 import com.recipe_manager.model.dto.request.SearchCollectionsRequest;
 import com.recipe_manager.model.dto.request.UpdateCollectionRequest;
 import com.recipe_manager.model.dto.response.CollectionDetailsDto;
 import com.recipe_manager.model.dto.response.CollectionDto;
+import com.recipe_manager.model.dto.response.CollectionTagResponse;
 import com.recipe_manager.model.enums.CollaborationMode;
 import com.recipe_manager.model.enums.CollectionVisibility;
 import com.recipe_manager.service.CollectionService;
+import com.recipe_manager.service.CollectionTagService;
 
 /** Unit tests for CollectionController. */
 @Tag("unit")
@@ -45,11 +50,13 @@ class CollectionControllerTest {
 
   @Mock private CollectionService collectionService;
 
+  @Mock private CollectionTagService collectionTagService;
+
   private CollectionController collectionController;
 
   @BeforeEach
   void setUp() {
-    collectionController = new CollectionController(collectionService);
+    collectionController = new CollectionController(collectionService, collectionTagService);
   }
 
   @Test
@@ -1331,5 +1338,243 @@ class CollectionControllerTest {
     // Then
     assertThat(response).isNotNull();
     verify(collectionService).removeCollaborator(collectionId, validUserId);
+  }
+
+  // ============================================
+  // Tag Endpoint Tests
+  // ============================================
+
+  @Test
+  @DisplayName("Should get collection tags successfully")
+  @Tag("standard-processing")
+  void shouldGetCollectionTagsSuccessfully() {
+    // Given
+    Long collectionId = 1L;
+    List<CollectionTagDto> tags =
+        Arrays.asList(
+            CollectionTagDto.builder().tagId(1L).name("dessert").build(),
+            CollectionTagDto.builder().tagId(2L).name("quick-meals").build());
+
+    CollectionTagResponse expectedResponse =
+        CollectionTagResponse.builder().collectionId(collectionId).tags(tags).build();
+
+    when(collectionTagService.getTags(collectionId)).thenReturn(expectedResponse);
+
+    // When
+    ResponseEntity<CollectionTagResponse> response =
+        collectionController.getCollectionTags(collectionId);
+
+    // Then
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    assertThat(response.getBody()).isNotNull();
+    assertThat(response.getBody().getCollectionId()).isEqualTo(collectionId);
+    assertThat(response.getBody().getTags()).hasSize(2);
+    assertThat(response.getBody().getTags().get(0).getName()).isEqualTo("dessert");
+
+    verify(collectionTagService).getTags(collectionId);
+  }
+
+  @Test
+  @DisplayName("Should get empty tags list for collection with no tags")
+  @Tag("standard-processing")
+  void shouldGetEmptyTagsListForCollectionWithNoTags() {
+    // Given
+    Long collectionId = 1L;
+    CollectionTagResponse expectedResponse =
+        CollectionTagResponse.builder()
+            .collectionId(collectionId)
+            .tags(Collections.emptyList())
+            .build();
+
+    when(collectionTagService.getTags(collectionId)).thenReturn(expectedResponse);
+
+    // When
+    ResponseEntity<CollectionTagResponse> response =
+        collectionController.getCollectionTags(collectionId);
+
+    // Then
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    assertThat(response.getBody()).isNotNull();
+    assertThat(response.getBody().getTags()).isEmpty();
+
+    verify(collectionTagService).getTags(collectionId);
+  }
+
+  @Test
+  @DisplayName("Should add tag to collection successfully")
+  @Tag("standard-processing")
+  void shouldAddTagToCollectionSuccessfully() {
+    // Given
+    Long collectionId = 1L;
+    AddTagRequest request = AddTagRequest.builder().name("dessert").build();
+
+    List<CollectionTagDto> tags =
+        Collections.singletonList(CollectionTagDto.builder().tagId(1L).name("dessert").build());
+
+    CollectionTagResponse expectedResponse =
+        CollectionTagResponse.builder().collectionId(collectionId).tags(tags).build();
+
+    when(collectionTagService.addTag(collectionId, request)).thenReturn(expectedResponse);
+
+    // When
+    ResponseEntity<CollectionTagResponse> response =
+        collectionController.addTagToCollection(collectionId, request);
+
+    // Then
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+    assertThat(response.getBody()).isNotNull();
+    assertThat(response.getBody().getCollectionId()).isEqualTo(collectionId);
+    assertThat(response.getBody().getTags()).hasSize(1);
+    assertThat(response.getBody().getTags().get(0).getName()).isEqualTo("dessert");
+
+    verify(collectionTagService).addTag(collectionId, request);
+  }
+
+  @Test
+  @DisplayName("Should delegate add tag to service layer")
+  @Tag("standard-processing")
+  void shouldDelegateAddTagToServiceLayer() {
+    // Given
+    Long collectionId = 123L;
+    AddTagRequest request = AddTagRequest.builder().name("quick-meals").build();
+
+    CollectionTagResponse expectedResponse =
+        CollectionTagResponse.builder()
+            .collectionId(collectionId)
+            .tags(Collections.emptyList())
+            .build();
+
+    when(collectionTagService.addTag(collectionId, request)).thenReturn(expectedResponse);
+
+    // When
+    collectionController.addTagToCollection(collectionId, request);
+
+    // Then
+    verify(collectionTagService).addTag(eq(collectionId), eq(request));
+  }
+
+  @Test
+  @DisplayName("Should remove tag from collection successfully")
+  @Tag("standard-processing")
+  void shouldRemoveTagFromCollectionSuccessfully() {
+    // Given
+    Long collectionId = 1L;
+    RemoveTagRequest request = RemoveTagRequest.builder().tagName("dessert").build();
+
+    CollectionTagResponse expectedResponse =
+        CollectionTagResponse.builder()
+            .collectionId(collectionId)
+            .tags(Collections.emptyList())
+            .build();
+
+    when(collectionTagService.removeTag(collectionId, request)).thenReturn(expectedResponse);
+
+    // When
+    ResponseEntity<CollectionTagResponse> response =
+        collectionController.removeTagFromCollection(collectionId, request);
+
+    // Then
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    assertThat(response.getBody()).isNotNull();
+    assertThat(response.getBody().getCollectionId()).isEqualTo(collectionId);
+    assertThat(response.getBody().getTags()).isEmpty();
+
+    verify(collectionTagService).removeTag(collectionId, request);
+  }
+
+  @Test
+  @DisplayName("Should delegate remove tag to service layer")
+  @Tag("standard-processing")
+  void shouldDelegateRemoveTagToServiceLayer() {
+    // Given
+    Long collectionId = 456L;
+    RemoveTagRequest request = RemoveTagRequest.builder().tagName("favorites").build();
+
+    CollectionTagResponse expectedResponse =
+        CollectionTagResponse.builder()
+            .collectionId(collectionId)
+            .tags(Collections.emptyList())
+            .build();
+
+    when(collectionTagService.removeTag(collectionId, request)).thenReturn(expectedResponse);
+
+    // When
+    collectionController.removeTagFromCollection(collectionId, request);
+
+    // Then
+    verify(collectionTagService).removeTag(eq(collectionId), eq(request));
+  }
+
+  @Test
+  @DisplayName("Should return 200 OK for get tags")
+  @Tag("standard-processing")
+  void shouldReturn200OkForGetTags() {
+    // Given
+    Long collectionId = 1L;
+    CollectionTagResponse expectedResponse =
+        CollectionTagResponse.builder()
+            .collectionId(collectionId)
+            .tags(Collections.emptyList())
+            .build();
+
+    when(collectionTagService.getTags(collectionId)).thenReturn(expectedResponse);
+
+    // When
+    ResponseEntity<CollectionTagResponse> response =
+        collectionController.getCollectionTags(collectionId);
+
+    // Then
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    assertThat(response.getStatusCode().value()).isEqualTo(200);
+  }
+
+  @Test
+  @DisplayName("Should return 201 Created for add tag")
+  @Tag("standard-processing")
+  void shouldReturn201CreatedForAddTag() {
+    // Given
+    Long collectionId = 1L;
+    AddTagRequest request = AddTagRequest.builder().name("test").build();
+
+    CollectionTagResponse expectedResponse =
+        CollectionTagResponse.builder()
+            .collectionId(collectionId)
+            .tags(Collections.emptyList())
+            .build();
+
+    when(collectionTagService.addTag(collectionId, request)).thenReturn(expectedResponse);
+
+    // When
+    ResponseEntity<CollectionTagResponse> response =
+        collectionController.addTagToCollection(collectionId, request);
+
+    // Then
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+    assertThat(response.getStatusCode().value()).isEqualTo(201);
+  }
+
+  @Test
+  @DisplayName("Should return 200 OK for remove tag")
+  @Tag("standard-processing")
+  void shouldReturn200OkForRemoveTag() {
+    // Given
+    Long collectionId = 1L;
+    RemoveTagRequest request = RemoveTagRequest.builder().tagName("test").build();
+
+    CollectionTagResponse expectedResponse =
+        CollectionTagResponse.builder()
+            .collectionId(collectionId)
+            .tags(Collections.emptyList())
+            .build();
+
+    when(collectionTagService.removeTag(collectionId, request)).thenReturn(expectedResponse);
+
+    // When
+    ResponseEntity<CollectionTagResponse> response =
+        collectionController.removeTagFromCollection(collectionId, request);
+
+    // Then
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    assertThat(response.getStatusCode().value()).isEqualTo(200);
   }
 }

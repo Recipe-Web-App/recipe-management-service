@@ -48,4 +48,7 @@ public final class CreateCollectionRequest {
    * collaborationMode is SPECIFIC_USERS.
    */
   @Builder.Default private List<UUID> collaboratorIds = new ArrayList<>();
+
+  /** Optional list of tag names to add to the collection during creation. */
+  @Builder.Default private List<String> tags = new ArrayList<>();
 }

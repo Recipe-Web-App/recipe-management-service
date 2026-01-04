@@ -23,6 +23,7 @@ import com.recipe_manager.model.dto.response.CollectionDetailsDto;
 import com.recipe_manager.model.dto.response.CollectionDto;
 import com.recipe_manager.model.entity.collection.CollectionCollaborator;
 import com.recipe_manager.model.entity.collection.CollectionCollaboratorId;
+import com.recipe_manager.model.entity.collection.CollectionTag;
 import com.recipe_manager.model.entity.collection.RecipeCollection;
 import com.recipe_manager.model.entity.collection.RecipeCollectionItem;
 import com.recipe_manager.model.entity.collection.RecipeCollectionItemId;
@@ -33,6 +34,7 @@ import com.recipe_manager.model.mapper.RecipeCollectionItemMapper;
 import com.recipe_manager.model.mapper.RecipeCollectionMapper;
 import com.recipe_manager.repository.collection.CollectionCollaboratorRepository;
 import com.recipe_manager.repository.collection.CollectionSummaryProjection;
+import com.recipe_manager.repository.collection.CollectionTagRepository;
 import com.recipe_manager.repository.collection.RecipeCollectionItemRepository;
 import com.recipe_manager.repository.collection.RecipeCollectionRepository;
 import com.recipe_manager.repository.recipe.RecipeRepository;
@@ -72,6 +74,9 @@ public class CollectionService {
   /** Repository used for accessing collection collaborators. */
   private final CollectionCollaboratorRepository collectionCollaboratorRepository;
 
+  /** Repository used for accessing collection tags. */
+  private final CollectionTagRepository collectionTagRepository;
+
   /** Mapper used for converting between collection projections and DTOs. */
   private final CollectionMapper collectionMapper;
 
@@ -96,6 +101,7 @@ public class CollectionService {
    * @param recipeCollectionRepository the repository used for accessing collection data
    * @param recipeCollectionItemRepository the repository used for accessing collection items
    * @param collectionCollaboratorRepository the repository used for accessing collaborators
+   * @param collectionTagRepository the repository used for accessing collection tags
    * @param collectionMapper the mapper used for converting between projections and DTOs
    * @param recipeCollectionMapper the mapper used for converting between entities and DTOs
    * @param recipeCollectionItemMapper the mapper used for converting between item entities and DTOs
@@ -107,6 +113,7 @@ public class CollectionService {
       final RecipeCollectionRepository recipeCollectionRepository,
       final RecipeCollectionItemRepository recipeCollectionItemRepository,
       final CollectionCollaboratorRepository collectionCollaboratorRepository,
+      final CollectionTagRepository collectionTagRepository,
       final CollectionMapper collectionMapper,
       final RecipeCollectionMapper recipeCollectionMapper,
       final RecipeCollectionItemMapper recipeCollectionItemMapper,
@@ -116,6 +123,7 @@ public class CollectionService {
     this.recipeCollectionRepository = recipeCollectionRepository;
     this.recipeCollectionItemRepository = recipeCollectionItemRepository;
     this.collectionCollaboratorRepository = collectionCollaboratorRepository;
+    this.collectionTagRepository = collectionTagRepository;
     this.collectionMapper = collectionMapper;
     this.recipeCollectionMapper = recipeCollectionMapper;
     this.recipeCollectionItemMapper = recipeCollectionItemMapper;
@@ -217,6 +225,9 @@ public class CollectionService {
 
     // Process batch collaborator additions if applicable
     addCollaboratorsDuringCreation(request.getCollaboratorIds(), savedCollection, currentUserId);
+
+    // Process batch tag additions if provided
+    addTagsDuringCreation(request.getTags(), savedCollection);
 
     // Flush pending writes and clear persistence context to ensure fresh load
     entityManager.flush();
@@ -348,6 +359,53 @@ public class CollectionService {
     }
 
     return addedCount;
+  }
+
+  /**
+   * Adds tags to a collection during creation.
+   *
+   * @param tagNames list of tag names to add (may be null or empty)
+   * @param collection the saved collection entity
+   * @return the number of tags added
+   */
+  private int addTagsDuringCreation(
+      final List<String> tagNames, final RecipeCollection collection) {
+    if (tagNames == null || tagNames.isEmpty()) {
+      return 0;
+    }
+
+    // Use a set to handle duplicates in the request (case-insensitive)
+    java.util.Set<String> uniqueTagNames = new java.util.LinkedHashSet<>();
+    for (String name : tagNames) {
+      if (name != null && !name.trim().isEmpty()) {
+        uniqueTagNames.add(name.trim().toLowerCase(java.util.Locale.ROOT));
+      }
+    }
+
+    List<CollectionTag> tagsToAdd = new java.util.ArrayList<>();
+
+    for (String tagName : uniqueTagNames) {
+      // Find or create the tag
+      CollectionTag tag =
+          collectionTagRepository
+              .findByNameIgnoreCase(tagName)
+              .orElseGet(
+                  () -> {
+                    CollectionTag newTag = CollectionTag.builder().name(tagName).build();
+                    return collectionTagRepository.save(newTag);
+                  });
+      tagsToAdd.add(tag);
+    }
+
+    // Add all tags to the collection
+    if (!tagsToAdd.isEmpty()) {
+      List<CollectionTag> currentTags = new java.util.ArrayList<>(collection.getCollectionTags());
+      currentTags.addAll(tagsToAdd);
+      collection.setCollectionTags(currentTags);
+      recipeCollectionRepository.save(collection);
+    }
+
+    return tagsToAdd.size();
   }
 
   /**

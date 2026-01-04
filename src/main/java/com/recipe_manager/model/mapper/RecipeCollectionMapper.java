@@ -38,6 +38,7 @@ public interface RecipeCollectionMapper {
   @Mapping(target = "updatedAt", ignore = true)
   @Mapping(target = "collectionItems", ignore = true)
   @Mapping(target = "collaborators", ignore = true)
+  @Mapping(target = "collectionTags", ignore = true)
   RecipeCollection fromRequest(CreateCollectionRequest request);
 
   /**
@@ -53,6 +54,7 @@ public interface RecipeCollectionMapper {
   @Mapping(target = "updatedAt", ignore = true)
   @Mapping(target = "collectionItems", ignore = true)
   @Mapping(target = "collaborators", ignore = true)
+  @Mapping(target = "collectionTags", ignore = true)
   void updateCollectionFromRequest(
       UpdateCollectionRequest request, @MappingTarget RecipeCollection collection);
 }

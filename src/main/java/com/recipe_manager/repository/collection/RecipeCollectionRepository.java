@@ -161,17 +161,19 @@ public interface RecipeCollectionRepository extends JpaRepository<RecipeCollecti
   boolean hasViewAccess(@Param("collectionId") Long collectionId, @Param("userId") UUID userId);
 
   /**
-   * Finds a collection by ID with all collection items eagerly loaded. This method fetches the
-   * collection with its recipes in a single query using JOIN FETCH to avoid N+1 queries. Collection
-   * items are ordered by display_order ascending.
+   * Finds a collection by ID with all collection items and tags eagerly loaded. This method fetches
+   * the collection with its recipes and tags in a single query using JOIN FETCH to avoid N+1
+   * queries. Collection items are ordered by display_order ascending.
    *
    * @param collectionId the collection ID
-   * @return optional containing the collection with eagerly loaded items, or empty if not found
+   * @return optional containing the collection with eagerly loaded items and tags, or empty if not
+   *     found
    */
   @Query(
       "SELECT DISTINCT c FROM RecipeCollection c "
           + "LEFT JOIN FETCH c.collectionItems ci "
           + "LEFT JOIN FETCH ci.recipe "
+          + "LEFT JOIN FETCH c.collectionTags "
           + "WHERE c.collectionId = :collectionId "
           + "ORDER BY ci.displayOrder ASC")
   Optional<RecipeCollection> findByIdWithItems(@Param("collectionId") Long collectionId);

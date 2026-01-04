@@ -20,6 +20,9 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
@@ -45,8 +48,8 @@ import lombok.ToString;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@EqualsAndHashCode(exclude = {"collectionItems", "collaborators"})
-@ToString(exclude = {"collectionItems", "collaborators"})
+@EqualsAndHashCode(exclude = {"collectionItems", "collaborators", "collectionTags"})
+@ToString(exclude = {"collectionItems", "collaborators", "collectionTags"})
 public class RecipeCollection {
   /** Max name length as defined in DB schema. */
   private static final int MAX_NAME_LENGTH = 255;
@@ -105,4 +108,14 @@ public class RecipeCollection {
   @OneToMany(mappedBy = "collection", cascade = CascadeType.ALL, orphanRemoval = true)
   @Default
   private List<CollectionCollaborator> collaborators = new ArrayList<>();
+
+  /** The list of tags associated with this collection. */
+  @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+  @JoinTable(
+      name = "collection_tag_junction",
+      schema = "recipe_manager",
+      joinColumns = @JoinColumn(name = "collection_id"),
+      inverseJoinColumns = @JoinColumn(name = "tag_id"))
+  @Default
+  private List<CollectionTag> collectionTags = new ArrayList<>();
 }

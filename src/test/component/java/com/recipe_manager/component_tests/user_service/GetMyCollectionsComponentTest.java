@@ -26,6 +26,7 @@ import com.recipe_manager.model.mapper.CollectionCollaboratorMapperImpl;
 import com.recipe_manager.model.mapper.RecipeCollectionMapperImpl;
 import com.recipe_manager.repository.collection.CollectionCollaboratorRepository;
 import com.recipe_manager.repository.collection.CollectionSummaryProjection;
+import com.recipe_manager.repository.collection.CollectionTagRepository;
 import com.recipe_manager.repository.collection.RecipeCollectionItemRepository;
 import com.recipe_manager.repository.collection.RecipeCollectionRepository;
 import com.recipe_manager.repository.recipe.RecipeRepository;
@@ -84,6 +85,8 @@ class GetMyCollectionsComponentTest {
 
   @Mock protected CollectionCollaboratorRepository collectionCollaboratorRepository;
 
+  @Mock protected CollectionTagRepository collectionTagRepository;
+
   @Mock protected RecipeRepository recipeRepository;
 
   @Mock protected NotificationService notificationService;
@@ -116,6 +119,7 @@ class GetMyCollectionsComponentTest {
             recipeCollectionRepository,
             recipeCollectionItemRepository,
             collectionCollaboratorRepository,
+            collectionTagRepository,
             collectionMapper,
             recipeCollectionMapper,
             recipeCollectionItemMapper,

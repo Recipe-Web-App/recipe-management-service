@@ -8,6 +8,7 @@ import java.util.UUID;
 
 import com.recipe_manager.model.dto.collection.CollectionCollaboratorDto;
 import com.recipe_manager.model.dto.collection.CollectionRecipeDto;
+import com.recipe_manager.model.dto.collection.CollectionTagDto;
 import com.recipe_manager.model.enums.CollaborationMode;
 import com.recipe_manager.model.enums.CollectionVisibility;
 
@@ -41,6 +42,9 @@ class CollectionDetailsDtoTest {
 
     List<CollectionCollaboratorDto> collaborators = List.of();
 
+    CollectionTagDto tagDto = CollectionTagDto.builder().tagId(1L).name("breakfast").build();
+    List<CollectionTagDto> tags = List.of(tagDto);
+
     // When
     CollectionDetailsDto dto =
         CollectionDetailsDto.builder()
@@ -54,6 +58,7 @@ class CollectionDetailsDtoTest {
             .updatedAt(now)
             .recipes(recipes)
             .collaborators(collaborators)
+            .tags(tags)
             .build();
 
     // Then
@@ -68,6 +73,8 @@ class CollectionDetailsDtoTest {
     assertThat(dto.getRecipes()).isEqualTo(recipes);
     assertThat(dto.getRecipes()).hasSize(1);
     assertThat(dto.getCollaborators()).isEmpty();
+    assertThat(dto.getTags()).hasSize(1);
+    assertThat(dto.getTags().get(0).getName()).isEqualTo("breakfast");
   }
 
   @Test
@@ -88,6 +95,7 @@ class CollectionDetailsDtoTest {
     assertThat(dto.getUpdatedAt()).isNull();
     assertThat(dto.getRecipes()).isNull();
     assertThat(dto.getCollaborators()).isNull();
+    assertThat(dto.getTags()).isNull();
   }
 
   @Test
@@ -226,6 +234,9 @@ class CollectionDetailsDtoTest {
 
     List<CollectionCollaboratorDto> collaborators = List.of();
 
+    CollectionTagDto tagDto = CollectionTagDto.builder().tagId(1L).name("quick").build();
+    List<CollectionTagDto> tags = List.of(tagDto);
+
     // When
     CollectionDetailsDto dto =
         new CollectionDetailsDto(
@@ -238,7 +249,8 @@ class CollectionDetailsDtoTest {
             now,
             now,
             recipes,
-            collaborators);
+            collaborators,
+            tags);
 
     // Then
     assertThat(dto.getCollectionId()).isEqualTo(5L);
@@ -251,6 +263,8 @@ class CollectionDetailsDtoTest {
     assertThat(dto.getUpdatedAt()).isEqualTo(now);
     assertThat(dto.getRecipes()).hasSize(1);
     assertThat(dto.getCollaborators()).isEmpty();
+    assertThat(dto.getTags()).hasSize(1);
+    assertThat(dto.getTags().get(0).getName()).isEqualTo("quick");
   }
 
   @Test
@@ -262,8 +276,8 @@ class CollectionDetailsDtoTest {
     UUID userId = UUID.randomUUID();
     LocalDateTime now = LocalDateTime.now();
     List<CollectionRecipeDto> recipes = List.of();
-
     List<CollectionCollaboratorDto> collaborators = List.of();
+    List<CollectionTagDto> tags = List.of();
 
     // When
     dto.setCollectionId(10L);
@@ -276,6 +290,7 @@ class CollectionDetailsDtoTest {
     dto.setUpdatedAt(now);
     dto.setRecipes(recipes);
     dto.setCollaborators(collaborators);
+    dto.setTags(tags);
 
     // Then
     assertThat(dto.getCollectionId()).isEqualTo(10L);
@@ -288,5 +303,6 @@ class CollectionDetailsDtoTest {
     assertThat(dto.getUpdatedAt()).isEqualTo(now);
     assertThat(dto.getRecipes()).isEmpty();
     assertThat(dto.getCollaborators()).isEmpty();
+    assertThat(dto.getTags()).isEmpty();
   }
 }

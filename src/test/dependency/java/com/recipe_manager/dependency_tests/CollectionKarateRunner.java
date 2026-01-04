@@ -30,4 +30,10 @@ class CollectionKarateRunner {
   Karate testGetTrendingCollections() {
     return Karate.run("feature/collection/get-trending-collections.feature").relativeTo(getClass());
   }
+
+  @Karate.Test
+  @DisplayName("Collection Tags Endpoints")
+  Karate testCollectionTags() {
+    return Karate.run("feature/collection/collection-tags.feature").relativeTo(getClass());
+  }
 }

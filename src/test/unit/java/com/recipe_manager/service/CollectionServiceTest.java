@@ -51,6 +51,7 @@ import com.recipe_manager.model.dto.request.UpdateCollectionRequest;
 import com.recipe_manager.model.dto.response.CollectionDetailsDto;
 import com.recipe_manager.model.dto.response.CollectionDto;
 import com.recipe_manager.model.entity.collection.CollectionCollaborator;
+import com.recipe_manager.model.entity.collection.CollectionTag;
 import com.recipe_manager.model.entity.collection.RecipeCollection;
 import com.recipe_manager.model.entity.collection.RecipeCollectionItem;
 import com.recipe_manager.model.entity.recipe.Recipe;
@@ -62,6 +63,7 @@ import com.recipe_manager.model.mapper.RecipeCollectionItemMapper;
 import com.recipe_manager.model.mapper.RecipeCollectionMapper;
 import com.recipe_manager.repository.collection.CollectionCollaboratorRepository;
 import com.recipe_manager.repository.collection.CollectionSummaryProjection;
+import com.recipe_manager.repository.collection.CollectionTagRepository;
 import com.recipe_manager.repository.collection.RecipeCollectionItemRepository;
 import com.recipe_manager.repository.collection.RecipeCollectionRepository;
 import com.recipe_manager.repository.recipe.RecipeRepository;
@@ -78,6 +80,8 @@ class CollectionServiceTest {
   @Mock private RecipeCollectionItemRepository recipeCollectionItemRepository;
 
   @Mock private CollectionCollaboratorRepository collectionCollaboratorRepository;
+
+  @Mock private CollectionTagRepository collectionTagRepository;
 
   @Mock private CollectionMapper collectionMapper;
 
@@ -112,6 +116,7 @@ class CollectionServiceTest {
             recipeCollectionRepository,
             recipeCollectionItemRepository,
             collectionCollaboratorRepository,
+            collectionTagRepository,
             collectionMapper,
             recipeCollectionMapper,
             recipeCollectionItemMapper,
@@ -4560,5 +4565,271 @@ class CollectionServiceTest {
     assertThat(response.getBody().getTotalPages()).isEqualTo(3);
 
     verify(recipeCollectionRepository).findOwnedCollections(testUserId, pageable);
+  }
+
+  // ============================
+  // createCollection with tags tests
+  // ============================
+
+  @Test
+  @DisplayName("createCollection - Should add tags during creation when tags provided")
+  @Tag("standard-processing")
+  void shouldAddTagsDuringCreationWhenTagsProvided() {
+    // Given
+    List<String> tagNames = Arrays.asList("breakfast", "quick");
+    CreateCollectionRequest request =
+        CreateCollectionRequest.builder()
+            .name("Morning Recipes")
+            .visibility(CollectionVisibility.PUBLIC)
+            .collaborationMode(CollaborationMode.OWNER_ONLY)
+            .tags(tagNames)
+            .build();
+
+    RecipeCollection collection =
+        RecipeCollection.builder()
+            .collectionId(1L)
+            .userId(testUserId)
+            .name("Morning Recipes")
+            .collaborationMode(CollaborationMode.OWNER_ONLY)
+            .visibility(CollectionVisibility.PUBLIC)
+            .collectionTags(new java.util.ArrayList<>())
+            .build();
+
+    CollectionTag breakfastTag = CollectionTag.builder().tagId(1L).name("breakfast").build();
+    CollectionTag quickTag = CollectionTag.builder().tagId(2L).name("quick").build();
+
+    when(recipeCollectionMapper.fromRequest(request)).thenReturn(collection);
+    when(recipeCollectionRepository.save(any(RecipeCollection.class))).thenReturn(collection);
+    when(recipeCollectionRepository.findByIdWithItems(1L)).thenReturn(Optional.of(collection));
+    when(collectionTagRepository.findByNameIgnoreCase("breakfast"))
+        .thenReturn(Optional.of(breakfastTag));
+    when(collectionTagRepository.findByNameIgnoreCase("quick")).thenReturn(Optional.of(quickTag));
+    when(collectionMapper.toDetailsDto(any(RecipeCollection.class)))
+        .thenReturn(
+            CollectionDetailsDto.builder()
+                .collectionId(1L)
+                .name("Morning Recipes")
+                .recipes(Collections.emptyList())
+                .collaborators(Collections.emptyList())
+                .build());
+
+    // When
+    ResponseEntity<CollectionDetailsDto> response;
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
+      response = collectionService.createCollection(request);
+    }
+
+    // Then
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+    verify(collectionTagRepository).findByNameIgnoreCase("breakfast");
+    verify(collectionTagRepository).findByNameIgnoreCase("quick");
+  }
+
+  @Test
+  @DisplayName("createCollection - Should create new tags when they don't exist")
+  @Tag("standard-processing")
+  void shouldCreateNewTagsWhenTheyDontExist() {
+    // Given
+    List<String> tagNames = Arrays.asList("newtag");
+    CreateCollectionRequest request =
+        CreateCollectionRequest.builder()
+            .name("Tagged Collection")
+            .visibility(CollectionVisibility.PUBLIC)
+            .collaborationMode(CollaborationMode.OWNER_ONLY)
+            .tags(tagNames)
+            .build();
+
+    RecipeCollection collection =
+        RecipeCollection.builder()
+            .collectionId(1L)
+            .userId(testUserId)
+            .name("Tagged Collection")
+            .collaborationMode(CollaborationMode.OWNER_ONLY)
+            .visibility(CollectionVisibility.PUBLIC)
+            .collectionTags(new java.util.ArrayList<>())
+            .build();
+
+    CollectionTag newTag = CollectionTag.builder().tagId(1L).name("newtag").build();
+
+    when(recipeCollectionMapper.fromRequest(request)).thenReturn(collection);
+    when(recipeCollectionRepository.save(any(RecipeCollection.class))).thenReturn(collection);
+    when(recipeCollectionRepository.findByIdWithItems(1L)).thenReturn(Optional.of(collection));
+    when(collectionTagRepository.findByNameIgnoreCase("newtag")).thenReturn(Optional.empty());
+    when(collectionTagRepository.save(any(CollectionTag.class))).thenReturn(newTag);
+    when(collectionMapper.toDetailsDto(any(RecipeCollection.class)))
+        .thenReturn(
+            CollectionDetailsDto.builder()
+                .collectionId(1L)
+                .name("Tagged Collection")
+                .recipes(Collections.emptyList())
+                .collaborators(Collections.emptyList())
+                .build());
+
+    // When
+    ResponseEntity<CollectionDetailsDto> response;
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
+      response = collectionService.createCollection(request);
+    }
+
+    // Then
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+    verify(collectionTagRepository).findByNameIgnoreCase("newtag");
+    verify(collectionTagRepository).save(any(CollectionTag.class));
+  }
+
+  @Test
+  @DisplayName("createCollection - Should handle empty tags list")
+  @Tag("standard-processing")
+  void shouldHandleEmptyTagsList() {
+    // Given
+    CreateCollectionRequest request =
+        CreateCollectionRequest.builder()
+            .name("No Tags Collection")
+            .visibility(CollectionVisibility.PUBLIC)
+            .collaborationMode(CollaborationMode.OWNER_ONLY)
+            .tags(Collections.emptyList())
+            .build();
+
+    RecipeCollection collection =
+        RecipeCollection.builder()
+            .collectionId(1L)
+            .userId(testUserId)
+            .name("No Tags Collection")
+            .collaborationMode(CollaborationMode.OWNER_ONLY)
+            .visibility(CollectionVisibility.PUBLIC)
+            .collectionTags(new java.util.ArrayList<>())
+            .build();
+
+    when(recipeCollectionMapper.fromRequest(request)).thenReturn(collection);
+    when(recipeCollectionRepository.save(any(RecipeCollection.class))).thenReturn(collection);
+    when(recipeCollectionRepository.findByIdWithItems(1L)).thenReturn(Optional.of(collection));
+    when(collectionMapper.toDetailsDto(any(RecipeCollection.class)))
+        .thenReturn(
+            CollectionDetailsDto.builder()
+                .collectionId(1L)
+                .name("No Tags Collection")
+                .recipes(Collections.emptyList())
+                .collaborators(Collections.emptyList())
+                .build());
+
+    // When
+    ResponseEntity<CollectionDetailsDto> response;
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
+      response = collectionService.createCollection(request);
+    }
+
+    // Then
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+    verify(collectionTagRepository, never()).findByNameIgnoreCase(any());
+    verify(collectionTagRepository, never()).save(any(CollectionTag.class));
+  }
+
+  @Test
+  @DisplayName("createCollection - Should handle duplicate tag names case-insensitively")
+  @Tag("standard-processing")
+  void shouldHandleDuplicateTagNamesCaseInsensitively() {
+    // Given
+    List<String> tagNames = Arrays.asList("Breakfast", "BREAKFAST", "breakfast");
+    CreateCollectionRequest request =
+        CreateCollectionRequest.builder()
+            .name("Duplicate Tags Collection")
+            .visibility(CollectionVisibility.PUBLIC)
+            .collaborationMode(CollaborationMode.OWNER_ONLY)
+            .tags(tagNames)
+            .build();
+
+    RecipeCollection collection =
+        RecipeCollection.builder()
+            .collectionId(1L)
+            .userId(testUserId)
+            .name("Duplicate Tags Collection")
+            .collaborationMode(CollaborationMode.OWNER_ONLY)
+            .visibility(CollectionVisibility.PUBLIC)
+            .collectionTags(new java.util.ArrayList<>())
+            .build();
+
+    CollectionTag breakfastTag = CollectionTag.builder().tagId(1L).name("breakfast").build();
+
+    when(recipeCollectionMapper.fromRequest(request)).thenReturn(collection);
+    when(recipeCollectionRepository.save(any(RecipeCollection.class))).thenReturn(collection);
+    when(recipeCollectionRepository.findByIdWithItems(1L)).thenReturn(Optional.of(collection));
+    when(collectionTagRepository.findByNameIgnoreCase("breakfast"))
+        .thenReturn(Optional.of(breakfastTag));
+    when(collectionMapper.toDetailsDto(any(RecipeCollection.class)))
+        .thenReturn(
+            CollectionDetailsDto.builder()
+                .collectionId(1L)
+                .name("Duplicate Tags Collection")
+                .recipes(Collections.emptyList())
+                .collaborators(Collections.emptyList())
+                .build());
+
+    // When
+    ResponseEntity<CollectionDetailsDto> response;
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
+      response = collectionService.createCollection(request);
+    }
+
+    // Then
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+    // Should only look up once after deduplication
+    verify(collectionTagRepository, times(1)).findByNameIgnoreCase("breakfast");
+  }
+
+  @Test
+  @DisplayName("createCollection - Should ignore null and empty tag names")
+  @Tag("standard-processing")
+  void shouldIgnoreNullAndEmptyTagNames() {
+    // Given
+    List<String> tagNames = Arrays.asList(null, "", "  ", "validtag");
+    CreateCollectionRequest request =
+        CreateCollectionRequest.builder()
+            .name("Mixed Tags Collection")
+            .visibility(CollectionVisibility.PUBLIC)
+            .collaborationMode(CollaborationMode.OWNER_ONLY)
+            .tags(tagNames)
+            .build();
+
+    RecipeCollection collection =
+        RecipeCollection.builder()
+            .collectionId(1L)
+            .userId(testUserId)
+            .name("Mixed Tags Collection")
+            .collaborationMode(CollaborationMode.OWNER_ONLY)
+            .visibility(CollectionVisibility.PUBLIC)
+            .collectionTags(new java.util.ArrayList<>())
+            .build();
+
+    CollectionTag validTag = CollectionTag.builder().tagId(1L).name("validtag").build();
+
+    when(recipeCollectionMapper.fromRequest(request)).thenReturn(collection);
+    when(recipeCollectionRepository.save(any(RecipeCollection.class))).thenReturn(collection);
+    when(recipeCollectionRepository.findByIdWithItems(1L)).thenReturn(Optional.of(collection));
+    when(collectionTagRepository.findByNameIgnoreCase("validtag"))
+        .thenReturn(Optional.of(validTag));
+    when(collectionMapper.toDetailsDto(any(RecipeCollection.class)))
+        .thenReturn(
+            CollectionDetailsDto.builder()
+                .collectionId(1L)
+                .name("Mixed Tags Collection")
+                .recipes(Collections.emptyList())
+                .collaborators(Collections.emptyList())
+                .build());
+
+    // When
+    ResponseEntity<CollectionDetailsDto> response;
+    try (MockedStatic<SecurityUtils> securityUtilsMock = Mockito.mockStatic(SecurityUtils.class)) {
+      securityUtilsMock.when(SecurityUtils::getCurrentUserId).thenReturn(testUserId);
+      response = collectionService.createCollection(request);
+    }
+
+    // Then
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+    // Should only look up the valid tag
+    verify(collectionTagRepository, times(1)).findByNameIgnoreCase("validtag");
   }
 }

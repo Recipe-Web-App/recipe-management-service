@@ -1723,9 +1723,10 @@ paths:
         - Optionally include `recipeIds` to add recipes to the collection during creation
         - Optionally include `collaboratorIds` to add collaborators during creation
           (only applicable when `collaborationMode` is `SPECIFIC_USERS`)
+        - Optionally include `tags` to associate tags with the collection during creation
 
         This reduces multiple API calls to a single request when creating a collection
-        with initial recipes and/or collaborators.
+        with initial recipes, collaborators, and/or tags.
       operationId: createCollection
       requestBody:
         description: Collection creation data
@@ -2115,6 +2116,94 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /collections/{collectionId}/tags:
+    get:
+      tags: [tags]
+      summary: Get collection tags
+      description: |
+        Retrieves all tags associated with a collection for categorization and discovery.
+      operationId: getCollectionTags
+      parameters:
+        - $ref: '#/components/parameters/CollectionIdParam'
+      responses:
+        '200':
+          description: Tags retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CollectionTagResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    post:
+      tags: [tags]
+      summary: Add tag to collection
+      description: |
+        Associates a tag with a collection for categorization. Creates the tag if it
+        doesn't exist.
+      operationId: addTagToCollection
+      parameters:
+        - $ref: '#/components/parameters/CollectionIdParam'
+      requestBody:
+        description: Tag data
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddTagRequest'
+      responses:
+        '201':
+          description: Tag added successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CollectionTagResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    delete:
+      tags: [tags]
+      summary: Remove tag from collection
+      description: |
+        Removes a tag association from a collection. The tag itself is not deleted.
+      operationId: removeTagFromCollection
+      parameters:
+        - $ref: '#/components/parameters/CollectionIdParam'
+      requestBody:
+        description: Tag removal data
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RemoveTagRequest'
+      responses:
+        '200':
+          description: Tag removed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CollectionTagResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '404':
           $ref: '#/components/responses/NotFound'
         '500':
@@ -2619,6 +2708,24 @@ components:
           example: "2024-08-28T10:30:00Z"
 
     RecipeTagDto:
+      type: object
+      required:
+        - tagId
+        - name
+      properties:
+        tagId:
+          type: integer
+          format: int64
+          description: The tag ID
+          example: 201
+        name:
+          type: string
+          minLength: 1
+          maxLength: 50
+          description: The tag name
+          example: "dessert"
+
+    CollectionTagDto:
       type: object
       required:
         - tagId
@@ -3820,6 +3927,30 @@ components:
         removedTag:
           $ref: '#/components/schemas/RecipeTagDto'
 
+    CollectionTagResponse:
+      type: object
+      properties:
+        collectionId:
+          type: integer
+          format: int64
+          description: Collection identifier
+        tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/CollectionTagDto'
+        tag:
+          $ref: '#/components/schemas/CollectionTagDto'
+        addedAt:
+          type: string
+          format: date-time
+          description: Tag addition timestamp
+        removedAt:
+          type: string
+          format: date-time
+          description: Tag removal timestamp
+        removedTag:
+          $ref: '#/components/schemas/CollectionTagDto'
+
     AddTagRequest:
       type: object
       required:
@@ -4178,6 +4309,16 @@ components:
             type: string
             format: uuid
           example: ["123e4567-e89b-12d3-a456-426614174000", "456e7890-e89b-12d3-a456-426614174000"]
+        tags:
+          type: array
+          description: |
+            Optional list of tag names to associate with the collection during creation.
+            Tags will be created if they don't already exist.
+          items:
+            type: string
+            minLength: 1
+            maxLength: 50
+          example: ["dessert", "quick-meals", "family-favorites"]
 
     UpdateCollectionRequest:
       type: object
@@ -4331,6 +4472,11 @@ components:
           format: date-time
           description: Last update timestamp
           example: "2024-08-28T10:30:00Z"
+        tags:
+          type: array
+          description: Tags associated with this collection
+          items:
+            $ref: '#/components/schemas/CollectionTagDto'
 
     CollectionDetailsDto:
       type: object
@@ -4387,6 +4533,11 @@ components:
           description: Collaborators for this collection
           items:
             $ref: '#/components/schemas/CollaboratorDto'
+        tags:
+          type: array
+          description: Tags associated with this collection
+          items:
+            $ref: '#/components/schemas/CollectionTagDto'
 
     CollectionRecipeDto:
       type: object

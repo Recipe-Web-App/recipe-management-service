@@ -9,6 +9,7 @@ import java.util.UUID;
 
 import com.recipe_manager.model.dto.response.CollectionDto;
 import com.recipe_manager.model.dto.response.CollectionSummaryResponse;
+import com.recipe_manager.model.entity.collection.CollectionTag;
 import com.recipe_manager.model.entity.collection.RecipeCollection;
 import com.recipe_manager.model.entity.collection.RecipeCollectionItem;
 import com.recipe_manager.model.entity.collection.CollectionCollaborator;
@@ -751,6 +752,7 @@ class CollectionMapperTest {
             .updatedAt(now)
             .collectionItems(new ArrayList<>())
             .collaborators(new ArrayList<>())
+            .collectionTags(new ArrayList<>())
             .build();
 
     // When
@@ -768,6 +770,48 @@ class CollectionMapperTest {
     assertThat(result.getUpdatedAt()).isEqualTo(now);
     assertThat(result.getRecipes()).isEmpty();
     assertThat(result.getCollaborators()).isEmpty();
+    assertThat(result.getTags()).isEmpty();
+  }
+
+  @Test
+  @DisplayName("Should map RecipeCollection to CollectionDetailsDto with tags")
+  @Tag("standard-processing")
+  void shouldMapRecipeCollectionToCollectionDetailsDtoWithTags() {
+    // Given
+    UUID userId = UUID.randomUUID();
+    LocalDateTime now = LocalDateTime.now();
+
+    CollectionTag tag1 = CollectionTag.builder().tagId(1L).name("breakfast").build();
+    CollectionTag tag2 = CollectionTag.builder().tagId(2L).name("quick").build();
+    List<CollectionTag> tags = new ArrayList<>();
+    tags.add(tag1);
+    tags.add(tag2);
+
+    RecipeCollection collection =
+        RecipeCollection.builder()
+            .collectionId(1L)
+            .userId(userId)
+            .name("Tagged Collection")
+            .description("Collection with tags")
+            .visibility(CollectionVisibility.PUBLIC)
+            .collaborationMode(CollaborationMode.OWNER_ONLY)
+            .createdAt(now)
+            .updatedAt(now)
+            .collectionItems(new ArrayList<>())
+            .collaborators(new ArrayList<>())
+            .collectionTags(tags)
+            .build();
+
+    // When
+    var result = collectionMapper.toDetailsDto(collection);
+
+    // Then
+    assertThat(result).isNotNull();
+    assertThat(result.getTags()).hasSize(2);
+    assertThat(result.getTags().get(0).getTagId()).isEqualTo(1L);
+    assertThat(result.getTags().get(0).getName()).isEqualTo("breakfast");
+    assertThat(result.getTags().get(1).getTagId()).isEqualTo(2L);
+    assertThat(result.getTags().get(1).getName()).isEqualTo("quick");
   }
 
   @Test

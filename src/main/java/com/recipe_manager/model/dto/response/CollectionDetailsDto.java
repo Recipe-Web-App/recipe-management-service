@@ -6,6 +6,7 @@ import java.util.UUID;
 
 import com.recipe_manager.model.dto.collection.CollectionCollaboratorDto;
 import com.recipe_manager.model.dto.collection.CollectionRecipeDto;
+import com.recipe_manager.model.dto.collection.CollectionTagDto;
 import com.recipe_manager.model.enums.CollaborationMode;
 import com.recipe_manager.model.enums.CollectionVisibility;
 
@@ -52,4 +53,7 @@ public final class CollectionDetailsDto {
 
   /** List of collaborators for this collection. */
   private List<CollectionCollaboratorDto> collaborators;
+
+  /** List of tags for this collection. */
+  private List<CollectionTagDto> tags;
 }

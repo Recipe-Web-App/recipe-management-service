@@ -58,13 +58,15 @@ public interface CollectionMapper {
 
   /**
    * Converts RecipeCollection entity to CollectionDetailsDto (for API response) including all
-   * recipes and collaborators.
+   * recipes, collaborators, and tags.
    *
-   * @param collection the recipe collection entity with items and collaborators eagerly loaded
-   * @return the detailed collection DTO with recipes and collaborators
+   * @param collection the recipe collection entity with items, collaborators, and tags eagerly
+   *     loaded
+   * @return the detailed collection DTO with recipes, collaborators, and tags
    */
   @Mapping(target = "recipes", source = "collectionItems")
   @Mapping(target = "collaborators", source = "collaborators")
+  @Mapping(target = "tags", source = "collectionTags")
   CollectionDetailsDto toDetailsDto(RecipeCollection collection);
 
   /**

@@ -8,19 +8,20 @@ code in this repository.
 ### Essential Commands
 
 - **Build**: `mvn clean package`
-- **Run**: `java -jar target/recipe-management-service-*.jar`
+- **Run**: `java -jar target/recipe-management-service-*.jar` or `mvn spring-boot:run`
 - **Format Code**: `mvn spotless:apply`
 - **Code Quality**: `mvn checkstyle:check spotbugs:check pmd:check`
 - **Tests**: `mvn test` (all tests)
-- **Coverage**: `mvn jacoco:report` (requires tests to run first)
+- **Coverage**: `mvn jacoco:report` (generates report in `target/site/jacoco/index.html`)
 
 ### Test Commands
 
 - **Unit Tests**: `mvn test -Dgroups="unit"`
 - **Component Tests**: `mvn test -Dgroups="component"`
 - **Integration Tests**: `mvn test -Dgroups="dependency"`
-- **Performance Tests**: `mvn verify` (includes JMeter tests)
+- **Performance Tests**: `mvn jmeter:jmeter` (excluded from default build)
 - **Single Test**: `mvn test -Dtest=ClassName`
+- **Single Test Method**: `mvn test -Dtest=ClassName#methodName`
 
 ### Docker and Deployment
 
@@ -32,11 +33,12 @@ code in this repository.
 
 ### Technology Stack
 
-- **Java 25** with Spring Boot 3.5.7
+- **Java 25** with Spring Boot 4.0.1
 - **PostgreSQL 15+** database with Flyway migrations
 - **Maven** build system with comprehensive quality plugins
 - **JWT authentication** with OAuth2 introspection support
-- **Feign clients** for external service integration (media-management, recipe-scraper)
+- **Spring Cloud OpenFeign** for external service integration (media-management, recipe-scraper)
+- **Resilience4j** for circuit breakers and fault tolerance
 - **Docker + Kubernetes** deployment
 
 ### Package Structure
@@ -95,19 +97,22 @@ com.recipe_manager/
 
 - **Base Class**: Extend `AbstractComponentTest` for component tests
 - **Tags**: Use `@Tag("unit")`, `@Tag("component")`, `@Tag("dependency")`
-- **Coverage Target**: 90% minimum (enforced by JaCoCo)
+- **Coverage Target**: 85% minimum line coverage (enforced by JaCoCo)
 - **Test Data**: Use Datafaker for realistic test data generation
 
 ### Component Test Guidelines
 
-Component tests should test the actual service logic while only mocking
-repository/external dependencies:
+Component tests exercise real service logic with mocked repositories. The
+`AbstractComponentTest` base class provides helper methods to switch between
+mocked and real services:
 
-- **DO**: Mock repositories (`@Mock RecipeRepository`, `@Mock RecipeIngredientRepository`)
-- **DO**: Use real services (`useRealRecipeService()`, `useRealIngredientService()`)
-- **DO**: Use real mappers (`@SpringBootTest` with mapper implementations)
-- **DON'T**: Mock service layer in component tests - this defeats the purpose
-- **Pattern**: Follow existing tests in `src/test/component/java/com/recipe_manager/component_tests/recipe_service/`
+- **`useRealRecipeService()`** - Uses real RecipeService with mocked repositories
+- **`useRealIngredientService()`** - Uses real IngredientService with mocked repositories
+- **`useRealStepService()`** - Uses real StepService with mocked repositories
+- **`useRealTagService()`** - Uses real TagService with mocked repositories
+
+**DO**: Mock repositories, use real services and mappers
+**DON'T**: Mock service layer in component tests
 
 Example component test setup:
 
@@ -128,7 +133,6 @@ class MyComponentTest extends AbstractComponentTest {
 
     @Test
     void shouldTestRealServiceLogic() {
-        // Mock repository data
         when(recipeIngredientRepository.findByRecipeRecipeId(123L)).thenReturn(mockData);
         // Test endpoint - exercises real service + mapper logic
     }
@@ -157,7 +161,7 @@ class MyComponentTest extends AbstractComponentTest {
 
 - **Google Java Style**: Automatic formatting via Spotless
 - **Static Analysis**: SpotBugs, PMD, Checkstyle (all must pass)
-- **Code Coverage**: 90% minimum line coverage (enforced by JaCoCo)
+- **Code Coverage**: 85% minimum line coverage (enforced by JaCoCo)
 - **Documentation**: Javadoc required for public APIs
 - **Line Length**: 100 characters maximum
 - **Indentation**: 2 spaces (configured in .editorconfig)
@@ -165,16 +169,10 @@ class MyComponentTest extends AbstractComponentTest {
 ### Unit Test Requirements
 
 - **MANDATORY**: Every new file created must have corresponding unit tests
-  before proceeding to the next file
-- **No Exceptions**: This applies to all classes including DTOs, services,
-  controllers, mappers, exceptions, and utilities
-- **Test Location**: Unit tests must be placed in
-  `src/test/unit/java/com/recipe_manager/unit_tests/` following the package
-  structure
-- **Test Naming**: Test classes must be named `{ClassName}Test.java`
+- **Test Location**: `src/test/unit/java/com/recipe_manager/unit_tests/`
+- **Test Naming**: `{ClassName}Test.java`
 - **Test Tags**: All unit tests must include `@Tag("unit")` annotation
-- **Coverage**: Each new file must achieve minimum 90% test coverage before
-  moving to next file
+- **Coverage**: Minimum 85% line coverage enforced by JaCoCo
 
 ### Annotation Processing
 
@@ -215,51 +213,33 @@ class MyComponentTest extends AbstractComponentTest {
 
 ### Before Committing
 
-1. Run `mvn clean package` to ensure build passes
-2. Verify code formatting: `mvn spotless:check`
-3. Check static analysis: `mvn checkstyle:check spotbugs:check pmd:check`
-4. Ensure tests pass: `mvn test`
-5. Verify coverage: `mvn jacoco:report`
+1. Run `mvn clean package` (includes formatting, quality checks, and tests)
+2. Verify coverage: `mvn jacoco:report`
 
 ### Adding New Features
 
 1. Create JPA entities in `model/entity/`
-2. Add repositories in `repository/`
-3. Implement services in `service/`
-4. Create DTOs and mappers in `model/dto/` and `model/mapper/`
-5. Add REST controllers in `controller/`
-6. Write comprehensive tests for all layers
+2. Add Flyway migration in `src/main/resources/db/migration/`
+3. Add repositories in `repository/`
+4. Implement services in `service/`
+5. Create DTOs and mappers in `model/dto/` and `model/mapper/`
+6. Add REST controllers in `controller/`
+7. Write unit tests (mandatory) and component tests
 
 ### Common Issues
 
-- **MapStruct + Lombok**: Ensure Lombok is first in annotation processor
-  chain
-- **Database Schema**: Use `POSTGRES_SCHEMA` environment variable
-  consistently
-- **JWT Authentication**: With OAuth2 introspection enabled, no shared
-  JWT_SECRET needed
-- **Test Containers**: May require Docker daemon for component/integration
-  tests
-- **Spotless Formatting**: Run automatically during validate phase, but may
-  need explicit `mvn spotless:apply` for formatting issues
+- **MapStruct + Lombok**: Lombok must be first in annotation processor chain (already configured in pom.xml)
+- **Database Schema**: Use `POSTGRES_SCHEMA` environment variable consistently
+- **JWT Authentication**: With OAuth2 introspection enabled, no shared JWT_SECRET needed
+- **Test Containers**: Requires Docker daemon for component/integration tests
+- **Spotless Formatting**: Run `mvn spotless:apply` to fix formatting issues
 
 ## External Service Dependencies
 
-This service integrates with external services via Spring Cloud OpenFeign:
+Feign clients in `client/` integrate with external services:
 
-- **Media Management Service**: Handles recipe media upload, storage, and deletion
-- **Recipe Scraper Service**: Scrapes recipes from external URLs
-- **User Management Service**: JWT token generation and validation (OAuth2 introspection)
+- **Media Management Service** (`mediamanager/`): Recipe media upload, storage, deletion
+- **Recipe Scraper Service** (`recipescraper/`): Scrapes recipes from external URLs
+- **User Management Service**: JWT validation via OAuth2 introspection
 
-Feign clients are configured with:
-
-- Resilience4j circuit breakers for fault tolerance
-- Custom error decoders for proper exception handling
-- Request/response logging for debugging
-
-## Service Integration Patterns
-
-- **Circuit Breaker**: Automatic failover when external services are unavailable
-- **Retry Logic**: Configurable retry policies for transient failures
-- **Timeout Configuration**: Request timeouts to prevent hanging operations
-- **Error Handling**: Custom exceptions mapped from HTTP status codes
+All clients use Resilience4j circuit breakers with custom error decoders.

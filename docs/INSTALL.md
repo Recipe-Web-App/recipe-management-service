@@ -14,7 +14,7 @@ Management Service in different environments.
 
 ### Software Requirements
 
-- **Java**: 21+ (Eclipse Temurin LTS recommended)
+- **Java**: 25+ (Eclipse Temurin recommended)
 - **Maven**: 3.9.0 or higher
 - **Docker**: 24.0+ with Docker Compose v2
 - **PostgreSQL**: 15+ (for local development)
@@ -74,14 +74,14 @@ curl http://localhost:8080/actuator/health
 
 ### Step 1: Install Prerequisites
 
-#### Java 21 Installation
+#### Java 25 Installation
 
 **Ubuntu/Debian:**
 
 ```bash
-# Install OpenJDK 21
+# Install OpenJDK 25
 sudo apt update
-sudo apt install openjdk-21-jdk
+sudo apt install openjdk-25-jdk
 
 # Verify installation
 java --version
@@ -92,10 +92,10 @@ javac --version
 
 ```bash
 # Using Homebrew
-brew install openjdk@21
+brew install openjdk@25
 
 # Add to PATH (add to ~/.zshrc or ~/.bash_profile)
-export PATH="/opt/homebrew/opt/openjdk@21/bin:$PATH"
+export PATH="/opt/homebrew/opt/openjdk@25/bin:$PATH"
 ```
 
 **Windows (WSL2):**
@@ -103,7 +103,7 @@ export PATH="/opt/homebrew/opt/openjdk@21/bin:$PATH"
 ```bash
 # In WSL2 terminal
 sudo apt update
-sudo apt install openjdk-21-jdk
+sudo apt install openjdk-25-jdk
 ```
 
 #### Maven Installation

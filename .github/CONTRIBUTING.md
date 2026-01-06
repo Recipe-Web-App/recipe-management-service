@@ -41,7 +41,7 @@ issue tracker.
 
 ### Prerequisites
 
-- Java 21 (OpenJDK or Eclipse Temurin)
+- Java 25 (OpenJDK or Eclipse Temurin)
 - Maven 3.9+
 - Docker and Docker Compose
 - PostgreSQL 14+ (for local development)
@@ -124,7 +124,7 @@ This project uses a multi-layered testing strategy as defined in CLAUDE.md.
 # All tests
 mvn test
 
-# Unit tests only (90% coverage requirement)
+# Unit tests only (85% coverage requirement)
 mvn test -Dgroups="unit"
 
 # Component tests (with Testcontainers)
@@ -151,7 +151,7 @@ mvn test jacoco:report
 
 ### Test Requirements
 
-- **Unit tests**: Required for all new code, 90% coverage minimum
+- **Unit tests**: Required for all new code, 85% coverage minimum
 - **Component tests**: Required for service layer changes
 - **Integration tests**: Required for API endpoint changes
 - **Performance tests**: Required for performance-critical features
@@ -282,7 +282,7 @@ Closes #456
 
    ```bash
    mvn jacoco:report
-   # Ensure coverage is >= 90%
+   # Ensure coverage is >= 85%
    ```
 
 4. **Update documentation**:
@@ -293,7 +293,7 @@ Closes #456
 ### PR Requirements
 
 - [ ] All tests pass
-- [ ] Code coverage >= 90%
+- [ ] Code coverage >= 85%
 - [ ] All code quality checks pass
 - [ ] No merge conflicts
 - [ ] Documentation updated

@@ -2,8 +2,8 @@
 
 ## Tech Stack
 
-- Java 21
-- Spring Boot 3
+- Java 25
+- Spring Boot 4.0.1
 - PostgreSQL (database)
 - Maven (build)
 - Docker (containerization)

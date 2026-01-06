@@ -15,7 +15,7 @@ Spring Boot, designed for cloud-native deployment on Kubernetes.
 
 ## Tech Stack
 
-- Java 25, Spring Boot 3, PostgreSQL, Maven, Docker, Kubernetes
+- Java 25, Spring Boot 4.0.1, PostgreSQL, Maven, Docker, Kubernetes
 
 ## Quick Start (5 minutes)
 
@@ -88,7 +88,7 @@ Spring Boot, designed for cloud-native deployment on Kubernetes.
 
 ## Installation
 
-For detailed installation instructions, see [INSTALL.md](INSTALL.md).
+For detailed installation instructions, see [INSTALL.md](docs/INSTALL.md).
 
 ### Prerequisites
 
@@ -319,7 +319,7 @@ mvn test -P unit-tests
 mvn test -P component-tests
 mvn test -P dependency-tests
 
-# Coverage report (requires 90% coverage)
+# Coverage report (requires 85% coverage)
 mvn test jacoco:report
 open target/site/jacoco/index.html
 ```
@@ -342,7 +342,7 @@ mvn flyway:info
 
 ### Contributing
 
-Please read [CONTRIBUTING.md](CONTRIBUTING.md) for development guidelines,
+Please read [CONTRIBUTING.md](.github/CONTRIBUTING.md) for development guidelines,
 coding standards, and pull request process.
 
 ## Security
@@ -357,7 +357,7 @@ coding standards, and pull request process.
 
 ### Security Policy
 
-For security vulnerability reporting, see [SECURITY.md](SECURITY.md).
+For security vulnerability reporting, see [SECURITY.md](.github/SECURITY.md).
 
 ### Best Practices
 
@@ -434,7 +434,7 @@ kubectl get services -n recipe-management
 
 ### Technical Documentation
 
-- [Installation Guide](INSTALL.md) - Detailed setup instructions
+- [Installation Guide](docs/INSTALL.md) - Detailed setup instructions
 - [Architecture](docs/ARCHITECTURE.md) - System architecture overview
 - [Authentication](docs/AUTHENTICATION.md) - Authentication & authorization
 - [Infrastructure](docs/INFRASTRUCTURE.md) - Infrastructure components

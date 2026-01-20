@@ -1,191 +1,127 @@
 {
-  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-
-  // Base configuration with best practices
-  "extends": [
-    "config:best-practices",
-    ":dependencyDashboard",
-    ":semanticCommits"
-  ],
-
-  // Schedule: Weekly on Mondays at 09:00 EST
-  "timezone": "US/Eastern",
-  "schedule": ["before 10am on Monday"],
-
-  // Assignees
-  "assignees": ["jsamuelsen11"],
-
-  // PR limits (equivalent to open-pull-requests-limit: 100)
-  "prConcurrentLimit": 100,
-  "prHourlyLimit": 20,
-
-  // Rebase strategy (equivalent to rebase-strategy: auto)
-  "rebaseWhen": "auto",
-
-  // Default labels for all PRs
-  "labels": ["dependencies"],
-
-  // Use GitHub's native auto-merge (replaces dependabot-auto-merge workflow)
-  "platformAutomerge": true,
-
-  // Renovate Enhancement: Dependency Dashboard with vulnerability summary
-  "dependencyDashboard": true,
-  "dependencyDashboardTitle": "Dependency Dashboard",
-  "dependencyDashboardOSVVulnerabilitySummary": "all",
-
-  // Renovate Enhancement: Vulnerability alerts at any time
-  "vulnerabilityAlerts": {
-    "enabled": true,
-    "labels": ["security", "dependencies"],
-    "schedule": ["at any time"]
+  $schema: "https://docs.renovatebot.com/renovate-schema.json",
+  extends: ["config:best-practices", ":dependencyDashboard", ":semanticCommits"],
+  timezone: "US/Eastern",
+  schedule: ["before 10am on Monday"],
+  assignees: ["jsamuelsen11"],
+  prConcurrentLimit: 100,
+  prHourlyLimit: 20,
+  rebaseWhen: "auto",
+  labels: ["dependencies"],
+  platformAutomerge: true,
+  dependencyDashboard: true,
+  dependencyDashboardTitle: "Dependency Dashboard",
+  dependencyDashboardOSVVulnerabilitySummary: "all",
+  vulnerabilityAlerts: {
+    enabled: true,
+    labels: ["security", "dependencies"],
+    schedule: ["at any time"],
   },
-
-  // Renovate Enhancement: Wait 3 days for stability before updating
-  "minimumReleaseAge": "3 days",
-
-  "packageRules": [
-    // ===== MAVEN CONFIGURATION =====
-
-    // Maven patch updates - grouped, auto-merged
+  minimumReleaseAge: "3 days",
+  packageRules: [
     {
-      "description": "Group Maven patch updates",
-      "matchManagers": ["maven"],
-      "matchUpdateTypes": ["patch"],
-      "groupName": "maven-patch-updates",
-      "labels": ["dependencies", "java"],
-      "commitMessagePrefix": "deps:",
-      "automerge": true,
-      "automergeType": "pr",
-      "automergeStrategy": "squash"
+      description: "Group Maven patch updates",
+      matchManagers: ["maven"],
+      matchUpdateTypes: ["patch"],
+      groupName: "maven-patch-updates",
+      labels: ["dependencies", "java"],
+      commitMessagePrefix: "deps:",
+      automerge: true,
+      automergeType: "pr",
+      automergeStrategy: "squash",
     },
-
-    // Maven minor updates - grouped, not auto-merged (direct deps need review)
     {
-      "description": "Group Maven minor updates",
-      "matchManagers": ["maven"],
-      "matchUpdateTypes": ["minor"],
-      "groupName": "maven-minor-updates",
-      "labels": ["dependencies", "java"],
-      "commitMessagePrefix": "deps:",
-      "automerge": false
+      description: "Group Maven minor updates",
+      matchManagers: ["maven"],
+      matchUpdateTypes: ["minor"],
+      groupName: "maven-minor-updates",
+      labels: ["dependencies", "java"],
+      commitMessagePrefix: "deps:",
+      automerge: false,
     },
-
-    // Maven major updates - individual PRs, warning note
     {
-      "description": "Major Maven updates require manual review",
-      "matchManagers": ["maven"],
-      "matchUpdateTypes": ["major"],
-      "labels": ["dependencies", "java", "major-update"],
-      "commitMessagePrefix": "deps:",
-      "automerge": false,
-      "prBodyNotes": [
-        ":warning: **Major version update** - This PR requires manual review before merging."
-      ]
+      description: "Major Maven updates require manual review",
+      matchManagers: ["maven"],
+      matchUpdateTypes: ["major"],
+      labels: ["dependencies", "java", "major-update"],
+      commitMessagePrefix: "deps:",
+      automerge: false,
+      prBodyNotes: [
+        ":warning: **Major version update** - This PR requires manual review before merging.",
+      ],
     },
-
-    // Development dependencies use different prefix
     {
-      "description": "Development dependencies use deps-dev prefix",
-      "matchManagers": ["maven"],
-      "matchDepTypes": ["test"],
-      "commitMessagePrefix": "deps-dev:"
+      description: "Development dependencies use deps-dev prefix",
+      matchManagers: ["maven"],
+      matchDepTypes: ["test"],
+      commitMessagePrefix: "deps-dev:",
     },
-
-    // Ignore major Spring Boot updates
     {
-      "description": "Ignore major Spring Boot updates",
-      "matchManagers": ["maven"],
-      "matchPackagePatterns": ["^org\\.springframework\\.boot:"],
-      "matchUpdateTypes": ["major"],
-      "enabled": false
+      description: "Ignore major Spring Boot updates",
+      matchManagers: ["maven"],
+      matchUpdateTypes: ["major"],
+      enabled: false,
+      matchPackageNames: ["/^org\\.springframework\\.boot:/"],
     },
-
-    // Ignore major Spring Framework updates
     {
-      "description": "Ignore major Spring Framework updates",
-      "matchManagers": ["maven"],
-      "matchPackagePatterns": ["^org\\.springframework:"],
-      "matchUpdateTypes": ["major"],
-      "enabled": false
+      description: "Ignore major Spring Framework updates",
+      matchManagers: ["maven"],
+      matchUpdateTypes: ["major"],
+      enabled: false,
+      matchPackageNames: ["/^org\\.springframework:/"],
     },
-
-    // Version strategy: bump (equivalent to Dependabot's increase)
     {
-      "matchManagers": ["maven"],
-      "rangeStrategy": "bump"
+      matchManagers: ["maven"],
+      rangeStrategy: "bump",
     },
-
-    // ===== GITHUB ACTIONS CONFIGURATION =====
-
-    // Group all GitHub Actions updates together
     {
-      "description": "Group all GitHub Actions updates",
-      "matchManagers": ["github-actions"],
-      "groupName": "github-actions",
-      "labels": ["dependencies", "github-actions"],
-      "commitMessagePrefix": "ci:",
-      "automerge": true,
-      "automergeType": "pr",
-      "automergeStrategy": "squash"
+      description: "Group all GitHub Actions updates",
+      matchManagers: ["github-actions"],
+      groupName: "github-actions",
+      labels: ["dependencies", "github-actions"],
+      commitMessagePrefix: "ci:",
+      automerge: true,
+      automergeType: "pr",
+      automergeStrategy: "squash",
     },
-
-    // ===== DOCKER CONFIGURATION =====
-
-    // Docker updates
     {
-      "description": "Docker base image updates",
-      "matchManagers": ["dockerfile"],
-      "labels": ["dependencies", "docker"],
-      "commitMessagePrefix": "docker:"
+      description: "Docker base image updates",
+      matchManagers: ["dockerfile"],
+      labels: ["dependencies", "docker"],
+      commitMessagePrefix: "docker:",
     },
-
-    // Docker patch updates can be auto-merged
     {
-      "description": "Auto-merge Docker patch updates",
-      "matchManagers": ["dockerfile"],
-      "matchUpdateTypes": ["patch"],
-      "automerge": true,
-      "automergeType": "pr",
-      "automergeStrategy": "squash"
+      description: "Auto-merge Docker patch updates",
+      matchManagers: ["dockerfile"],
+      matchUpdateTypes: ["patch"],
+      automerge: true,
+      automergeType: "pr",
+      automergeStrategy: "squash",
     },
-
-    // ===== RENOVATE ENHANCEMENTS: Smart Grouping =====
-
-    // Group Testcontainers updates
     {
-      "matchPackagePatterns": ["^org\\.testcontainers:"],
-      "groupName": "testcontainers"
+      groupName: "testcontainers",
+      matchPackageNames: ["/^org\\.testcontainers:/"],
     },
-
-    // Group Spring Cloud updates
     {
-      "matchPackagePatterns": ["^org\\.springframework\\.cloud:"],
-      "groupName": "spring-cloud"
+      groupName: "spring-cloud",
+      matchPackageNames: ["/^org\\.springframework\\.cloud:/"],
     },
-
-    // Group Resilience4j updates
     {
-      "matchPackagePatterns": ["^io\\.github\\.resilience4j:"],
-      "groupName": "resilience4j"
+      groupName: "resilience4j",
+      matchPackageNames: ["/^io\\.github\\.resilience4j:/"],
     },
-
-    // Group MapStruct and Lombok updates
     {
-      "matchPackagePatterns": ["^org\\.mapstruct:", "^org\\.projectlombok:"],
-      "groupName": "code-generation"
+      groupName: "code-generation",
+      matchPackageNames: ["/^org\\.mapstruct:/", "/^org\\.projectlombok:/"],
     },
-
-    // Group Jackson updates
     {
-      "matchPackagePatterns": ["^com\\.fasterxml\\.jackson"],
-      "groupName": "jackson"
-    }
+      groupName: "jackson",
+      matchPackageNames: ["/^com\\.fasterxml\\.jackson/"],
+    },
   ],
-
-  // Renovate Enhancement: Post-upgrade tasks (run spotless after updates)
-  "postUpgradeTasks": {
-    "commands": ["mvn spotless:apply -B -q || true"],
-    "fileFilters": ["**/*.java", "pom.xml"],
-    "executionMode": "branch"
-  }
+  postUpgradeTasks: {
+    commands: ["mvn spotless:apply -B -q || true"],
+    fileFilters: ["**/*.java", "pom.xml"],
+    executionMode: "branch",
+  },
 }

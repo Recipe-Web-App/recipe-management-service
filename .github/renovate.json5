@@ -99,6 +99,16 @@
       automergeStrategy: "squash",
     },
     {
+      description: "Group all pre-commit hook updates",
+      matchManagers: ["pre-commit"],
+      groupName: "pre-commit-hooks",
+      labels: ["dependencies", "pre-commit"],
+      commitMessagePrefix: "chore(pre-commit):",
+      automerge: true,
+      automergeType: "pr",
+      automergeStrategy: "squash",
+    },
+    {
       groupName: "testcontainers",
       matchPackageNames: ["/^org\\.testcontainers:/"],
     },

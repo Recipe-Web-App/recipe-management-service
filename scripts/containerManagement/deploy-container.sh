@@ -129,12 +129,6 @@ print_separator "-"
 kubectl apply -f "${CONFIG_DIR}/service.yaml"
 
 print_separator "="
-echo "📥 Applying Gateway HTTPRoute..."
-print_separator "-"
-
-kubectl apply -f "${CONFIG_DIR}/gateway-route.yaml"
-
-print_separator "="
 echo "⏳ Waiting for Recipe Management Service pod to be ready..."
 print_separator "-"
 
@@ -146,33 +140,13 @@ kubectl wait --namespace="$NAMESPACE" \
 print_separator "-"
 echo "✅ Recipe Management Service is up and running in namespace '$NAMESPACE'.'"
 
-print_separator "="
-echo "🔗 Setting up /etc/hosts for recipe-management.local..."
-print_separator "-"
-
-MINIKUBE_IP=$(minikube ip)
-if grep -q "recipe-management.local" /etc/hosts; then
-  echo "🔄 Updating /etc/hosts for recipe-management.local..."
-  sed -i "/recipe-management.local/d" /etc/hosts
-else
-  echo "➕ Adding recipe-management.local to /etc/hosts..."
-fi
-echo "$MINIKUBE_IP recipe-management.local" >> /etc/hosts
-echo "✅ /etc/hosts updated with recipe-management.local pointing to $MINIKUBE_IP"
-
-print_separator "="
-echo "🌍 You can now access your app at: http://sous-chef-proxy.local/actuator/health"
-
 POD_NAME=$(kubectl get pods -n "$NAMESPACE" -l app=recipe-management-service -o jsonpath="{.items[0].metadata.name}")
 SERVICE_JSON=$(kubectl get svc recipe-management-service -n "$NAMESPACE" -o json)
 SERVICE_IP=$(echo "$SERVICE_JSON" | jq -r '.spec.clusterIP')
 SERVICE_PORT=$(echo "$SERVICE_JSON" | jq -r '.spec.ports[0].port')
-GATEWAY_HOSTS=$(kubectl get httproute -n "$NAMESPACE" -o jsonpath='{.items[*].spec.hostnames[*]}' | tr ' ' '\n' | sort -u | paste -sd ',' -)
 
 print_separator "="
 echo "🛰️  Access info:"
 echo "  Pod: $POD_NAME"
 echo "  Service: $SERVICE_IP:$SERVICE_PORT"
-echo "  Gateway Hosts: $GATEWAY_HOSTS"
-echo "  Health Check: http://sous-chef-proxy.local/actuator/health"
 print_separator "="

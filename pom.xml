@@ -32,7 +32,7 @@
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <spotbugs.version>4.9.8.2</spotbugs.version>
     <spring-cloud.version>2025.1.0</spring-cloud.version>
-    <testcontainers.version>1.21.4</testcontainers.version>
+    <testcontainers.version>2.0.3</testcontainers.version>
   </properties>
 
   <dependencyManagement>

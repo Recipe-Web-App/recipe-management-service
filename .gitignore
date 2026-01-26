@@ -42,3 +42,9 @@ tests/http/config-private.json
 
 # Postman private environment files with credentials
 tests/postman/*-Private.postman_environment.json
+
+# Serena
+.serena/
+
+# Beads
+.bv/

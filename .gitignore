@@ -34,6 +34,9 @@ tmp/
 # Build files
 target/
 
+# Project settings
+.settings/
+
 # Node Modules containing caches for pre-commit dependencies
 node_modules/
 

@@ -1,5 +1,5 @@
 # ---- Build Stage ----
-FROM maven:3-eclipse-temurin-25 AS build
+FROM maven:3-eclipse-temurin-25@sha256:e3d34f15aa3cb5323856d2dc9e1c0db5645dff5c038a36a12e38a82dd4e9f595 AS build
 WORKDIR /app
 
 # Copy only pom.xml and checkstyle.xml first for dependency caching
@@ -17,7 +17,7 @@ COPY src ./src
 RUN mvn clean package -DskipTests
 
 # ---- Run Stage ----
-FROM eclipse-temurin:25-jre
+FROM eclipse-temurin:25-jre@sha256:9d1d3068b16f2c4127be238ca06439012ff14a8fdf38f8f62472160f9058464a
 WORKDIR /app
 
 # Install curl for health checks

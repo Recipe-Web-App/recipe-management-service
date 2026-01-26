@@ -1,4 +1,5 @@
 ---
+default_stages: [pre-commit]
 ci:
   autofix_commit_msg: |
     chore(pre-commit-ci): auto fixes from pre-commit hooks

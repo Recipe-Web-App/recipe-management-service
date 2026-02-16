@@ -1,5 +1,5 @@
 # ---- Build Stage ----
-FROM maven:3-eclipse-temurin-25@sha256:d6610406c91a8895f9859442885056b42350937dbb1f1592a64803381de85a3a AS build
+FROM maven:3-eclipse-temurin-25@sha256:b8187abd63cd4ee8c596aae910ce698a10db6d27ad5be08d574f3b928526724e AS build
 WORKDIR /app
 
 # Copy only pom.xml and checkstyle.xml first for dependency caching

@@ -74,7 +74,7 @@ jobs:
 
       - name: Generate SBOM for Docker image
         if: success()
-        uses: anchore/sbom-action@28d71544de8eaf1b958d335707167c5f783590ad # v0
+        uses: anchore/sbom-action@17ae1740179002c89186b61233e0f892c3118b11 # v0
         with:
           image: recipe-manager-service:latest
           format: spdx-json

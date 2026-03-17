@@ -23,7 +23,7 @@
     <jacoco.version>0.8.14</jacoco.version>
     <java.version>25</java.version>
     <jjwt.version>0.13.0</jjwt.version>
-    <lombok.version>1.18.42</lombok.version>
+    <lombok.version>1.18.44</lombok.version>
     <mapstruct.version>1.6.3</mapstruct.version>
     <maven.compiler.source>25</maven.compiler.source>
     <maven.compiler.target>25</maven.compiler.target>
